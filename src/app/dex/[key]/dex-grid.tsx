@@ -306,7 +306,9 @@ export function DexGrid({
                       <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>
                       <span className="no">#{String(c.no).padStart(4, "0")}</span>
                       <span className="nm">{c.name}</span>
-                      <span className={`tag form${c.showOnly ? " show-only" : ""}`}>{c.showOnly ? t.battleOnly : (t.formTypes[c.formType] ?? c.formType)}</span>
+                      {allForms && (
+                        <span className={`tag form${c.showOnly ? " show-only" : ""}`}>{c.showOnly ? t.battleOnly : (t.formTypes[c.formType] ?? c.formType)}</span>
+                      )}
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>

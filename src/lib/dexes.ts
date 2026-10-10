@@ -40,7 +40,7 @@ export interface Dex {
   shiny: boolean;
   /** Rows with no date in dateField are hidden instead of greyed out. */
   hideWithoutDate?: boolean;
-  /** In game version counts every row (no species grouping, no All forms version). */
+  /** Always shows every row (no species grouping, no All forms version): Mega, Gigantamax, Dynamax, Costume/Event. */
   everyRow?: boolean;
   /** Set on shiny dexes: the regular dex whose pages show it as a star toggle. */
   shinyOf?: string;
@@ -64,9 +64,9 @@ export const DEXES: Dex[] = [
   { key: "perfect", name: { en: "Perfect", sv: "Perfekta" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny" },
   { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny" },
-  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "mega_shiny" },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "gigantamax_shiny" },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, shinyKey: "dynamax_shiny", notInGame: true },
+  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, everyRow: true, shinyKey: "dynamax_shiny", notInGame: true },
   { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
 
   // Shiny dexes: ticked with a star on their regular dex's pages, not shown as dexes of their own.
@@ -74,9 +74,9 @@ export const DEXES: Dex[] = [
   { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "caught", notInGame: true },
   { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
   { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
-  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "mega" },
-  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "gigantamax" },
-  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, shinyOf: "dynamax", notInGame: true },
+  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "mega" },
+  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "gigantamax" },
+  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, everyRow: true, shinyOf: "dynamax", notInGame: true },
   { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes", notInGame: true },
 ];
 
