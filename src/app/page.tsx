@@ -1,11 +1,23 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { dexEntries, progress, today, visibleDexes } from "@/lib/dexes";
+import { MonImage } from "@/components/mon-ui";
+import { dexEntries, displayName, progress, today, upcomingReleases, visibleDexes, type Dex, type Pokemon, type Tick } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
 
 export const dynamic = "force-dynamic";
+
+function Progress({ all, dex, allForms, ticks, day }: { all: Pokemon[]; dex: Dex; allForms: boolean; ticks: Map<string, Tick>; day: string }) {
+  const { done, total } = progress(dexEntries(all, dex, allForms, day), dex, ticks, day);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return (
+    <>
+      <div className="count">{done} / {total} · {pct}%</div>
+      <div className="bar"><i style={{ width: `${pct}%` }} /></div>
+    </>
+  );
+}
 
 export default async function Home() {
   const profile = await getProfile();
@@ -13,33 +25,55 @@ export default async function Home() {
   const [{ lang, t }, all, ticks] = await Promise.all([getDict(), getPokemon(), getTicks()]);
   const day = today();
   const ticksBy = byDex(ticks);
-  const dexes = visibleDexes(profile.visible_dexes);
-
-  const tiles = (allForms: boolean) =>
-    dexes
-      .filter((d) => !(allForms && d.everyRow))
-      .map((d) => {
-        const { done, total } = progress(dexEntries(all, d, allForms, day), d, ticksBy.get(d.key) ?? new Map(), day);
-        const pct = total ? Math.round((done / total) * 100) : 0;
-        return (
-          <Link key={d.key} href={`/dex/${d.key}${allForms ? "?forms=all" : ""}`} className="dex-tile">
-            <div className="name">{d.name[lang]}</div>
-            <div className="count">{done} / {total} · {pct}%</div>
-            <div className="bar"><i style={{ width: `${pct}%` }} /></div>
-          </Link>
-        );
-      });
+  const upcoming = upcomingReleases(all, day);
+  const fmt = new Intl.DateTimeFormat(lang === "sv" ? "sv-SE" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
     <>
       <h1>{t.dexes}</h1>
-      {profile.all_forms && <div className="section-label">{t.inGame}</div>}
-      <div className="dex-list">{tiles(false)}</div>
-      {profile.all_forms && (
-        <>
-          <div className="section-label">{t.allForms}</div>
-          <div className="dex-list">{tiles(true)}</div>
-        </>
+      <div className="dex-list">
+        {visibleDexes(profile.visible_dexes).map((d) => {
+          const dt = ticksBy.get(d.key) ?? new Map<string, Tick>();
+          return (
+            <div key={d.key} className="dex-tile">
+              <Link href={`/dex/${d.key}`} className="tile-main">
+                <div className="name">{d.name[lang]}</div>
+                <Progress all={all} dex={d} allForms={false} ticks={dt} day={day} />
+              </Link>
+              {profile.all_forms && !d.everyRow && (
+                <Link href={`/dex/${d.key}?forms=all`} className="tile-forms">
+                  <div className="sub">{t.allForms}</div>
+                  <Progress all={all} dex={d} allForms ticks={dt} day={day} />
+                </Link>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <h2 className="section-title">{t.upcomingReleases}</h2>
+      {upcoming.length === 0 ? (
+        <p className="empty">{t.noUpcoming}</p>
+      ) : (
+        upcoming.map((g) => (
+          <section key={g.date} className="upcoming">
+            <h3>{fmt.format(new Date(`${g.date}T00:00:00Z`))}</h3>
+            <ul>
+              {g.items.map(({ pokemon: p, type }) => {
+                const shiny = type.endsWith("shiny");
+                return (
+                  <li key={`${p.id}-${type}`}>
+                    <Link href={`/pokemon/${p.species}`}>
+                      <MonImage file={shiny ? p.image_shiny : p.image_regular} size={48} />
+                      <span className="nm">{displayName(p)}</span>
+                      <span className="type">{t.releaseType[type]}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))
       )}
     </>
   );

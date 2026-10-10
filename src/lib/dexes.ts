@@ -146,6 +146,33 @@ export function missing(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, da
   });
 }
 
+export const DATE_FIELDS: DateField[] = [
+  "released", "release_shiny", "release_shadow", "release_shadow_shiny", "release_dynamax", "release_dynamax_shiny",
+];
+
+export interface Upcoming { date: string; items: { pokemon: Pokemon; type: DateField }[] }
+
+/** Every release date after today, grouped by date, soonest first. */
+export function upcomingReleases(all: Pokemon[], day: string): Upcoming[] {
+  const byDate = new Map<string, Upcoming["items"]>();
+  for (const p of all) {
+    for (const f of DATE_FIELDS) {
+      const d = p[f];
+      if (d && d > day) {
+        const list = byDate.get(d) ?? [];
+        list.push({ pokemon: p, type: f });
+        byDate.set(d, list);
+      }
+    }
+  }
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, items]) => ({
+      date,
+      items: items.sort((a, b) => a.pokemon.sort_order - b.pokemon.sort_order || DATE_FIELDS.indexOf(a.type) - DATE_FIELDS.indexOf(b.type)),
+    }));
+}
+
 export function displayName(p: Pokemon): string {
   return p.alt_name || p.name;
 }

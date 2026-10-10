@@ -19,7 +19,7 @@ export function AuthForm({
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, initial);
   const title = { login: t.signIn, signup: t.signUp, forgot: t.forgotPassword, reset: t.setPassword }[mode];
   const submit = { login: t.signIn, signup: t.signUp, forgot: t.sendResetLink, reset: t.save }[mode];
-  const message = state?.message ? (t as Record<string, string>)[state.message] ?? state.message : null;
+  const message = state?.message ? (t as unknown as Record<string, string>)[state.message] ?? state.message : null;
 
   return (
     <form action={formAction} className="card-form">
