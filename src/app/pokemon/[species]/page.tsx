@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { dexByKey, displayName, shinyToggles, statusOf, today, type Status } from "@/lib/dexes";
+import { collectible, dexByKey, displayName, shinyToggles, statusOf, today, type Status } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
@@ -41,9 +41,9 @@ export default async function SpeciesPage({
       shiny: p.image_shiny,
       status,
       date: inDex ? p[dex.dateField] : p.released,
-      tickable: inDex && status === "available",
+      tickable: inDex && status === "available" && collectible(p),
       stars: toggles
-        .filter((s) => s.dex.includes(p) && statusOf(p, s.dex, day) === "available")
+        .filter((s) => collectible(p) && s.dex.includes(p) && statusOf(p, s.dex, day) === "available")
         .map((s) => ({ kind: s.kind, dex: s.dex.key, label: s.dex.name[lang] })),
     };
   });

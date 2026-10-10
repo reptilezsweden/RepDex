@@ -189,6 +189,8 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .mon.unreleased .nm, .mon.upcoming .nm { color: var(--muted); }
 .mon.upcoming { border-color: var(--upcoming); }
 .mon .tag { font-size: 0.7rem; color: var(--muted); }
+.mon .tag.form { margin-top: 1px; }
+.mon .tag.show-only { font-style: italic; }
 .mon.upcoming .tag.up, .mon.upcoming .mon-link .tag { color: var(--upcoming); }
 
 .tick, .want {

@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
+import { collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
@@ -53,14 +53,16 @@ export default async function DexPage({
       status: e.status,
       date: p[dex.dateField],
       // Rows a tap on this card can tick: the available ones behind it.
-      rows: e.rows.filter((r) => statusOf(r, dex, day) === "available").map((r) => r.id),
+      rows: e.rows.filter((r) => collectible(r) && statusOf(r, dex, day) === "available").map((r) => r.id),
+      formType: p.form_type,
+      showOnly: !e.rows.some(collectible),
       // Shiny toggles, only where that shiny version is released.
       stars: toggles
         .map((s) => ({
           kind: s.kind,
           dex: s.dex.key,
           label: s.dex.name[lang],
-          rows: e.rows.filter((r) => statusOf(r, s.dex, day) === "available").map((r) => r.id),
+          rows: e.rows.filter((r) => collectible(r) && statusOf(r, s.dex, day) === "available").map((r) => r.id),
         }))
         .filter((s) => s.rows.length > 0),
     };

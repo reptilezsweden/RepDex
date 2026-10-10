@@ -107,7 +107,7 @@ export function SpeciesForms({
                     )}
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>
-                    <span className="tag">{f.formType}</span>
+                    <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
                     {f.stars.length > 0 && (
                       <span className="extras">

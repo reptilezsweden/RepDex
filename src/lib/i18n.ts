@@ -66,6 +66,11 @@ const en = {
   bulkCheckText: "Choose what to mark for the entries in the current view.",
   bulkUncheckText: "Choose what to remove for the entries in the current view.",
   searchFamily: "Search whole family",
+  battleOnly: "Battle only · not collectible",
+  formTypes: {
+    Regular: "Regular", Costume: "Costume/Event", Form: "Form", Mega: "Mega", Regional: "Regional",
+    Gigantamax: "Gigantamax", "Battle-Only Form": "Battle only", Gender: "Gender",
+  } as Record<string, string>,
   showUpcoming: "Show upcoming",
   showUnreleasedSwitch: "Show unreleased",
   notInGame: "Not in game",
@@ -149,6 +154,11 @@ const sv: typeof en = {
   bulkCheckText: "Välj vad som ska markeras för posterna i aktuell vy.",
   bulkUncheckText: "Välj vad som ska tas bort för posterna i aktuell vy.",
   searchFamily: "Sök hela familjen",
+  battleOnly: "Endast strid · kan inte samlas",
+  formTypes: {
+    Regular: "Vanlig", Costume: "Kostym/Event", Form: "Form", Mega: "Mega", Regional: "Regional",
+    Gigantamax: "Gigantamax", "Battle-Only Form": "Endast strid", Gender: "Kön",
+  } as Record<string, string>,
   showUpcoming: "Visa kommande",
   showUnreleasedSwitch: "Visa ej släppta",
   notInGame: "Inte i spelet",

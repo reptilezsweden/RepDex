@@ -142,13 +142,18 @@ export function dexEntries(all: Pokemon[], dex: Dex, allForms: boolean, day: str
 export interface Tick { pokemon_id: string; dex: string; collected: boolean; wanted: boolean }
 
 /** Collected / total over available entries. A species card counts when any of its available rows is collected. */
+/** Battle-only forms are shown for completeness but can't be ticked or counted. */
+export const collectible = (p: Pokemon) => p.form_type !== "Battle-Only Form";
+
 export function progress(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, day: string) {
   let total = 0;
   let done = 0;
   for (const e of entries) {
     if (e.status !== "available") continue;
+    const rows = e.rows.filter((r) => collectible(r) && statusOf(r, dex, day) === "available");
+    if (rows.length === 0) continue;
     total++;
-    if (e.rows.some((r) => statusOf(r, dex, day) === "available" && ticks.get(r.id)?.collected)) done++;
+    if (rows.some((r) => ticks.get(r.id)?.collected)) done++;
   }
   return { done, total };
 }

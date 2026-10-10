@@ -23,6 +23,9 @@ export interface Card {
   status: Status;
   date: string | null;
   rows: string[];
+  formType: string;
+  /** Battle-only forms: shown, but can't be ticked or counted. */
+  showOnly: boolean;
   /** Shiny toggles on this card: one star, plus three stars on Caught. */
   stars: { kind: StarKind; dex: string; label: string; rows: string[] }[];
 }
@@ -75,7 +78,7 @@ export function DexGrid({
   const starOf = (c: Card, kind: StarKind) => c.stars.find((s) => s.kind === kind);
   const starOn = (st: Card["stars"][number]) => st.rows.some((r) => get(st.dex, r)?.collected);
 
-  const available = cards.filter((c) => c.status === "available");
+  const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
   const done = available.filter((c) => stateOf(c).collected).length;
 
   const visible = useMemo(() => {
@@ -92,7 +95,7 @@ export function DexGrid({
       if (show === "missing") {
         // Missing: not collected yet or wanted, plus everything about to be released.
         if (c.status === "upcoming") return true;
-        if (c.status !== "available") return false;
+        if (c.status !== "available" || c.rows.length === 0) return false;
         const s = stateOf(c);
         if (!s.collected || s.wanted) return true;
         // Shown shiny stars count too: a shiny not yet ticked, or one marked wanted.
@@ -303,6 +306,7 @@ export function DexGrid({
                       <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>
                       <span className="no">#{String(c.no).padStart(4, "0")}</span>
                       <span className="nm">{c.name}</span>
+                      <span className={`tag form${c.showOnly ? " show-only" : ""}`}>{c.showOnly ? t.battleOnly : (t.formTypes[c.formType] ?? c.formType)}</span>
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>
