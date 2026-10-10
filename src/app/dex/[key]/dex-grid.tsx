@@ -85,7 +85,9 @@ export function DexGrid({
         if (c.status === "upcoming") return true;
         if (c.status !== "available") return false;
         const s = stateOf(c);
-        return !s.collected || s.wanted;
+        if (!s.collected || s.wanted) return true;
+        // Shown shiny stars count too: a shiny not yet ticked, or one marked wanted.
+        return c.stars.some((st) => !starOn(st) || st.rows.some((r) => get(st.dex, r)?.wanted));
       }
       if (show === "collected") return c.status === "available" && stateOf(c).collected;
       return true;
