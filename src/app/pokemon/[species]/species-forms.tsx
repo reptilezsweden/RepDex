@@ -31,7 +31,7 @@ export function SpeciesForms({
   userId: string;
   t: Dict;
 }) {
-  const { get, save, toggle: toggleStar, error } = useTicks(userId, initialTicks);
+  const { get, save, toggle: toggleStar, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
 
   function toggle(id: string, field: "collected" | "wanted") {
     const cur = get(dexKey, id);
@@ -83,11 +83,15 @@ export function SpeciesForms({
                     {f.stars.length > 0 && (
                       <span className="extras">
                         {f.stars.map((st) => (
-                          <StarButton
-                            key={st.dex} kind={st.kind} label={st.label}
-                            on={!!get(st.dex, f.id)?.collected}
-                            onClick={() => toggleStar(st.dex, [f.id], f.id)}
-                          />
+                          <span key={st.dex} className="star-pair">
+                            {get(st.dex, f.id)?.collected && (
+                              <WantedButton
+                                inline on={!!get(st.dex, f.id)?.wanted} label={`${t.wanted}: ${st.label}`}
+                                onClick={() => toggleStarWanted(st.dex, [f.id])}
+                              />
+                            )}
+                            <StarButton kind={st.kind} label={st.label} on={!!get(st.dex, f.id)?.collected} onClick={() => toggleStar(st.dex, [f.id], f.id)} />
+                          </span>
                         ))}
                       </span>
                     )}

@@ -62,5 +62,16 @@ export function useTicks(userId: string, initial: TickRow[]) {
     void save(dex, changes);
   }
 
-  return { get, save, toggle, error };
+  /** Mark or unmark a collected entry as wanted (puzzle piece) in a dex. */
+  function toggleWanted(dex: string, rows: string[]) {
+    const ticked = rows.filter((r) => get(dex, r)?.collected);
+    if (ticked.length === 0) return;
+    const wanted = ticked.some((r) => get(dex, r)?.wanted);
+    const changes: TickChanges = new Map();
+    if (wanted) for (const r of ticked) changes.set(r, { collected: true, wanted: false });
+    else changes.set(ticked[0], { collected: true, wanted: true });
+    void save(dex, changes);
+  }
+
+  return { get, save, toggle, toggleWanted, error };
 }

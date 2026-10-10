@@ -19,9 +19,9 @@ export function CheckButton({ on, label, onClick }: { on: boolean; label: string
 }
 
 /** Puzzle piece marking a collected entry as wanted: outline when off, filled when on. */
-export function WantedButton({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+export function WantedButton({ on, label, onClick, inline }: { on: boolean; label: string; onClick: () => void; inline?: boolean }) {
   return (
-    <button type="button" className="want" aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+    <button type="button" className={inline ? "want inline" : "want"} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
         <path d={PUZZLE} />
       </svg>

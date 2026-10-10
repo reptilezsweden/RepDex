@@ -49,7 +49,7 @@ export function DexGrid({
   allForms: boolean;
   t: Dict;
 }) {
-  const { get, save, toggle, error } = useTicks(userId, initialTicks);
+  const { get, save, toggle, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
   const has = (id: string) => !!get(dexKey, id);
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState<string>("");
@@ -265,11 +265,15 @@ export function DexGrid({
                     {c.status === "available" && c.stars.length > 0 && (
                       <span className="extras">
                         {c.stars.map((st) => (
-                          <StarButton
-                            key={st.dex} kind={st.kind} label={st.label}
-                            on={starOn(st)}
-                            onClick={() => toggle(st.dex, st.rows, st.rows[0])}
-                          />
+                          <span key={st.dex} className="star-pair">
+                            {starOn(st) && (
+                              <WantedButton
+                                inline on={st.rows.some((r) => get(st.dex, r)?.wanted)} label={`${t.wanted}: ${st.label}`}
+                                onClick={() => toggleStarWanted(st.dex, st.rows)}
+                              />
+                            )}
+                            <StarButton kind={st.kind} label={st.label} on={starOn(st)} onClick={() => toggle(st.dex, st.rows, st.rows[0])} />
+                          </span>
                         ))}
                       </span>
                     )}
