@@ -61,11 +61,11 @@ export const DEXES: Dex[] = [
   { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
-  { key: "perfect", name: { en: "Perfect", sv: "Perfekta" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
+  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
   { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny" },
   { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny" },
-  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
+  { key: "perfect", name: { en: "100%", sv: "100%" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, everyRow: true, shinyKey: "dynamax_shiny", notInGame: true },
   { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
 
@@ -85,6 +85,8 @@ export const BASE_DEXES = DEXES.filter((d) => !d.shinyOf);
 /** Shiny dexes switched together by the "Show shiny" setting (Shiny ⭐⭐⭐ has its own setting). */
 export const SHINY_KEYS = DEXES.filter((d) => d.shinyOf && d.key !== "shiny3").map((d) => d.key);
 export const ALWAYS_ON = "caught";
+/** Dexes that follow Caught: ticking one also ticks Caught, and unticking Caught unticks them. */
+export const CAUGHT_LINKED = ["lucky", "xxl", "xxs", "perfect"];
 
 export const dexByKey = (key: string) => DEXES.find((d) => d.key === key);
 

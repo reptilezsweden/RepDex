@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
+import { CAUGHT_LINKED, collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
@@ -24,8 +24,12 @@ export default async function DexPage({
 
   const toggles = shinyToggles(dex, profile.visible_dexes);
   const allForms = forms === "all" && profile.all_forms && !dex.everyRow;
+  // Lucky, XXL, XXS and Perfect follow Caught: their ticks tick Caught, and unticking Caught unticks them.
+  const parent = CAUGHT_LINKED.includes(dex.key) ? dexByKey("caught")! : null;
+  const childDexes = dex.key === "caught" ? CAUGHT_LINKED : [];
   const [{ lang, t }, all, gens, ticks] = await Promise.all([
-    getDict(), getPokemon(), getGens(), getTicks([dex.key, ...toggles.map((s) => s.dex.key)]),
+    getDict(), getPokemon(), getGens(),
+    getTicks([dex.key, ...toggles.map((s) => s.dex.key), ...(parent ? [parent.key] : []), ...childDexes]),
   ]);
   const day = today();
 
@@ -54,6 +58,9 @@ export default async function DexPage({
       date: p[dex.dateField],
       // Rows a tap on this card can tick: the available ones behind it.
       rows: e.rows.filter((r) => collectible(r) && statusOf(r, dex, day) === "available").map((r) => r.id),
+      parentRows: parent
+        ? e.rows.filter((r) => collectible(r) && parent.includes(r) && statusOf(r, parent, day) === "available").map((r) => r.id)
+        : [],
       formType: p.form_type,
       showOnly: !e.rows.some(collectible),
       // Shiny toggles, only where that shiny version is released.
@@ -82,6 +89,8 @@ export default async function DexPage({
       initialShowUnreleased={profile.show_unreleased ?? profile.show_unavailable ?? true}
       notInGame={!!dex.notInGame}
       starKinds={toggles.map((s) => s.kind)}
+      parentDex={parent?.key ?? null}
+      childDexes={childDexes}
       canSwitchForms={profile.all_forms && !dex.everyRow}
       allForms={allForms}
       t={t}

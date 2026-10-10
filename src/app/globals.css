@@ -80,7 +80,8 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .msg.error { color: var(--accent); }
 
 /* Dex overview */
-.dex-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+/* At most 4 columns; fewer on narrow screens. */
+.dex-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(220px, calc((100% - 36px) / 4)), 1fr)); gap: 12px; }
 .dex-tile {
   display: flex; flex-direction: column;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
@@ -387,3 +388,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .filters[hidden] { display: none; }
 .collapse-btn { justify-self: start; }
 .bulk .switch { margin-left: 8px; }
+.admin-fields input:disabled { opacity: 0.45; cursor: not-allowed; }
+.upload-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.upload-row input[type="file"] { flex: 1; min-width: 0; }
+.faulty { margin: 4px 0 0; padding-left: 20px; max-height: 260px; overflow-y: auto; font-size: 0.9rem; color: var(--muted); }

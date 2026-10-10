@@ -92,7 +92,7 @@ Admins manage the crawler sources in the app: page URL, which date field it fill
 
 | Source page | Feeds field | Dexes affected | Notes |
 | --- | --- | --- | --- |
-| [List of Pokémon with different forms](https://pokemongo.fandom.com/wiki/List_of_Pok%C3%A9mon_with_different_forms#Regular) | `released`, `released_shiny` on every row except Costume | Caught, Lucky, XXL, XXS, Perfect, Shiny, Shiny ⭐⭐⭐, Mega, Gigantamax and their shiny dexes | Covers Regular, Form, Regional, Mega, Gigantamax, Battle-Only Form and Gender rows; lists both release and shiny dates for plain Regular Pokémon |
+| [List of Pokémon with different forms](https://pokemongo.fandom.com/wiki/List_of_Pok%C3%A9mon_with_different_forms#Regular) | `released`, `released_shiny` on every row except Costume | Caught, Lucky, XXL, XXS, 100%, Shiny, Shiny ⭐⭐⭐, Mega, Gigantamax and their shiny dexes | Covers Regular, Form, Regional, Mega, Gigantamax, Battle-Only Form and Gender rows; lists both release and shiny dates for plain Regular Pokémon |
 | [List of Event Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Event_Pok%C3%A9mon_by_release_date) | `released`, `released_shiny`, `release_event` on rows where `form_type` = Costume | Costumes, Costumes shiny | Only updates Costume rows; layout still to be checked when the crawler is built |
 | [List of Shadow Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Shadow_Pok%C3%A9mon_by_release_date) | `release_shadow`, `release_shadow_shiny` | Shadow, Purified, Shadow shiny, Purified shiny | Dates written as "July 22nd, 2019"; Pokémon listed under each date; Shadow shiny dates are on a separate tab of the same page |
 | [List of Dynamax Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Dynamax_Pok%C3%A9mon_by_release_date) | `release_dynamax`, `release_dynamax_shiny` | Dynamax, Dynamax shiny | Grouped under date headings; shiny releases appear as entries named "Shiny Dynamax \<name>"; upcoming dates are marked |
@@ -119,20 +119,20 @@ Sizes count entries released as of today; upcoming entries are not yet included.
 | Dex | Default | Includes rows where | Date field | In game today | All forms today |
 | --- | --- | --- | --- | --- | --- |
 | Caught | On | dex\_caught = TRUE | released | 956 | 1,164 |
+| Shiny | On | dex\_caught = TRUE | released\_shiny | 898 | 1,085 |
+| Shiny ⭐⭐⭐ | Off | dex\_caught = TRUE | released\_shiny | 898 | 1,085 |
 | Lucky | On | dex\_lucky = TRUE | released | 938 | 1,136 |
 | XXL | On | dex\_caught = TRUE | released | 956 | 1,164 |
 | XXS | On | dex\_caught = TRUE | released | 956 | 1,164 |
-| Perfect | On | dex\_caught = TRUE | released | 956 | 1,164 |
-| Shiny | On | dex\_caught = TRUE | released\_shiny | 898 | 1,085 |
-| Shiny ⭐⭐⭐ | Off | dex\_caught = TRUE | released\_shiny | 898 | 1,085 |
-| Shadow | On | dex\_caught = TRUE | release\_shadow | 467 | 486 |
-| Purified | On | dex\_caught = TRUE | release\_shadow | 467 | 486 |
-| Shadow shiny | Off | dex\_caught = TRUE | release\_shadow\_shiny | 341 | 353 |
-| Purified shiny | Off | dex\_caught = TRUE | release\_shadow\_shiny | 341 | 353 |
-| Mega | On | form\_type = Mega | released | 58 | 60 |
-| Mega shiny | Off | form\_type = Mega | released\_shiny | 58 | 60 |
 | Gigantamax | On | form\_type = Gigantamax | released | 17 | 17 |
 | Gigantamax shiny | Off | form\_type = Gigantamax | released\_shiny | 16 | 16 |
+| Mega | On | form\_type = Mega | released | 58 | 60 |
+| Mega shiny | Off | form\_type = Mega | released\_shiny | 58 | 60 |
+| Shadow | On | dex\_caught = TRUE | release\_shadow | 467 | 486 |
+| Shadow shiny | Off | dex\_caught = TRUE | release\_shadow\_shiny | 341 | 353 |
+| Purified | On | dex\_caught = TRUE | release\_shadow | 467 | 486 |
+| Purified shiny | Off | dex\_caught = TRUE | release\_shadow\_shiny | 341 | 353 |
+| 100% | On | dex\_caught = TRUE | released | 956 | 1,164 |
 | Dynamax | Off | form\_type = Regular, Regional, Gender or Form | release\_dynamax | 143 | 145 |
 | Dynamax shiny | Off | form\_type = Regular, Regional, Gender or Form | release\_dynamax\_shiny | 141 | 142 |
 | Costumes | Off | form\_type = Costume | released | 321 (all costumes) | No All forms version |

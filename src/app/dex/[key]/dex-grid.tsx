@@ -23,6 +23,8 @@ export interface Card {
   status: Status;
   date: string | null;
   rows: string[];
+  /** Rows that also tick in the parent dex (Caught) when ticked here. */
+  parentRows: string[];
   formType: string;
   /** Battle-only forms: shown, but can't be ticked or counted. */
   showOnly: boolean;
@@ -36,7 +38,7 @@ type Target = "regular" | StarKind;
 type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
-  dexKey, title, notInGame, cards, familyNames, gens, starKinds, initialTicks, userId,
+  dexKey, title, notInGame, cards, familyNames, gens, starKinds, parentDex, childDexes, initialTicks, userId,
   initialShowUpcoming, initialShowUnreleased, canSwitchForms, allForms, t,
 }: {
   dexKey: string;
@@ -48,6 +50,10 @@ export function DexGrid({
   gens: { gen_nr: number; region: string }[];
   /** Shiny toggles switched on for this dex, in display order. */
   starKinds: StarKind[];
+  /** Dex that a tick here also ticks (Caught, on the Lucky, XXL, XXS and Perfect pages). */
+  parentDex: string | null;
+  /** Dexes unticked along with this one (Lucky, XXL, XXS and Perfect, on the Caught page). */
+  childDexes: string[];
   initialTicks: TickRow[];
   userId: string;
   initialShowUpcoming: boolean;
@@ -165,12 +171,22 @@ export function DexGrid({
     }
   }
 
-  /** Unticking the regular checkmark also unticks the shiny stars. */
+  /**
+   * Ticking the checkmark also ticks Caught (on Lucky, XXL, XXS and Perfect). Unticking it
+   * unticks the shiny stars, and on Caught also Lucky, XXL, XXS and Perfect.
+   */
   function planRegular(plan: Plan, c: Card, on: boolean) {
     if (on) {
-      put(plan, dexKey, c.rows[0], { collected: true, wanted: false });
+      const r = c.rows[0];
+      put(plan, dexKey, r, { collected: true, wanted: false });
+      if (parentDex && c.parentRows.includes(r) && !get(parentDex, r)?.collected) {
+        put(plan, parentDex, r, { collected: true, wanted: false });
+      }
     } else {
       for (const r of c.rows) { if (has(r)) put(plan, dexKey, r, null); }
+      for (const child of childDexes) {
+        for (const r of c.rows) { if (get(child, r)) put(plan, child, r, null); }
+      }
       planStar(plan, c, "star", false);
       planStar(plan, c, "star3", false);
     }
