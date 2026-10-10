@@ -146,9 +146,15 @@ export function DexGrid({
     }
   }
 
+  /** Unticking the regular checkmark also unticks the shiny stars. */
   function planRegular(plan: Plan, c: Card, on: boolean) {
-    if (on) put(plan, dexKey, c.rows[0], { collected: true, wanted: false });
-    else for (const r of c.rows) { if (has(r)) put(plan, dexKey, r, null); }
+    if (on) {
+      put(plan, dexKey, c.rows[0], { collected: true, wanted: false });
+    } else {
+      for (const r of c.rows) { if (has(r)) put(plan, dexKey, r, null); }
+      planStar(plan, c, "star", false);
+      planStar(plan, c, "star3", false);
+    }
   }
 
   function toggleStarOf(c: Card, st: Card["stars"][number]) {
@@ -159,10 +165,9 @@ export function DexGrid({
 
   function toggleCollected(c: Card) {
     if (c.status !== "available" || c.rows.length === 0) return;
-    const changes: TickChanges = new Map();
-    if (stateOf(c).collected) for (const r of c.rows) { if (has(r)) changes.set(r, null); }
-    else changes.set(c.rows[0], { collected: true, wanted: false });
-    void save(dexKey, changes);
+    const plan: Plan = new Map();
+    planRegular(plan, c, !stateOf(c).collected);
+    commit(plan);
   }
 
   function toggleWanted(c: Card) {

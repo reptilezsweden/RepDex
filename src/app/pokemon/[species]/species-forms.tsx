@@ -36,7 +36,14 @@ export function SpeciesForms({
   function toggle(id: string, field: "collected" | "wanted") {
     const cur = get(dexKey, id);
     const changes: TickChanges = new Map();
-    if (field === "collected") changes.set(id, cur?.collected ? null : { collected: true, wanted: false });
+    if (field === "collected") {
+      changes.set(id, cur?.collected ? null : { collected: true, wanted: false });
+      // Unticking the regular checkmark also unticks the shiny stars.
+      if (cur?.collected) {
+        const f = forms.find((x) => x.id === id);
+        if (f) { setStar(f, "star", false); setStar(f, "star3", false); }
+      }
+    }
     else if (cur?.collected) changes.set(id, { collected: true, wanted: !cur.wanted });
     void save(dexKey, changes);
   }
