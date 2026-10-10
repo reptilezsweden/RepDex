@@ -366,3 +366,22 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23808080' stroke-width='9'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Cpath d='M21.7 21.7l56.6 56.6'/%3E%3C/g%3E%3C/svg%3E") center / 80% no-repeat;
 }
 .switch svg path { fill: var(--wanted); }
+
+/* Floating search and filters on dex pages */
+.filters-sentinel { height: 1px; }
+.filter-bar.floating {
+  position: sticky; top: calc(max(10px, env(safe-area-inset-top)) + 33px); z-index: 9; margin: 0 -16px 12px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+.filter-bar.floating .filters { margin-bottom: 0; }
+.filter-bar.collapsed { padding-top: 6px; padding-bottom: 6px; }
+.filter-summary {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; text-align: left;
+}
+.filter-summary .text { flex: 1; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-summary .count { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+.filters[hidden] { display: none; }
+.collapse-btn { justify-self: start; }
+.bulk .switch { margin-left: 8px; }

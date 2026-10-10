@@ -78,6 +78,8 @@ const en = {
   legendUnavailable: "Not released yet",
   legendHelp: "Faded icons aren't ticked yet. Ticking a shiny, Lucky, XXL, XXS or Perfect also ticks Caught.",
   wantedMode: "Mark wanted",
+  searchAndFilters: "Search and filters",
+  hideFilters: "Hide filters",
   wantedModeHelp: "Wanted mode: tap a ticked icon to mark it as wanted (puzzle piece). Tap again to remove it.",
   battleOnly: "Battle only · not collectible",
   formTypes: {
@@ -179,6 +181,8 @@ const sv: typeof en = {
   legendUnavailable: "Inte släppt än",
   legendHelp: "Bleka ikoner är inte markerade än. En shiny, Lucky, XXL, XXS eller Perfekt markerar även Fångad.",
   wantedMode: "Markera önskade",
+  searchAndFilters: "Sök och filter",
+  hideFilters: "Dölj filter",
   wantedModeHelp: "Önskeläge: tryck på en markerad ikon för att markera den som önskad (pusselbit). Tryck igen för att ta bort.",
   battleOnly: "Endast strid · kan inte samlas",
   formTypes: {

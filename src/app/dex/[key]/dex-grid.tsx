@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
-import { CheckButton, HoverShiny, StarButton, StarIcon, WantedButton } from "@/components/mon-ui";
+import { CheckButton, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
@@ -189,6 +189,47 @@ export function DexGrid({
     commit(plan);
   }
 
+  // Wanted mode: tapping a ticked checkmark or star marks it as wanted instead of unticking it.
+  const [wantedMode, setWantedMode] = useState(false);
+  function tapCheck(c: Card) {
+    if (!wantedMode) return toggleCollected(c);
+    if (stateOf(c).collected) toggleWanted(c);
+  }
+  function tapStar(c: Card, st: Card["stars"][number]) {
+    if (!wantedMode) return toggleStarOf(c, st);
+    if (starOn(st)) toggleStarWanted(st.dex, st.rows);
+  }
+
+  // Filters float at the top; once scrolled past, they collapse into a slim bar until tapped.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      setScrolled(!e.isIntersecting);
+      if (e.isIntersecting) setOpen(false);
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!open || !scrolled) return;
+    // Collapse again once the user scrolls on through the list.
+    const start = window.scrollY;
+    const onScroll = () => { if (Math.abs(window.scrollY - start) > 240) setOpen(false); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [open, scrolled]);
+  const collapsed = scrolled && !open;
+  const summary = [
+    query.trim() ? `“${query.trim()}”` : null,
+    gen ? gens.find((g) => String(g.gen_nr) === gen)?.region : null,
+    show !== "all" ? { missing: t.showMissing, collected: t.showCollected }[show] : null,
+    wantedMode ? t.wantedMode : null,
+  ].filter(Boolean).join(" · ");
+
   function toggleWanted(c: Card) {
     const ticked = c.rows.filter((r) => get(dexKey, r)?.collected);
     if (ticked.length === 0) return;
@@ -253,7 +294,17 @@ export function DexGrid({
       </div>
       {notInGame && <p className="note">{t.notInGameHelp}</p>}
 
-      <div className="filters">
+      <div ref={sentinel} className="filters-sentinel" aria-hidden="true" />
+      <div className={`filter-bar${scrolled ? " floating" : ""}${collapsed ? " collapsed" : ""}`}>
+        {collapsed && (
+          <button type="button" className="filter-summary" onClick={() => setOpen(true)} aria-expanded={false}>
+            <span aria-hidden="true">🔍</span>
+            <span className="text">{summary || t.searchAndFilters}</span>
+            <span className="count">{done} / {available.length}</span>
+            <span aria-hidden="true">▾</span>
+          </button>
+        )}
+      <div className="filters" hidden={collapsed}>
         <input type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t.search} />
         <select value={gen} onChange={(e) => setGen(e.target.value)} aria-label={t.allGens}>
           <option value="">{t.allGens}</option>
@@ -289,8 +340,17 @@ export function DexGrid({
         <span className="bulk">
           <button type="button" className="btn ghost" disabled={!anyFor("check")} onClick={() => openBulk("check")}>{t.checkAll}</button>
           <button type="button" className="btn ghost" disabled={!anyFor("uncheck")} onClick={() => openBulk("uncheck")}>{t.uncheckAll}</button>
+          <button type="button" role="switch" aria-checked={wantedMode} className="switch" onClick={() => setWantedMode(!wantedMode)}>
+            <span className="track" aria-hidden="true"><span className="knob" /></span>
+            <PuzzleIcon size={16} /> {t.wantedMode}
+          </button>
         </span>
+        {scrolled && (
+          <button type="button" className="btn ghost small collapse-btn" onClick={() => setOpen(false)}>▴ {t.hideFilters}</button>
+        )}
       </div>
+      </div>
+      {wantedMode && <p className="note">{t.wantedModeHelp}</p>}
 
       {error && <p className="msg error" role="alert">{t.errorGeneric}</p>}
 
@@ -307,10 +367,10 @@ export function DexGrid({
                 return (
                   <div key={c.id} className={cls}>
                     {c.status === "available" && c.rows.length > 0 && (
-                      <CheckButton on={s.collected} label={t.collect} onClick={() => toggleCollected(c)} />
-                    )}
-                    {s.collected && c.status === "available" && (
-                      <WantedButton on={s.wanted} label={t.wanted} onClick={() => toggleWanted(c)} />
+                      <CheckButton
+                        on={s.collected} label={t.collect} onClick={() => tapCheck(c)}
+                        wanted={s.wanted} dim={wantedMode && !s.collected}
+                      />
                     )}
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
                       <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>
@@ -326,13 +386,10 @@ export function DexGrid({
                       <span className="extras">
                         {c.stars.map((st) => (
                           <span key={st.dex} className="star-pair">
-                            {st.kind === "star" && starOn(st) && (
-                              <WantedButton
-                                inline on={st.rows.some((r) => get(st.dex, r)?.wanted)} label={`${t.wanted}: ${st.label}`}
-                                onClick={() => toggleStarWanted(st.dex, st.rows)}
-                              />
-                            )}
-                            <StarButton kind={st.kind} label={st.label} on={starOn(st)} onClick={() => toggleStarOf(c, st)} />
+                            <StarButton
+                              kind={st.kind} label={st.label} on={starOn(st)} onClick={() => tapStar(c, st)}
+                              wanted={st.rows.some((r) => get(st.dex, r)?.wanted)} dim={wantedMode && !starOn(st)}
+                            />
                           </span>
                         ))}
                       </span>
