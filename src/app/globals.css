@@ -201,6 +201,15 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .star[aria-pressed="true"] svg path { fill: #f5c518; stroke: #d9a800; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
 
+/* Shiny on hover in dex cards (pointer devices only; a tap opens the species page). */
+.hover-shiny { position: relative; display: inline-block; }
+.hover-shiny > span { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity 0.15s; }
+.hover-shiny .shy { opacity: 0; }
+@media (hover: hover) {
+  .mon-link:hover .hover-shiny .shy { opacity: 1; }
+  .mon-link:hover .hover-shiny:has(.shy) .reg { opacity: 0; }
+}
+
 /* Shiny swap on the species page */
 .swap { position: relative; padding: 0; margin-top: 18px; border: 0; background: transparent; cursor: pointer; }
 .swap > span { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity 0.15s; }

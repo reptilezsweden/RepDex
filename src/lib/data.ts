@@ -9,7 +9,7 @@ const COLUMNS =
 
 const PAGE = 1000; // Supabase returns at most 1,000 rows per request.
 
-/** The full availability list. Public data, cached for 10 minutes across requests. */
+/** The full availability list. Public data, cached for 1 minute across requests. */
 export const getPokemon = unstable_cache(
   async (): Promise<Pokemon[]> => {
     const supabase = createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
@@ -27,7 +27,7 @@ export const getPokemon = unstable_cache(
     return all.map((p) => ({ ...p, gen_nr: Number(p.gen_nr) }));
   },
   ["pokemon-list"],
-  { revalidate: 600, tags: ["pokemon"] },
+  { revalidate: 60, tags: ["pokemon"] },
 );
 
 export interface Gen { gen_nr: number; region: string; prefix_name: string }

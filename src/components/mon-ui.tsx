@@ -69,6 +69,16 @@ export function MonImage({ file, size = 72 }: { file: string | null; size?: numb
   return <Img file={file} size={size} />;
 }
 
+/** Dex card image: regular, swapping to shiny while the pointer hovers (desktop). */
+export function HoverShiny({ regular, shiny, size = 72 }: { regular: string | null; shiny: string | null; size?: number }) {
+  return (
+    <span className="hover-shiny" style={{ width: size, height: size }}>
+      <span className="reg"><Img file={regular} size={size} /></span>
+      {shiny && <span className="shy"><Img file={shiny} size={size} /></span>}
+    </span>
+  );
+}
+
 /** Regular image that shows the shiny one on hover (desktop) or click (any device). */
 export function ShinySwap({ regular, shiny, size = 96, label }: { regular: string | null; shiny: string | null; size?: number; label: string }) {
   const [pinned, setPinned] = useState(false);

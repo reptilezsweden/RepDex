@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
-import { CheckButton, MonImage, StarButton, WantedButton } from "@/components/mon-ui";
+import { CheckButton, HoverShiny, StarButton, WantedButton } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,7 @@ export interface Card {
   name: string;
   gen: number;
   image: string | null;
+  shinyImage: string | null;
   status: Status;
   date: string | null;
   rows: string[];
@@ -174,7 +175,7 @@ export function DexGrid({
                       <WantedButton on={s.wanted} label={t.wanted} onClick={() => toggleWanted(c)} />
                     )}
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
-                      <span className="pic"><MonImage file={c.image} /></span>
+                      <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>
                       <span className="no">#{String(c.no).padStart(4, "0")}</span>
                       <span className="nm">{c.name}</span>
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}

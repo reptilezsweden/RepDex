@@ -41,6 +41,7 @@ export default async function DexPage({
       name: allForms || dex.everyRow ? displayName(p) : p.name,
       gen: speciesGen.get(p.species) ?? p.gen_nr,
       image: p.image_regular,
+      shinyImage: p.image_shiny,
       status: e.status,
       date: p[dex.dateField],
       // Rows a tap on this card can tick: the available ones behind it.
