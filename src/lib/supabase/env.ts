@@ -1,4 +1,14 @@
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+/** Only the origin is used, so a pasted ".../rest/v1/" or trailing slash still works. */
+function originOf(raw: string | undefined): string {
+  const value = (raw ?? "").trim();
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value.replace(/\/+$/, "");
+  }
+}
+
+export const SUPABASE_URL = originOf(process.env.NEXT_PUBLIC_SUPABASE_URL);
 // Newer projects issue a publishable key; older ones an anon key. Either works.
 export const SUPABASE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
