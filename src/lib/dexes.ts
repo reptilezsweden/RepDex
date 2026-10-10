@@ -41,32 +41,47 @@ export interface Dex {
   hideWithoutDate?: boolean;
   /** In game version counts every row (no species grouping, no All forms version). */
   everyRow?: boolean;
+  /** Set on shiny dexes: the regular dex whose pages show it as a star toggle. */
+  shinyOf?: string;
+  /** Set on regular dexes: the shiny dex shown as a single star. */
+  shinyKey?: string;
+  /** Set on Caught: the Shiny ⭐⭐⭐ dex shown as a triple star. */
+  shiny3Key?: string;
 }
 
 const caught = (p: Pokemon) => p.dex_caught;
 const formType = (...types: FormType[]) => (p: Pokemon) => types.includes(p.form_type);
+const dynamaxForms = formType("Regular", "Regional", "Gender", "Form");
 
 export const DEXES: Dex[] = [
-  { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, shinyKey: "shiny", shiny3Key: "shiny3" },
   { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "perfect", name: { en: "Perfect", sv: "Perfekta" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
-  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true },
-  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true },
-  { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false },
-  { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false },
-  { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: false, shiny: true },
-  { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: false, shiny: true },
-  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false },
-  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: false, shiny: true },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false },
-  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: false, shiny: true },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: formType("Regular", "Regional", "Gender", "Form"), dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true },
-  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: formType("Regular", "Regional", "Gender", "Form"), dateField: "release_dynamax_shiny", defaultOn: false, shiny: true, hideWithoutDate: true },
-  { key: "costumes", name: { en: "Costumes", sv: "Kostymer" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true },
-  { key: "costumes_shiny", name: { en: "Costumes shiny", sv: "Kostymer shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: false, shiny: true, everyRow: true },
+  { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny" },
+  { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny" },
+  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "mega_shiny" },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "gigantamax_shiny" },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, shinyKey: "dynamax_shiny" },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny" },
+
+  // Shiny dexes: ticked with a star on their regular dex's pages, not shown as dexes of their own.
+  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "caught" },
+  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "caught" },
+  { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
+  { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
+  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "mega" },
+  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "gigantamax" },
+  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, shinyOf: "dynamax" },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes" },
 ];
+
+/** Regular dexes, i.e. the ones with their own page. */
+export const BASE_DEXES = DEXES.filter((d) => !d.shinyOf);
+/** Shiny dexes switched together by the "Show shiny" setting (Shiny ⭐⭐⭐ has its own setting). */
+export const SHINY_KEYS = DEXES.filter((d) => d.shinyOf && d.key !== "shiny3").map((d) => d.key);
+export const ALWAYS_ON = "caught";
 
 export const dexByKey = (key: string) => DEXES.find((d) => d.key === key);
 
@@ -177,6 +192,23 @@ export function displayName(p: Pokemon): string {
   return p.alt_name || p.name;
 }
 
+/** Whether a dex (regular or shiny) is switched on. Caught is always on. */
+export function isOn(key: string, visible: string[] | null | undefined): boolean {
+  if (key === ALWAYS_ON) return true;
+  const d = dexByKey(key);
+  if (!d) return false;
+  return visible ? visible.includes(key) : d.defaultOn;
+}
+
+/** Regular dexes shown on the start page, in order. */
 export function visibleDexes(visible: string[] | null | undefined): Dex[] {
-  return DEXES.filter((d) => (visible ? visible.includes(d.key) : d.defaultOn));
+  return BASE_DEXES.filter((d) => isOn(d.key, visible));
+}
+
+/** The shiny toggles a regular dex shows: its star and, for Caught, the triple star. */
+export function shinyToggles(base: Dex, visible: string[] | null | undefined): { kind: "star" | "star3"; dex: Dex }[] {
+  const out: { kind: "star" | "star3"; dex: Dex }[] = [];
+  if (base.shinyKey && isOn(base.shinyKey, visible)) out.push({ kind: "star", dex: dexByKey(base.shinyKey)! });
+  if (base.shiny3Key && isOn(base.shiny3Key, visible)) out.push({ kind: "star3", dex: dexByKey(base.shiny3Key)! });
+  return out;
 }

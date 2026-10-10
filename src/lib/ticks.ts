@@ -1,13 +1,13 @@
 import type { Tick } from "./dexes";
 import { createClient } from "./supabase/server";
 
-/** The signed-in user's ticks, optionally for one dex. Paged past Supabase's 1,000-row limit. */
-export async function getTicks(dex?: string): Promise<Tick[]> {
+/** The signed-in user's ticks, optionally only for some dexes. Paged past Supabase's 1,000-row limit. */
+export async function getTicks(dexes?: string[]): Promise<Tick[]> {
   const supabase = await createClient();
   const out: Tick[] = [];
   for (let from = 0; ; from += 1000) {
     let q = supabase.from("ticks").select("pokemon_id,dex,collected,wanted").range(from, from + 999);
-    if (dex) q = q.eq("dex", dex);
+    if (dexes) q = q.in("dex", dexes);
     const { data, error } = await q;
     if (error) throw error;
     out.push(...((data ?? []) as Tick[]));

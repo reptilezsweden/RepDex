@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { CheckButton, ShinySwap, WantedButton } from "@/components/mon-ui";
+import { CheckButton, ShinySwap, StarButton, WantedButton } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
-import { useTicks, type TickChanges, type TickState } from "@/lib/use-ticks";
+import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
 
 export interface FormCard {
   id: string;
@@ -15,6 +15,7 @@ export interface FormCard {
   status: Status;
   date: string | null;
   tickable: boolean;
+  stars: { kind: "star" | "star3"; dex: string; label: string }[];
 }
 
 export function SpeciesForms({
@@ -26,18 +27,18 @@ export function SpeciesForms({
   dexName: string;
   backHref: string;
   forms: FormCard[];
-  initialTicks: ({ pokemon_id: string } & TickState)[];
+  initialTicks: TickRow[];
   userId: string;
   t: Dict;
 }) {
-  const { ticks, save, error } = useTicks(dexKey, userId, initialTicks);
+  const { get, save, toggle: toggleStar, error } = useTicks(userId, initialTicks);
 
   function toggle(id: string, field: "collected" | "wanted") {
-    const cur = ticks.get(id);
+    const cur = get(dexKey, id);
     const changes: TickChanges = new Map();
     if (field === "collected") changes.set(id, cur?.collected ? null : { collected: true, wanted: false });
     else if (cur?.collected) changes.set(id, { collected: true, wanted: !cur.wanted });
-    void save(changes);
+    void save(dexKey, changes);
   }
 
   // Released forms, then released costumes under their own heading (only when there are any),
@@ -67,7 +68,7 @@ export function SpeciesForms({
             {heading && <h2 className="gen-title">{heading}</h2>}
             <div className="grid forms">
               {list.map((f) => {
-                const s = ticks.get(f.id);
+                const s = get(dexKey, f.id);
                 const cls = ["mon", f.status !== "available" ? f.status : s?.collected ? "collected" : ""].join(" ");
                 return (
                   <div key={f.id} className={cls}>
@@ -79,6 +80,17 @@ export function SpeciesForms({
                     <span className="nm">{f.name}</span>
                     <span className="tag">{f.formType}</span>
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
+                    {f.stars.length > 0 && (
+                      <span className="extras">
+                        {f.stars.map((st) => (
+                          <StarButton
+                            key={st.dex} kind={st.kind} label={st.label}
+                            on={!!get(st.dex, f.id)?.collected}
+                            onClick={() => toggleStar(st.dex, [f.id], f.id)}
+                          />
+                        ))}
+                      </span>
+                    )}
                   </div>
                 );
               })}

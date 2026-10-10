@@ -57,6 +57,11 @@ const en = {
   back: "Back",
   showUnavailable: "Show upcoming & unreleased",
   costumes: "Costumes",
+  shinySetting: "Show shiny",
+  shinyHelp: "Adds a star to each dex for ticking off shiny versions.",
+  shiny3Setting: "Show Shiny ⭐⭐⭐",
+  shiny3Help: "Adds three stars to the Caught dex for your 3-star shinies.",
+  alwaysOn: "always on",
   releaseType: {
     released: "Release",
     release_shiny: "Shiny",
@@ -123,6 +128,11 @@ const sv: typeof en = {
   back: "Tillbaka",
   showUnavailable: "Visa kommande & ej släppta",
   costumes: "Kostymer",
+  shinySetting: "Visa shiny",
+  shinyHelp: "Lägger till en stjärna i varje dex för att bocka av shiny-versioner.",
+  shiny3Setting: "Visa Shiny ⭐⭐⭐",
+  shiny3Help: "Lägger till tre stjärnor i Fångade-dexen för dina 3-stjärniga shinies.",
+  alwaysOn: "alltid på",
   releaseType: {
     released: "Släpp",
     release_shiny: "Shiny",

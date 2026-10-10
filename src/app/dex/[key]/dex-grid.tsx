@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
-import { CheckButton, MonImage, WantedButton } from "@/components/mon-ui";
+import { CheckButton, MonImage, StarButton, WantedButton } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
-import { useTicks, type TickChanges, type TickState } from "@/lib/use-ticks";
+import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
 
 export interface Card {
   id: string;
@@ -18,6 +18,8 @@ export interface Card {
   status: Status;
   date: string | null;
   rows: string[];
+  /** Shiny toggles on this card: one star, plus three stars on Caught. */
+  stars: { kind: "star" | "star3"; dex: string; label: string; rows: string[] }[];
 }
 
 type Show = "all" | "missing" | "collected";
@@ -30,14 +32,15 @@ export function DexGrid({
   title: string;
   cards: Card[];
   gens: { gen_nr: number; region: string }[];
-  initialTicks: ({ pokemon_id: string } & TickState)[];
+  initialTicks: TickRow[];
   userId: string;
   initialShowUnavailable: boolean;
   canSwitchForms: boolean;
   allForms: boolean;
   t: Dict;
 }) {
-  const { ticks, save, error } = useTicks(dexKey, userId, initialTicks);
+  const { get, save, toggle, error } = useTicks(userId, initialTicks);
+  const has = (id: string) => !!get(dexKey, id);
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState<string>("");
   const [show, setShow] = useState<Show>("all");
@@ -52,8 +55,8 @@ export function DexGrid({
   }
 
   const stateOf = (c: Card) => ({
-    collected: c.rows.some((r) => ticks.get(r)?.collected),
-    wanted: c.rows.some((r) => ticks.get(r)?.wanted),
+    collected: c.rows.some((r) => get(dexKey, r)?.collected),
+    wanted: c.rows.some((r) => get(dexKey, r)?.wanted),
   });
 
   const available = cards.filter((c) => c.status === "available");
@@ -74,7 +77,7 @@ export function DexGrid({
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards, query, gen, show, ticks, showUnavailable]);
+  }, [cards, query, gen, show, get, showUnavailable]);
 
   const groups = useMemo(() => {
     const byGen = new Map<number, Card[]>();
@@ -87,31 +90,31 @@ export function DexGrid({
   }, [visible, gens]);
 
   const toCheck = visible.filter((c) => c.status === "available" && c.rows.length > 0 && !stateOf(c).collected);
-  const toUncheck = visible.filter((c) => c.rows.some((r) => ticks.has(r)));
+  const toUncheck = visible.filter((c) => c.rows.some(has));
 
   function toggleCollected(c: Card) {
     if (c.status !== "available" || c.rows.length === 0) return;
     const changes: TickChanges = new Map();
-    if (stateOf(c).collected) for (const r of c.rows) { if (ticks.has(r)) changes.set(r, null); }
+    if (stateOf(c).collected) for (const r of c.rows) { if (has(r)) changes.set(r, null); }
     else changes.set(c.rows[0], { collected: true, wanted: false });
-    void save(changes);
+    void save(dexKey, changes);
   }
 
   function toggleWanted(c: Card) {
-    const ticked = c.rows.filter((r) => ticks.get(r)?.collected);
+    const ticked = c.rows.filter((r) => get(dexKey, r)?.collected);
     if (ticked.length === 0) return;
     const changes: TickChanges = new Map();
     if (stateOf(c).wanted) for (const r of ticked) changes.set(r, { collected: true, wanted: false });
     else changes.set(ticked[0], { collected: true, wanted: true });
-    void save(changes);
+    void save(dexKey, changes);
   }
 
   function runBulk() {
     const changes: TickChanges = new Map();
     if (bulk === "check") for (const c of toCheck) changes.set(c.rows[0], { collected: true, wanted: false });
-    if (bulk === "uncheck") for (const c of toUncheck) for (const r of c.rows) { if (ticks.has(r)) changes.set(r, null); }
+    if (bulk === "uncheck") for (const c of toUncheck) for (const r of c.rows) { if (has(r)) changes.set(r, null); }
     setBulk(null);
-    void save(changes);
+    void save(dexKey, changes);
   }
 
   return (
@@ -177,6 +180,17 @@ export function DexGrid({
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>
+                    {c.status === "available" && c.stars.length > 0 && (
+                      <span className="extras">
+                        {c.stars.map((st) => (
+                          <StarButton
+                            key={st.dex} kind={st.kind} label={st.label}
+                            on={st.rows.some((r) => get(st.dex, r)?.collected)}
+                            onClick={() => toggle(st.dex, st.rows, st.rows[0])}
+                          />
+                        ))}
+                      </span>
+                    )}
                   </div>
                 );
               })}

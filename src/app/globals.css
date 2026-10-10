@@ -91,6 +91,9 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .dex-tile a:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
 .dex-tile .name { font-weight: 600; }
 .dex-tile .sub { font-size: 0.85rem; color: var(--muted); }
+.dex-tile .mini { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.dex-tile .mini svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.dex-tile .mini + .bar { height: 4px; }
 .dex-tile .count { color: var(--muted); font-size: 0.9rem; margin: 2px 0 8px; font-variant-numeric: tabular-nums; }
 .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .bar > i { display: block; height: 100%; background: var(--done); }
@@ -188,6 +191,14 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .tick[aria-pressed="true"] svg path { stroke: #fff; }
 .want svg path { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linejoin: round; }
 .want[aria-pressed="true"] svg path { fill: var(--wanted); stroke: var(--wanted); }
+.extras { display: flex; justify-content: center; gap: 2px; margin-top: 2px; min-height: 0; }
+.star {
+  width: 36px; height: 36px; padding: 0; display: grid; place-items: center;
+  border: 0; background: transparent; cursor: pointer;
+}
+.star svg path { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.star:hover svg path { stroke: var(--text); }
+.star[aria-pressed="true"] svg path { fill: #f5c518; stroke: #d9a800; }
 .empty { color: var(--muted); padding: 24px 0; text-align: center; }
 
 /* Shiny swap on the species page */

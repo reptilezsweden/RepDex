@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { dexByKey, displayName, statusOf, today, type Status } from "@/lib/dexes";
+import { dexByKey, displayName, shinyToggles, statusOf, today, type Status } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
@@ -19,8 +19,12 @@ export default async function SpeciesPage({
   const profile = await getProfile();
   if (!profile) redirect("/login");
 
-  const dex = dexByKey(dexParam ?? "") ?? dexByKey("caught")!;
-  const [{ lang, t }, all, ticks] = await Promise.all([getDict(), getPokemon(), getTicks(dex.key)]);
+  const picked = dexByKey(dexParam ?? "") ?? dexByKey("caught")!;
+  const dex = picked.shinyOf ? dexByKey(picked.shinyOf)! : picked;
+  const toggles = shinyToggles(dex, profile.visible_dexes);
+  const [{ lang, t }, all, ticks] = await Promise.all([
+    getDict(), getPokemon(), getTicks([dex.key, ...toggles.map((s) => s.dex.key)]),
+  ]);
   const rows = all.filter((p) => p.species === no).sort((a, b) => a.sort_order - b.sort_order);
   if (rows.length === 0) notFound();
   const day = today();
@@ -38,6 +42,9 @@ export default async function SpeciesPage({
       status,
       date: inDex ? p[dex.dateField] : p.released,
       tickable: inDex && status === "available",
+      stars: toggles
+        .filter((s) => s.dex.includes(p) && statusOf(p, s.dex, day) === "available")
+        .map((s) => ({ kind: s.kind, dex: s.dex.key, label: s.dex.name[lang] })),
     };
   });
 
@@ -49,7 +56,7 @@ export default async function SpeciesPage({
       dexName={dex.name[lang]}
       backHref={dexParam ? `/dex/${dex.key}` : "/"}
       forms={forms}
-      initialTicks={ticks.map(({ pokemon_id, collected, wanted }) => ({ pokemon_id, collected, wanted }))}
+      initialTicks={ticks}
       userId={profile.id}
       t={t}
     />

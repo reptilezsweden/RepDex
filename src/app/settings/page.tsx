@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { DEXES, visibleDexes } from "@/lib/dexes";
+import { ALWAYS_ON, BASE_DEXES, SHINY_KEYS, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "../auth-actions";
 import { SettingsForm } from "./settings-form";
@@ -8,7 +8,6 @@ export default async function SettingsPage() {
   const profile = await getProfile();
   if (!profile) redirect("/login");
   const { lang, t } = await getDict();
-  const on = new Set(visibleDexes(profile.visible_dexes).map((d) => d.key));
 
   return (
     <>
@@ -17,7 +16,9 @@ export default async function SettingsPage() {
         t={t}
         lang={lang}
         allForms={profile.all_forms}
-        dexes={DEXES.map((d) => ({ key: d.key, name: d.name[lang], on: on.has(d.key) }))}
+        shiny={SHINY_KEYS.some((k) => isOn(k, profile.visible_dexes))}
+        shiny3={isOn("shiny3", profile.visible_dexes)}
+        dexes={BASE_DEXES.map((d) => ({ key: d.key, name: d.name[lang], on: isOn(d.key, profile.visible_dexes), locked: d.key === ALWAYS_ON }))}
       />
       <form action={signOut} style={{ marginTop: 24 }}>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{profile.email}</p>

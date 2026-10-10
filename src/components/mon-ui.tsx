@@ -29,6 +29,33 @@ export function WantedButton({ on, label, onClick }: { on: boolean; label: strin
   );
 }
 
+const STAR = "M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.25 6.5L12 17.3l-5.85 3.15 1.25-6.5-4.8-4.55 6.55-.85z";
+
+/** Shiny toggles: one star for shiny, three grouped stars for Shiny ⭐⭐⭐. Outline when off, yellow when on. */
+export function StarIcon({ kind, size = 22 }: { kind: "star" | "star3"; size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      {kind === "star" ? (
+        <path d={STAR} />
+      ) : (
+        <>
+          <path d={STAR} transform="translate(6.6 0.4) scale(0.45)" />
+          <path d={STAR} transform="translate(0.8 11.2) scale(0.45)" />
+          <path d={STAR} transform="translate(12.4 11.2) scale(0.45)" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+export function StarButton({ kind, on, label, onClick }: { kind: "star" | "star3"; on: boolean; label: string; onClick: () => void }) {
+  return (
+    <button type="button" className={`star ${kind}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+      <StarIcon kind={kind} />
+    </button>
+  );
+}
+
 function Img({ file, size }: { file: string | null; size: number }) {
   const urls = imageUrls(file);
   const [i, setI] = useState(0);

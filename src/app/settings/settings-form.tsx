@@ -5,12 +5,14 @@ import type { Dict, Lang } from "@/lib/i18n";
 import { saveSettings, type SettingsState } from "./actions";
 
 export function SettingsForm({
-  t, lang, allForms, dexes,
+  t, lang, allForms, shiny, shiny3, dexes,
 }: {
   t: Dict;
   lang: Lang;
   allForms: boolean;
-  dexes: { key: string; name: string; on: boolean }[];
+  shiny: boolean;
+  shiny3: boolean;
+  dexes: { key: string; name: string; on: boolean; locked: boolean }[];
 }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, undefined);
   return (
@@ -21,6 +23,18 @@ export function SettingsForm({
           <option value="en">English</option>
           <option value="sv">Svenska</option>
         </select>
+      </section>
+
+      <section className="panel">
+        <h2>Shiny</h2>
+        <label className="check">
+          <input type="checkbox" name="shiny" defaultChecked={shiny} /> {t.shinySetting}
+        </label>
+        <p className="help">{t.shinyHelp}</p>
+        <label className="check">
+          <input type="checkbox" name="shiny3" defaultChecked={shiny3} /> {t.shiny3Setting}
+        </label>
+        <p className="help">{t.shiny3Help}</p>
       </section>
 
       <section className="panel">
@@ -36,7 +50,16 @@ export function SettingsForm({
         <div className="checks">
           {dexes.map((d) => (
             <label key={d.key} className="check">
-              <input type="checkbox" name="dex" value={d.key} defaultChecked={d.on} /> {d.name}
+              {d.locked ? (
+                <>
+                  <input type="checkbox" checked disabled aria-describedby={`${d.key}-lock`} />
+                  <input type="hidden" name="dex" value={d.key} />
+                </>
+              ) : (
+                <input type="checkbox" name="dex" value={d.key} defaultChecked={d.on} />
+              )}{" "}
+              {d.name}
+              {d.locked && <span id={`${d.key}-lock`} style={{ color: "var(--muted)", fontSize: "0.85rem" }}>({t.alwaysOn})</span>}
             </label>
           ))}
         </div>
