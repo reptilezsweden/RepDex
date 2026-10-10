@@ -24,6 +24,11 @@ RENAME = {
     "how to get": "how_to_get",
 }
 DROP = {"family_search"}
+
+# Corrections on top of the spreadsheet, by ID. Keep in sync with edits made in the database.
+OVERRIDES = {
+    "0774_fMETEOR_FORM": {"image_regular": "pm774.fMETEOR.icon.png", "image_shiny": "pm774.fMETEOR.s.icon.png"},
+}
 DATE_COLS = {"released", "release_shiny", "release_shadow", "release_shadow_shiny",
              "release_dynamax", "release_dynamax_shiny"}
 INT_COLS = {"species", "family", "stage", "evolve_candy"}
@@ -82,6 +87,7 @@ def main(xlsx):
         if rec["form_type"] == "Gender":
             rec["dex_caught"] = True
         rec["sort_order"] = i
+        rec.update(OVERRIDES.get(rec["id"], {}))
         pokemon.append(rec)
 
     ids = [p["id"] for p in pokemon]
