@@ -292,3 +292,6 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .gen-row .row-msg.error { color: var(--accent); }
 .note-inline { color: var(--muted); }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
+
+.star-count { display: inline-flex; align-items: center; gap: 4px; }
+.star-count svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }

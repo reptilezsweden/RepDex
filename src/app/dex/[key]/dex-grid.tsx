@@ -80,6 +80,11 @@ export function DexGrid({
 
   const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
   const done = available.filter((c) => stateOf(c).collected).length;
+  // Shiny counters: released shiny versions in this dex, and how many are ticked.
+  const starCounts = starKinds.map((kind) => {
+    const withStar = cards.filter((c) => c.status === "available" && starOf(c, kind));
+    return { kind, total: withStar.length, done: withStar.filter((c) => starOn(starOf(c, kind)!)).length };
+  });
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -234,6 +239,11 @@ export function DexGrid({
         <h1>{title}</h1>
         {notInGame && <span className="not-in-game" title={t.notInGameHelp}>{t.notInGame}</span>}
         <span className="count">{done} / {available.length}</span>
+        {starCounts.map((sc) => (
+          <span key={sc.kind} className="count star-count">
+            <StarIcon kind={sc.kind} size={16} />{sc.done} / {sc.total}
+          </span>
+        ))}
         {canSwitchForms && (
           <span className="seg" style={{ marginLeft: "auto" }}>
             <Link href={`/dex/${dexKey}`} aria-current={!allForms ? "page" : undefined}>{t.inGame}</Link>
