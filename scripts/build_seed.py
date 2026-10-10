@@ -28,6 +28,8 @@ DROP = {"family_search"}
 # Corrections on top of the spreadsheet, by ID. Keep in sync with edits made in the database.
 OVERRIDES = {
     "0774_fMETEOR_FORM": {"image_regular": "pm774.fMETEOR.icon.png", "image_shiny": "pm774.fMETEOR.s.icon.png"},
+    "0150_fMEGA_X": {"released": "2026-05-25", "release_shiny": "2026-05-25"},
+    "0150_fMEGA_Y": {"released": "2026-05-25", "release_shiny": "2026-05-25"},
 }
 DATE_COLS = {"released", "release_shiny", "release_shadow", "release_shadow_shiny",
              "release_dynamax", "release_dynamax_shiny"}
