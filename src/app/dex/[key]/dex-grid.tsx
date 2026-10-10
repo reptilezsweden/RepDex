@@ -266,7 +266,7 @@ export function DexGrid({
                       <span className="extras">
                         {c.stars.map((st) => (
                           <span key={st.dex} className="star-pair">
-                            {starOn(st) && (
+                            {st.kind === "star" && starOn(st) && (
                               <WantedButton
                                 inline on={st.rows.some((r) => get(st.dex, r)?.wanted)} label={`${t.wanted}: ${st.label}`}
                                 onClick={() => toggleStarWanted(st.dex, st.rows)}

@@ -84,7 +84,7 @@ export function SpeciesForms({
                       <span className="extras">
                         {f.stars.map((st) => (
                           <span key={st.dex} className="star-pair">
-                            {get(st.dex, f.id)?.collected && (
+                            {st.kind === "star" && get(st.dex, f.id)?.collected && (
                               <WantedButton
                                 inline on={!!get(st.dex, f.id)?.wanted} label={`${t.wanted}: ${st.label}`}
                                 onClick={() => toggleStarWanted(st.dex, [f.id])}
