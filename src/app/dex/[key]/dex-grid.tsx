@@ -28,7 +28,7 @@ export interface Card {
 type Show = "all" | "missing" | "collected";
 /** What a bulk action targets: the regular checkmark or one of the shiny stars. */
 type Target = "regular" | StarKind;
-type Bulk = { action: "check" | "uncheck"; target: Target } | null;
+type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
   dexKey, title, notInGame, cards, gens, starKinds, initialTicks, userId,
@@ -137,9 +137,13 @@ export function DexGrid({
 
   function runBulk() {
     if (!bulk) return;
-    const { action, target } = bulk;
-    const list = bulkCards(action, target);
+    const { action, targets } = bulk;
     setBulk(null);
+    for (const target of targets) runTarget(action, target);
+  }
+
+  function runTarget(action: "check" | "uncheck", target: Target) {
+    const list = bulkCards(action, target);
     if (target === "regular") {
       const changes: TickChanges = new Map();
       for (const c of list) {
@@ -162,20 +166,24 @@ export function DexGrid({
 
   const label = (action: "check" | "uncheck", target: Target) =>
     target === "regular"
-      ? action === "check" ? t.checkAll : t.uncheckAll
+      ? t.checkRegular
       : target === "star"
         ? action === "check" ? t.checkShiny : t.uncheckShiny
         : action === "check" ? t.checkShiny3 : t.uncheckShiny3;
 
-  const bulkButton = (action: "check" | "uncheck", target: Target) => (
-    <button
-      type="button" className="btn ghost" disabled={bulkCards(action, target).length === 0}
-      onClick={() => setBulk({ action, target })}
-    >
-      {target !== "regular" && <StarIcon kind={target} size={18} />}
-      {label(action, target)}
-    </button>
-  );
+  // Check all / Uncheck all open the confirmation box; shiny choices are picked inside it.
+  const openBulk = (action: "check" | "uncheck") =>
+    setBulk({ action, targets: new Set<Target>(["regular"]) });
+  const pickTarget = (target: Target) =>
+    setBulk((b) => {
+      if (!b) return b;
+      const targets = new Set(b.targets);
+      if (targets.has(target)) targets.delete(target);
+      else targets.add(target);
+      return { ...b, targets };
+    });
+  const anyFor = (action: "check" | "uncheck") =>
+    (["regular", ...starKinds] as Target[]).some((tg) => bulkCards(action, tg).length > 0);
 
   return (
     <>
@@ -221,12 +229,10 @@ export function DexGrid({
             {t.showUnreleasedSwitch}
           </button>
         </span>
-        <div className="bulk-rows">
-          <span className="bulk">{bulkButton("check", "regular")}{bulkButton("uncheck", "regular")}</span>
-          {starKinds.map((k) => (
-            <span key={k} className="bulk">{bulkButton("check", k)}{bulkButton("uncheck", k)}</span>
-          ))}
-        </div>
+        <span className="bulk">
+          <button type="button" className="btn ghost" disabled={!anyFor("check")} onClick={() => openBulk("check")}>{t.checkAll}</button>
+          <button type="button" className="btn ghost" disabled={!anyFor("uncheck")} onClick={() => openBulk("uncheck")}>{t.uncheckAll}</button>
+        </span>
       </div>
 
       {error && <p className="msg error" role="alert">{t.errorGeneric}</p>}
@@ -277,17 +283,29 @@ export function DexGrid({
 
       {bulk && (
         <ConfirmSlider
-          title={label(bulk.action, bulk.target)}
-          text={(bulk.target === "regular"
-            ? bulk.action === "check" ? t.checkAllText : t.uncheckAllText
-            : bulk.action === "check" ? t.checkStarText : t.uncheckStarText
-          ).replace("{n}", String(bulkCards(bulk.action, bulk.target).length)).replace("{what}", label(bulk.action, bulk.target))}
+          title={bulk.action === "check" ? t.checkAll : t.uncheckAll}
+          text={bulk.action === "check" ? t.bulkCheckText : t.bulkUncheckText}
           slideLabel={t.slideToConfirm}
           confirmLabel={t.confirm}
           cancelLabel={t.cancel}
+          canConfirm={[...bulk.targets].some((tg) => bulkCards(bulk.action, tg).length > 0)}
           onConfirm={runBulk}
           onCancel={() => setBulk(null)}
-        />
+        >
+          <div className="bulk-choices">
+            {(["regular", ...starKinds] as Target[]).map((tg) => {
+              const n = bulkCards(bulk.action, tg).length;
+              return (
+                <label key={tg} className="check">
+                  <input type="checkbox" checked={bulk.targets.has(tg)} disabled={n === 0} onChange={() => pickTarget(tg)} />
+                  {tg !== "regular" && <StarIcon kind={tg} size={18} />}
+                  <span>{label(bulk.action, tg)}</span>
+                  <span className="n">{n}</span>
+                </label>
+              );
+            })}
+          </div>
+        </ConfirmSlider>
       )}
     </>
   );
