@@ -40,10 +40,14 @@ export function SpeciesForms({
     void save(changes);
   }
 
-  const groups: { status: Status; heading: string | null }[] = [
-    { status: "available", heading: null },
-    { status: "upcoming", heading: t.upcomingReleases },
-    { status: "unreleased", heading: t.unreleased },
+  // Released forms, then released costumes under their own heading (only when there are any),
+  // then upcoming and unreleased forms.
+  const isCostume = (f: FormCard) => f.formType === "Costume";
+  const groups: { key: string; heading: string | null; match: (f: FormCard) => boolean }[] = [
+    { key: "released", heading: null, match: (f) => f.status === "available" && !isCostume(f) },
+    { key: "costumes", heading: t.costumes, match: (f) => f.status === "available" && isCostume(f) },
+    { key: "upcoming", heading: t.upcomingReleases, match: (f) => f.status === "upcoming" },
+    { key: "unreleased", heading: t.unreleased, match: (f) => f.status === "unreleased" },
   ];
 
   return (
@@ -55,11 +59,11 @@ export function SpeciesForms({
       </div>
       {error && <p className="msg error" role="alert">{t.errorGeneric}</p>}
 
-      {groups.map(({ status, heading }) => {
-        const list = forms.filter((f) => f.status === status);
+      {groups.map(({ key, heading, match }) => {
+        const list = forms.filter(match);
         if (list.length === 0) return null;
         return (
-          <section key={status}>
+          <section key={key}>
             {heading && <h2 className="gen-title">{heading}</h2>}
             <div className="grid forms">
               {list.map((f) => {

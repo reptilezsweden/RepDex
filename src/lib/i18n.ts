@@ -56,6 +56,7 @@ const en = {
   showShiny: "Show shiny",
   back: "Back",
   showUnavailable: "Show upcoming & unreleased",
+  costumes: "Costumes",
   releaseType: {
     released: "Release",
     release_shiny: "Shiny",
@@ -121,6 +122,7 @@ const sv: typeof en = {
   showShiny: "Visa shiny",
   back: "Tillbaka",
   showUnavailable: "Visa kommande & ej släppta",
+  costumes: "Kostymer",
   releaseType: {
     released: "Släpp",
     release_shiny: "Shiny",
