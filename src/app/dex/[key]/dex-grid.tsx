@@ -6,6 +6,7 @@ import { ConfirmSlider } from "@/components/confirm-slider";
 import { CheckButton, MonImage, WantedButton } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
 import { useTicks, type TickChanges, type TickState } from "@/lib/use-ticks";
 
 export interface Card {
@@ -23,7 +24,7 @@ type Show = "all" | "missing" | "collected";
 type Bulk = "check" | "uncheck" | null;
 
 export function DexGrid({
-  dexKey, title, cards, gens, initialTicks, userId, canSwitchForms, allForms, t,
+  dexKey, title, cards, gens, initialTicks, userId, initialShowUnavailable, canSwitchForms, allForms, t,
 }: {
   dexKey: string;
   title: string;
@@ -31,6 +32,7 @@ export function DexGrid({
   gens: { gen_nr: number; region: string }[];
   initialTicks: ({ pokemon_id: string } & TickState)[];
   userId: string;
+  initialShowUnavailable: boolean;
   canSwitchForms: boolean;
   allForms: boolean;
   t: Dict;
@@ -40,6 +42,14 @@ export function DexGrid({
   const [gen, setGen] = useState<string>("");
   const [show, setShow] = useState<Show>("all");
   const [bulk, setBulk] = useState<Bulk>(null);
+  const [showUnavailable, setShowUnavailable] = useState(initialShowUnavailable);
+
+  function toggleUnavailable() {
+    const next = !showUnavailable;
+    setShowUnavailable(next);
+    // Saved on the profile, so every dex page and device uses the same choice.
+    void createClient().from("profiles").update({ show_unavailable: next }).eq("id", userId);
+  }
 
   const stateOf = (c: Card) => ({
     collected: c.rows.some((r) => ticks.get(r)?.collected),
@@ -54,6 +64,7 @@ export function DexGrid({
     return cards.filter((c) => {
       if (q && !c.name.toLowerCase().includes(q) && String(c.no) !== q) return false;
       if (gen && String(c.gen) !== gen) return false;
+      if (!showUnavailable && c.status !== "available") return false;
       if (show !== "all") {
         if (c.status !== "available") return false;
         const s = stateOf(c);
@@ -63,7 +74,7 @@ export function DexGrid({
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards, query, gen, show, ticks]);
+  }, [cards, query, gen, show, ticks, showUnavailable]);
 
   const groups = useMemo(() => {
     const byGen = new Map<number, Card[]>();
@@ -129,6 +140,10 @@ export function DexGrid({
             </button>
           ))}
         </span>
+        <button type="button" role="switch" aria-checked={showUnavailable} className="switch" onClick={toggleUnavailable}>
+          <span className="track" aria-hidden="true"><span className="knob" /></span>
+          {t.showUnavailable}
+        </button>
         <span className="bulk">
           <button type="button" className="btn ghost" disabled={toCheck.length === 0} onClick={() => setBulk("check")}>{t.checkAll}</button>
           <button type="button" className="btn ghost" disabled={toUncheck.length === 0} onClick={() => setBulk("uncheck")}>{t.uncheckAll}</button>

@@ -51,6 +51,7 @@ export default async function DexPage({
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
       initialTicks={ticks.map(({ pokemon_id, collected, wanted }) => ({ pokemon_id, collected, wanted }))}
       userId={profile.id}
+      initialShowUnavailable={profile.show_unavailable ?? true}
       canSwitchForms={profile.all_forms && !dex.everyRow}
       allForms={allForms}
       t={t}
