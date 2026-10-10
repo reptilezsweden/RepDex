@@ -20,14 +20,17 @@ function Progress({ all, dex, allForms, ticks, day }: { all: Pokemon[]; dex: Dex
 }
 
 /** Small counter for a shiny dex shown inside its regular dex's box. */
-function ShinyProgress({ all, dex, kind, allForms, ticks, day, label }: {
-  all: Pokemon[]; dex: Dex; kind: "star" | "star3"; allForms: boolean; ticks: Map<string, Tick>; day: string; label: string;
+function ShinyProgress({ all, dex, kind, allForms, ticks, day, label, notInGame }: {
+  all: Pokemon[]; dex: Dex; kind: "star" | "star3"; allForms: boolean; ticks: Map<string, Tick>; day: string; label: string; notInGame?: string;
 }) {
   const { done, total } = progress(dexEntries(all, dex, allForms, day), dex, ticks, day);
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
     <>
-      <div className="mini" aria-label={label}><StarIcon kind={kind} size={16} />{done} / {total} · {pct}%</div>
+      <div className="mini" aria-label={label}>
+        <StarIcon kind={kind} size={16} />{done} / {total} · {pct}%
+        {notInGame && <span className="not-in-game small">{notInGame}</span>}
+      </div>
       <div className="bar"><i style={{ width: `${pct}%` }} /></div>
     </>
   );
@@ -56,12 +59,16 @@ export default async function Home() {
                 <ShinyProgress
                   key={s.dex.key} all={all} dex={s.dex} kind={s.kind} allForms={allForms}
                   ticks={ticksBy.get(s.dex.key) ?? new Map<string, Tick>()} day={day} label={s.dex.name[lang]}
+                  notInGame={s.dex.notInGame && !d.notInGame ? t.notInGame : undefined}
                 />
               ));
           return (
             <div key={d.key} className="dex-tile">
               <Link href={`/dex/${d.key}`} className="tile-main">
-                <div className="name">{d.name[lang]}</div>
+                <div className="name">
+                  {d.name[lang]}
+                  {d.notInGame && <span className="not-in-game" title={t.notInGameHelp}>{t.notInGame}</span>}
+                </div>
                 <Progress all={all} dex={d} allForms={false} ticks={dt} day={day} />
                 {starLines(false)}
               </Link>

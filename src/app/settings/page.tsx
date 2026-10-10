@@ -18,7 +18,7 @@ export default async function SettingsPage() {
         allForms={profile.all_forms}
         shiny={SHINY_KEYS.some((k) => isOn(k, profile.visible_dexes))}
         shiny3={isOn("shiny3", profile.visible_dexes)}
-        dexes={BASE_DEXES.map((d) => ({ key: d.key, name: d.name[lang], on: isOn(d.key, profile.visible_dexes), locked: d.key === ALWAYS_ON }))}
+        dexes={BASE_DEXES.map((d) => ({ key: d.key, name: d.name[lang], on: isOn(d.key, profile.visible_dexes), locked: d.key === ALWAYS_ON, notInGame: !!d.notInGame }))}
       />
       <form action={signOut} style={{ marginTop: 24 }}>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{profile.email}</p>

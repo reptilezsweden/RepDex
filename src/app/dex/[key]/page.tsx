@@ -67,7 +67,10 @@ export default async function DexPage({
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
       initialTicks={ticks}
       userId={profile.id}
-      initialShowUnavailable={profile.show_unavailable ?? true}
+      initialShowUpcoming={profile.show_upcoming ?? profile.show_unavailable ?? true}
+      initialShowUnreleased={profile.show_unreleased ?? profile.show_unavailable ?? true}
+      notInGame={!!dex.notInGame}
+      starKinds={toggles.map((s) => s.kind)}
       canSwitchForms={profile.all_forms && !dex.everyRow}
       allForms={allForms}
       t={t}

@@ -12,6 +12,8 @@ export interface Profile {
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;
+  show_upcoming?: boolean;
+  show_unreleased?: boolean;
 }
 
 /** Signed-in user's profile, or null. Cached per request. */

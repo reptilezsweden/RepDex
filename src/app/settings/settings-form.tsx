@@ -12,7 +12,7 @@ export function SettingsForm({
   allForms: boolean;
   shiny: boolean;
   shiny3: boolean;
-  dexes: { key: string; name: string; on: boolean; locked: boolean }[];
+  dexes: { key: string; name: string; on: boolean; locked: boolean; notInGame: boolean }[];
 }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, undefined);
   return (
@@ -33,6 +33,7 @@ export function SettingsForm({
         <p className="help">{t.shinyHelp}</p>
         <label className="check">
           <input type="checkbox" name="shiny3" defaultChecked={shiny3} /> {t.shiny3Setting}
+          <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>
         </label>
         <p className="help">{t.shiny3Help}</p>
       </section>
@@ -59,6 +60,7 @@ export function SettingsForm({
                 <input type="checkbox" name="dex" value={d.key} defaultChecked={d.on} />
               )}{" "}
               {d.name}
+              {d.notInGame && <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>}
               {d.locked && <span id={`${d.key}-lock`} style={{ color: "var(--muted)", fontSize: "0.85rem" }}>({t.alwaysOn})</span>}
             </label>
           ))}

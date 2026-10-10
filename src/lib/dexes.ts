@@ -47,6 +47,8 @@ export interface Dex {
   shinyKey?: string;
   /** Set on Caught: the Shiny ⭐⭐⭐ dex shown as a triple star. */
   shiny3Key?: string;
+  /** Tracked in RepDex only; Pokémon GO has no such dex. */
+  notInGame?: boolean;
 }
 
 const caught = (p: Pokemon) => p.dex_caught;
@@ -63,18 +65,18 @@ export const DEXES: Dex[] = [
   { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny" },
   { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "mega_shiny" },
   { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, shinyKey: "gigantamax_shiny" },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, shinyKey: "dynamax_shiny" },
-  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny" },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, shinyKey: "dynamax_shiny", notInGame: true },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
 
   // Shiny dexes: ticked with a star on their regular dex's pages, not shown as dexes of their own.
   { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "caught" },
-  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "caught" },
+  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "caught", notInGame: true },
   { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
   { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
   { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "mega" },
   { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "gigantamax" },
-  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, shinyOf: "dynamax" },
-  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes" },
+  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, shinyOf: "dynamax", notInGame: true },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes", notInGame: true },
 ];
 
 /** Regular dexes, i.e. the ones with their own page. */
