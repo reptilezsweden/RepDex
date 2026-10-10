@@ -31,7 +31,7 @@ export function SpeciesForms({
   userId: string;
   t: Dict;
 }) {
-  const { get, save, toggle: toggleStar, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
+  const { get, save, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
 
   function toggle(id: string, field: "collected" | "wanted") {
     const cur = get(dexKey, id);
@@ -40,6 +40,28 @@ export function SpeciesForms({
     else if (cur?.collected) changes.set(id, { collected: true, wanted: !cur.wanted });
     void save(dexKey, changes);
   }
+
+  /**
+   * Shiny rules: ticking any shiny also ticks the regular checkmark; ticking the 3-star also
+   * ticks the single star; unticking the single star also unticks the 3-star.
+   */
+  function setStar(f: FormCard, kind: "star" | "star3", on: boolean) {
+    const st = f.stars.find((x) => x.kind === kind);
+    if (!st) return;
+    const isOn = !!get(st.dex, f.id)?.collected;
+    if (on) {
+      if (!isOn) void save(st.dex, new Map([[f.id, { collected: true, wanted: false }]]));
+      if (f.tickable && !get(dexKey, f.id)?.collected) void save(dexKey, new Map([[f.id, { collected: true, wanted: false }]]));
+      if (kind === "star3") setStar(f, "star", true);
+    } else {
+      if (get(st.dex, f.id)) void save(st.dex, new Map([[f.id, null]]));
+      if (kind === "star") setStar(f, "star3", false);
+    }
+  }
+  const toggleStarOf = (f: FormCard, kind: "star" | "star3") => {
+    const st = f.stars.find((x) => x.kind === kind);
+    if (st) setStar(f, kind, !get(st.dex, f.id)?.collected);
+  };
 
   // Released forms, then released costumes under their own heading (only when there are any),
   // then upcoming and unreleased forms.
@@ -90,13 +112,7 @@ export function SpeciesForms({
                                 onClick={() => toggleStarWanted(st.dex, [f.id])}
                               />
                             )}
-                            <StarButton kind={st.kind} label={st.label} on={!!get(st.dex, f.id)?.collected} onClick={() => {
-                                const turningOn = !get(st.dex, f.id)?.collected;
-                                toggleStar(st.dex, [f.id], f.id);
-                                // A 3-star shiny is also a shiny: tick the single star too.
-                                const one = st.kind === "star3" && turningOn ? f.stars.find((x) => x.kind === "star") : undefined;
-                                if (one && !get(one.dex, f.id)?.collected) toggleStar(one.dex, [f.id], f.id);
-                              }} />
+                            <StarButton kind={st.kind} label={st.label} on={!!get(st.dex, f.id)?.collected} onClick={() => toggleStarOf(f, st.kind)} />
                           </span>
                         ))}
                       </span>

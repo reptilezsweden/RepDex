@@ -118,12 +118,43 @@ export function DexGrid({
     });
   }
 
-  /** Toggle a star; turning on the 3-star also turns on the single shiny star. */
+  // Changes are planned per dex first so linked ticks are saved together.
+  type Plan = Map<string, TickChanges>;
+  const put = (plan: Plan, dex: string, id: string, v: { collected: boolean; wanted: boolean } | null) => {
+    const m = plan.get(dex) ?? new Map();
+    m.set(id, v);
+    plan.set(dex, m);
+  };
+  const commit = (plan: Plan) => { for (const [dex, changes] of plan) void save(dex, changes); };
+
+  /**
+   * Shiny rules: ticking any shiny also ticks the regular checkmark; ticking the 3-star also
+   * ticks the single star; unticking the single star also unticks the 3-star.
+   */
+  function planStar(plan: Plan, c: Card, kind: StarKind, on: boolean) {
+    const st = starOf(c, kind);
+    if (!st) return;
+    if (on) {
+      if (!starOn(st)) put(plan, st.dex, st.rows[0], { collected: true, wanted: false });
+      if (!stateOf(c).collected && c.rows.length > 0) {
+        put(plan, dexKey, c.rows.includes(st.rows[0]) ? st.rows[0] : c.rows[0], { collected: true, wanted: false });
+      }
+      if (kind === "star3") planStar(plan, c, "star", true);
+    } else {
+      for (const r of st.rows) { if (get(st.dex, r)) put(plan, st.dex, r, null); }
+      if (kind === "star") planStar(plan, c, "star3", false);
+    }
+  }
+
+  function planRegular(plan: Plan, c: Card, on: boolean) {
+    if (on) put(plan, dexKey, c.rows[0], { collected: true, wanted: false });
+    else for (const r of c.rows) { if (has(r)) put(plan, dexKey, r, null); }
+  }
+
   function toggleStarOf(c: Card, st: Card["stars"][number]) {
-    const turningOn = !starOn(st);
-    toggle(st.dex, st.rows, st.rows[0]);
-    const one = st.kind === "star3" && turningOn ? starOf(c, "star") : undefined;
-    if (one && !starOn(one)) toggle(one.dex, one.rows, one.rows[0]);
+    const plan: Plan = new Map();
+    planStar(plan, c, st.kind, !starOn(st));
+    commit(plan);
   }
 
   function toggleCollected(c: Card) {
@@ -147,36 +178,14 @@ export function DexGrid({
     if (!bulk) return;
     const { action, targets } = bulk;
     setBulk(null);
-    for (const target of targets) runTarget(action, target);
-  }
-
-  function runTarget(action: "check" | "uncheck", target: Target) {
-    const list = bulkCards(action, target);
-    if (target === "regular") {
-      const changes: TickChanges = new Map();
-      for (const c of list) {
-        if (action === "check") changes.set(c.rows[0], { collected: true, wanted: false });
-        else for (const r of c.rows) { if (has(r)) changes.set(r, null); }
-      }
-      void save(dexKey, changes);
-      return;
-    }
-    const byDex = new Map<string, TickChanges>();
-    for (const c of list) {
-      const st = starOf(c, target)!;
-      const changes = byDex.get(st.dex) ?? new Map();
-      if (action === "check") changes.set(st.rows[0], { collected: true, wanted: false });
-      else for (const r of st.rows) { if (get(st.dex, r)) changes.set(r, null); }
-      byDex.set(st.dex, changes);
-      // A 3-star shiny is also a shiny: tick the single star too when it isn't already.
-      const one = target === "star3" && action === "check" ? starOf(c, "star") : undefined;
-      if (one && !starOn(one)) {
-        const oneChanges = byDex.get(one.dex) ?? new Map();
-        oneChanges.set(one.rows[0], { collected: true, wanted: false });
-        byDex.set(one.dex, oneChanges);
+    const plan: Plan = new Map();
+    for (const target of targets) {
+      for (const c of bulkCards(action, target)) {
+        if (target === "regular") planRegular(plan, c, action === "check");
+        else planStar(plan, c, target, action === "check");
       }
     }
-    for (const [dex, changes] of byDex) void save(dex, changes);
+    commit(plan);
   }
 
   const label = (action: "check" | "uncheck", target: Target) =>
