@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
 import { CheckButton, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
@@ -201,18 +201,46 @@ export function DexGrid({
   }
 
   // Filters float at the top; once scrolled past, they collapse into a slim bar until tapped.
-  const sentinel = useRef<HTMLDivElement>(null);
+  // The floating bar is position: fixed and its slot keeps the full filter height in the page,
+  // so floating never changes the layout (changing it made the switch flicker back and forth
+  // on slow scrolls and made mobile browsers jump).
+  const slot = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
+  const scrolledRef = useRef(false);
   const [open, setOpen] = useState(false);
+  const [slotHeight, setSlotHeight] = useState(0);
+  const [topHeight, setTopHeight] = useState(0);
   useEffect(() => {
-    const el = sentinel.current;
+    const el = slot.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      setScrolled(!e.isIntersecting);
-      if (e.isIntersecting) setOpen(false);
-    });
-    io.observe(el);
-    return () => io.disconnect();
+    const topbar = document.querySelector<HTMLElement>(".topbar");
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const top = topbar?.offsetHeight ?? 0;
+      setTopHeight(top);
+      const bottom = el.getBoundingClientRect().bottom;
+      // Float once the filters are fully behind the top bar; stop a little lower down (hysteresis).
+      const next = scrolledRef.current ? bottom < top + 24 : bottom < top;
+      if (next !== scrolledRef.current) {
+        scrolledRef.current = next;
+        setScrolled(next);
+        if (!next) setOpen(false);
+      }
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(check); };
+    // Remember the in-page height of the filters while they're in place.
+    const ro = new ResizeObserver(() => { if (!scrolledRef.current) setSlotHeight(el.offsetHeight); });
+    ro.observe(el);
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      ro.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
   useEffect(() => {
     if (!open || !scrolled) return;
@@ -294,8 +322,11 @@ export function DexGrid({
       </div>
       {notInGame && <p className="note">{t.notInGameHelp}</p>}
 
-      <div ref={sentinel} className="filters-sentinel" aria-hidden="true" />
-      <div className={`filter-bar${scrolled ? " floating" : ""}${collapsed ? " collapsed" : ""}`}>
+      <div ref={slot} className="filter-slot" style={scrolled ? { minHeight: slotHeight } : undefined}>
+      <div
+        className={`filter-bar${scrolled ? " floating" : ""}${collapsed ? " collapsed" : ""}`}
+        style={scrolled ? ({ "--top-h": `${topHeight}px` } as CSSProperties) : undefined}
+      >
         {collapsed && (
           <button type="button" className="filter-summary" onClick={() => setOpen(true)} aria-expanded={false}>
             <span aria-hidden="true">🔍</span>
@@ -348,6 +379,7 @@ export function DexGrid({
         {scrolled && (
           <button type="button" className="btn ghost small collapse-btn" onClick={() => setOpen(false)}>▴ {t.hideFilters}</button>
         )}
+      </div>
       </div>
       </div>
       {wantedMode && <p className="note">{t.wantedModeHelp}</p>}

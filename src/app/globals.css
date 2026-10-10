@@ -368,12 +368,14 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .switch svg path { fill: var(--wanted); }
 
 /* Floating search and filters on dex pages */
-.filters-sentinel { height: 1px; }
+.filter-slot { display: flow-root; }
 .filter-bar.floating {
-  position: sticky; top: calc(max(10px, env(safe-area-inset-top)) + 33px); z-index: 9; margin: 0 -16px 12px; padding: 10px 16px;
+  position: fixed; top: var(--top-h, 44px); left: 0; right: 0; z-index: 9; padding: 10px 16px;
+  max-height: calc(100dvh - var(--top-h, 44px)); overflow-y: auto; overscroll-behavior: contain;
   background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
+.filter-bar.floating > * { max-width: 1168px; margin-left: auto; margin-right: auto; }
 .filter-bar.floating .filters { margin-bottom: 0; }
 .filter-bar.collapsed { padding-top: 6px; padding-bottom: 6px; }
 .filter-summary {
