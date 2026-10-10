@@ -156,7 +156,7 @@ export function DexGrid({
                       <WantedButton on={s.wanted} label={t.wanted} onClick={() => toggleWanted(c)} />
                     )}
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
-                      <MonImage file={c.image} />
+                      <span className="pic"><MonImage file={c.image} /></span>
                       <span className="no">#{String(c.no).padStart(4, "0")}</span>
                       <span className="nm">{c.name}</span>
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}

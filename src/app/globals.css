@@ -147,7 +147,13 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .mon .no { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mon .nm { font-size: 0.8rem; line-height: 1.2; margin-top: 2px; overflow-wrap: anywhere; }
 .mon.collected { border-color: var(--done); background: color-mix(in srgb, var(--done) 10%, var(--surface)); }
-.mon.unreleased img, .mon.upcoming img { filter: grayscale(1); opacity: 0.4; }
+.mon.upcoming img { filter: grayscale(1); opacity: 0.4; }
+/* Unreleased: full-colour image under a 50% transparent grey forbidden sign. */
+.pic { position: relative; display: inline-block; line-height: 0; }
+.mon.unreleased .pic::after, .mon.unreleased .swap::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23808080' stroke-opacity='0.5' stroke-width='9'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Cpath d='M21.7 21.7l56.6 56.6'/%3E%3C/g%3E%3C/svg%3E") center / 90% no-repeat;
+}
 .mon.unreleased .nm, .mon.upcoming .nm { color: var(--muted); }
 .mon.upcoming { border-color: var(--upcoming); }
 .mon .tag { font-size: 0.7rem; color: var(--muted); }
