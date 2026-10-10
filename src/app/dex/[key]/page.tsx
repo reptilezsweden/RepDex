@@ -23,13 +23,17 @@ export default async function DexPage({
   const [{ lang, t }, all, gens, ticks] = await Promise.all([getDict(), getPokemon(), getGens(), getTicks(dex.key)]);
   const day = today();
 
+  // Forms are grouped under their species' original generation (e.g. Alolan Rattata under Kanto).
+  const speciesGen = new Map<number, number>();
+  for (const p of all) speciesGen.set(p.species, Math.min(speciesGen.get(p.species) ?? Infinity, p.gen_nr));
+
   const cards: Card[] = dexEntries(all, dex, allForms, day).map((e) => {
     const p = e.pokemon;
     return {
       id: p.id,
       no: p.species,
       name: allForms || dex.everyRow ? displayName(p) : p.name,
-      gen: p.gen_nr,
+      gen: speciesGen.get(p.species) ?? p.gen_nr,
       image: dex.shiny ? p.image_shiny : p.image_regular,
       status: e.status,
       date: p[dex.dateField],
@@ -37,6 +41,7 @@ export default async function DexPage({
       rows: e.rows.filter((r) => statusOf(r, dex, day) === "available").map((r) => r.id),
     };
   });
+  cards.sort((a, b) => a.no - b.no);
 
   return (
     <DexGrid
