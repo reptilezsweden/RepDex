@@ -299,3 +299,11 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .hint { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 .inline-field { display: flex; gap: 8px; max-width: 420px; }
 .inline-field input { flex: 1; padding: 10px 12px; min-height: 44px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+
+.edit-pen {
+  position: absolute; right: 2px; bottom: 2px; width: 36px; height: 36px; z-index: 1;
+  display: grid; place-items: center; border-radius: 8px; color: var(--muted);
+}
+.edit-pen:hover { color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
+.edit-pen svg path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.grid.forms .mon { padding-bottom: 34px; }

@@ -71,6 +71,7 @@ const en = {
   bulkCheckText: "Choose what to mark for the entries in the current view.",
   bulkUncheckText: "Choose what to remove for the entries in the current view.",
   searchFamily: "Search whole family",
+  edit: "Edit",
   battleOnly: "Battle only · not collectible",
   formTypes: {
     Regular: "Regular", Costume: "Costume/Event", Form: "Form", Mega: "Mega", Regional: "Regional",
@@ -164,6 +165,7 @@ const sv: typeof en = {
   bulkCheckText: "Välj vad som ska markeras för posterna i aktuell vy.",
   bulkUncheckText: "Välj vad som ska tas bort för posterna i aktuell vy.",
   searchFamily: "Sök hela familjen",
+  edit: "Redigera",
   battleOnly: "Endast strid · kan inte samlas",
   formTypes: {
     Regular: "Vanlig", Costume: "Kostym/Event", Form: "Form", Mega: "Mega", Regional: "Regional",
