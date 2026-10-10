@@ -33,6 +33,15 @@ export async function middleware(request: NextRequest) {
     url.search = "";
     return NextResponse.redirect(url);
   }
+  // Every user must have an in-game nickname before using the app.
+  if (data.user && !data.user.user_metadata?.nickname && path !== "/nickname" && !path.startsWith("/auth")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/nickname";
+    url.search = "";
+    const redirect = NextResponse.redirect(url);
+    for (const c of response.cookies.getAll()) redirect.cookies.set(c);
+    return redirect;
+  }
   return response;
 }
 

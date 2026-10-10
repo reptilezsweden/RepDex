@@ -13,7 +13,7 @@ In Supabase, open **SQL Editor → New query** and run these files from the repo
 
 Check: **Table Editor → pokemon** should show 1,823 rows.
 
-Later migrations in `supabase/migrations/` (e.g. `0002_show_unavailable.sql`, `0003_show_upcoming_unreleased.sql`, `0004_admin_log.sql`, `0005_role_from_sql_editor.sql`) are run the same way, once each, in number order.
+Later migrations in `supabase/migrations/` (e.g. `0002_show_unavailable.sql`, `0003_show_upcoming_unreleased.sql`, `0004_admin_log.sql`, `0005_role_from_sql_editor.sql`, `0006_nickname.sql`) are run the same way, once each, in number order.
 
 ## 2. Configure sign-in
 

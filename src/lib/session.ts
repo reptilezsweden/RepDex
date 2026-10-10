@@ -14,6 +14,7 @@ export interface Profile {
   show_unavailable?: boolean;
   show_upcoming?: boolean;
   show_unreleased?: boolean;
+  nickname?: string | null;
 }
 
 /** Signed-in user's profile, or null. Cached per request. */

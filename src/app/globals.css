@@ -295,3 +295,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 
 .star-count { display: inline-flex; align-items: center; gap: 4px; }
 .star-count svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+
+.hint { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+.inline-field { display: flex; gap: 8px; max-width: 420px; }
+.inline-field input { flex: 1; padding: 10px 12px; min-height: 44px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }

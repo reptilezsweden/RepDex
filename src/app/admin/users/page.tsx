@@ -9,7 +9,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
   const me = await requireAdmin();
   const { error } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase.from("profiles").select("id,email,role,created_at").order("created_at");
+  const { data } = await supabase.from("profiles").select("id,email,nickname,role,created_at").order("created_at");
   const users = data ?? [];
 
   return (
@@ -26,11 +26,12 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
       )}
       <div className="table-wrap">
         <table className="admin-table">
-          <thead><tr><th>Email</th><th>Joined</th><th>Role</th><th /></tr></thead>
+          <thead><tr><th>Nickname</th><th>Email</th><th>Joined</th><th>Role</th><th /></tr></thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td>{u.email ?? "—"}{u.id === me.id && <span className="note-inline"> (you)</span>}</td>
+                <td>{u.nickname ?? "—"}{u.id === me.id && <span className="note-inline"> (you)</span>}</td>
+                <td>{u.email ?? "—"}</td>
                 <td className="num">{String(u.created_at).slice(0, 10)}</td>
                 <td>{u.role === "admin" ? "Admin" : "User"}</td>
                 <td>

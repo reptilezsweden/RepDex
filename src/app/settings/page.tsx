@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ALWAYS_ON, BASE_DEXES, SHINY_KEYS, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "../auth-actions";
+import { NicknameForm } from "./nickname-form";
 import { SettingsForm } from "./settings-form";
 
 export default async function SettingsPage() {
@@ -12,6 +13,7 @@ export default async function SettingsPage() {
   return (
     <>
       <h1>{t.settings}</h1>
+      <NicknameForm t={t} current={profile.nickname ?? ""} />
       <SettingsForm
         t={t}
         lang={lang}
