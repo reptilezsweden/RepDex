@@ -56,6 +56,43 @@ export function StarButton({ kind, on, label, onClick }: { kind: "star" | "star3
   );
 }
 
+export type BadgeIconKind = "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified";
+
+const SMOKE =
+  "M12 2.5c1.6 2.6-.9 3.7.1 6.2.8 2 3.6 1.6 3.6 4.7 0 3.2-2.6 5.8-5.7 5.8s-5.6-2.6-5.6-5.8c0-2.7 2.1-4 3.3-5.4.4 1.7 1.6 2.4 2.7 2.2C9.4 7.9 11.1 5.7 12 2.5z";
+const WISPS = "M16.8 6.5c1.4 1.4 1.1 2.9.2 4.1M6.2 18.7c-1.2.9-2.6.7-3.4-.2M17.6 18.3c1.2.6 2.5.3 3.2-.7";
+
+/** Icons for the extra dexes on regular forms: Lucky, XXL, XXS, Perfect, Shadow, Purified. */
+export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: number }) {
+  if (kind === "perfect") return <span className="emoji" style={{ fontSize: size * 0.85 }} aria-hidden="true">💯</span>;
+  if (kind === "xxl" || kind === "xxs") {
+    return <span className="text-badge" aria-hidden="true">{kind.toUpperCase()}</span>;
+  }
+  if (kind === "lucky") {
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="clover">
+        <circle cx="12" cy="7.4" r="3.6" /><circle cx="16.6" cy="12" r="3.6" />
+        <circle cx="12" cy="16.6" r="3.6" /><circle cx="7.4" cy="12" r="3.6" />
+        <path d="M12 12c1.5 3.5 3 6.5 6 9" className="stem" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={`smoke ${kind}`}>
+      <path d={SMOKE} />
+      <path d={WISPS} className="wisp" />
+    </svg>
+  );
+}
+
+export function BadgeButton({ kind, on, label, onClick }: { kind: BadgeIconKind; on: boolean; label: string; onClick: () => void }) {
+  return (
+    <button type="button" className={`badge ${kind}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+      <BadgeIcon kind={kind} />
+    </button>
+  );
+}
+
 function Img({ file, size }: { file: string | null; size: number }) {
   const urls = imageUrls(file);
   const [i, setI] = useState(0);
