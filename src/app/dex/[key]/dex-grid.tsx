@@ -118,6 +118,14 @@ export function DexGrid({
     });
   }
 
+  /** Toggle a star; turning on the 3-star also turns on the single shiny star. */
+  function toggleStarOf(c: Card, st: Card["stars"][number]) {
+    const turningOn = !starOn(st);
+    toggle(st.dex, st.rows, st.rows[0]);
+    const one = st.kind === "star3" && turningOn ? starOf(c, "star") : undefined;
+    if (one && !starOn(one)) toggle(one.dex, one.rows, one.rows[0]);
+  }
+
   function toggleCollected(c: Card) {
     if (c.status !== "available" || c.rows.length === 0) return;
     const changes: TickChanges = new Map();
@@ -160,6 +168,13 @@ export function DexGrid({
       if (action === "check") changes.set(st.rows[0], { collected: true, wanted: false });
       else for (const r of st.rows) { if (get(st.dex, r)) changes.set(r, null); }
       byDex.set(st.dex, changes);
+      // A 3-star shiny is also a shiny: tick the single star too when it isn't already.
+      const one = target === "star3" && action === "check" ? starOf(c, "star") : undefined;
+      if (one && !starOn(one)) {
+        const oneChanges = byDex.get(one.dex) ?? new Map();
+        oneChanges.set(one.rows[0], { collected: true, wanted: false });
+        byDex.set(one.dex, oneChanges);
+      }
     }
     for (const [dex, changes] of byDex) void save(dex, changes);
   }
@@ -272,7 +287,7 @@ export function DexGrid({
                                 onClick={() => toggleStarWanted(st.dex, st.rows)}
                               />
                             )}
-                            <StarButton kind={st.kind} label={st.label} on={starOn(st)} onClick={() => toggle(st.dex, st.rows, st.rows[0])} />
+                            <StarButton kind={st.kind} label={st.label} on={starOn(st)} onClick={() => toggleStarOf(c, st)} />
                           </span>
                         ))}
                       </span>

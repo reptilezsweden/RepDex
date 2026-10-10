@@ -90,7 +90,13 @@ export function SpeciesForms({
                                 onClick={() => toggleStarWanted(st.dex, [f.id])}
                               />
                             )}
-                            <StarButton kind={st.kind} label={st.label} on={!!get(st.dex, f.id)?.collected} onClick={() => toggleStar(st.dex, [f.id], f.id)} />
+                            <StarButton kind={st.kind} label={st.label} on={!!get(st.dex, f.id)?.collected} onClick={() => {
+                                const turningOn = !get(st.dex, f.id)?.collected;
+                                toggleStar(st.dex, [f.id], f.id);
+                                // A 3-star shiny is also a shiny: tick the single star too.
+                                const one = st.kind === "star3" && turningOn ? f.stars.find((x) => x.kind === "star") : undefined;
+                                if (one && !get(one.dex, f.id)?.collected) toggleStar(one.dex, [f.id], f.id);
+                              }} />
                           </span>
                         ))}
                       </span>
