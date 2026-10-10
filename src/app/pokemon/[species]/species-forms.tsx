@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeButton, CheckButton, ShinySwap, StarButton, WantedButton, type BadgeIconKind } from "@/components/mon-ui";
+import { useState } from "react";
+import { BadgeButton, BadgeIcon, CheckButton, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -72,6 +73,16 @@ export function SpeciesForms({
     for (const [d, changes] of setDex(f, dex, !on(dex, f.id))) void save(d, changes);
   };
 
+  // Wanted mode: tapping an icon marks it as wanted (puzzle piece) instead of ticking it.
+  // Only ticked icons can be wanted; the others are dimmed while the mode is on.
+  const [wantedMode, setWantedMode] = useState(false);
+  const tap = (f: FormCard, dex: string) => {
+    if (!wantedMode) return flip(f, dex);
+    if (on(dex, f.id)) toggleWanted(dex, [f.id]);
+  };
+  const isWanted = (dex: string, id: string) => !!get(dex, id)?.wanted;
+  const extra = (dex: string, id: string) => ({ wanted: isWanted(dex, id), dim: wantedMode && !on(dex, id) });
+
   // Released forms, then released costumes under their own heading (only when there are any),
   // then upcoming and unreleased forms.
   const isCostume = (f: FormCard) => f.formType === "Costume";
@@ -89,15 +100,9 @@ export function SpeciesForms({
       <span className="extras">
         {list.map((b) => (
           <span key={b.dex} className="star-pair">
-            {b.icon === "star" && on(b.dex, f.id) && (
-              <WantedButton
-                inline on={!!get(b.dex, f.id)?.wanted} label={`${t.wanted}: ${b.label}`}
-                onClick={() => toggleWanted(b.dex, [f.id])}
-              />
-            )}
             {b.icon === "star" || b.icon === "star3"
-              ? <StarButton kind={b.icon} label={b.label} on={on(b.dex, f.id)} onClick={() => flip(f, b.dex)} />
-              : <BadgeButton kind={b.icon} label={b.label} on={on(b.dex, f.id)} onClick={() => flip(f, b.dex)} />}
+              ? <StarButton kind={b.icon} label={b.label} on={on(b.dex, f.id)} onClick={() => tap(f, b.dex)} {...extra(b.dex, f.id)} />
+              : <BadgeButton kind={b.icon} label={b.label} on={on(b.dex, f.id)} onClick={() => tap(f, b.dex)} {...extra(b.dex, f.id)} />}
           </span>
         ))}
       </span>
@@ -106,11 +111,35 @@ export function SpeciesForms({
 
   return (
     <>
-      <p className="back"><Link href={backHref}>← {t.back}</Link></p>
+      <div className="back-row">
+        <Link href={backHref} className="back-link">← {t.back}</Link>
+        <details className="legend">
+          <summary>{t.legend}</summary>
+          <ul>
+            <li><span className="tick legend-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-6.5" /></svg></span>{t.legendCaught}</li>
+            <li><span className="star legend-icon on"><StarIcon kind="star" size={20} /></span>Shiny</li>
+            <li><span className="star legend-icon on"><StarIcon kind="star3" size={20} /></span>Shiny ⭐⭐⭐</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="lucky" size={20} /></span>Lucky</li>
+            <li><span className="badge xxl legend-icon"><BadgeIcon kind="xxl" /></span>XXL</li>
+            <li><span className="badge xxs legend-icon"><BadgeIcon kind="xxs" /></span>XXS</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="perfect" size={20} /></span>{t.legendPerfect}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="shadow" size={20} /></span>Shadow</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="purified" size={20} /></span>Purified</li>
+            <li><span className="legend-icon want-legend"><PuzzleIcon /></span>{t.wanted}</li>
+            <li><span className="legend-icon forbid" aria-hidden="true" />{t.legendUnavailable}</li>
+            <li className="legend-help">{t.legendHelp}</li>
+          </ul>
+        </details>
+      </div>
       <div className="dex-head">
         <h1>{title}</h1>
         <span className="count">#{String(no).padStart(4, "0")} · {dexName}</span>
+        <button type="button" role="switch" aria-checked={wantedMode} className="switch" style={{ marginLeft: "auto" }} onClick={() => setWantedMode(!wantedMode)}>
+          <span className="track" aria-hidden="true"><span className="knob" /></span>
+          <PuzzleIcon size={16} /> {t.wantedMode}
+        </button>
       </div>
+      {wantedMode && <p className="note">{t.wantedModeHelp}</p>}
       {error && <p className="msg error" role="alert">{t.errorGeneric}</p>}
 
       {groups.map(({ key, heading, match }) => {
@@ -125,9 +154,8 @@ export function SpeciesForms({
                 const cls = ["mon", f.status !== "available" ? f.status : s?.collected ? "collected" : ""].join(" ");
                 return (
                   <div key={f.id} className={cls}>
-                    {f.tickable && <CheckButton on={!!s?.collected} label={t.collect} onClick={() => flip(f, f.dex)} />}
-                    {f.tickable && s?.collected && (
-                      <WantedButton on={!!s.wanted} label={t.wanted} onClick={() => toggleWanted(f.dex, [f.id])} />
+                    {f.tickable && (
+                      <CheckButton on={!!s?.collected} label={t.collect} onClick={() => tap(f, f.dex)} {...extra(f.dex, f.id)} />
                     )}
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>

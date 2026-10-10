@@ -330,3 +330,39 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .badge .smoke.purified path { fill: #ffffff; stroke: #8a8f99; }
 .badge .smoke.purified .wisp { fill: none; stroke: #8a8f99; }
 .grid.forms .extras + .extras { margin-top: 0; }
+
+/* Wanted mark: small puzzle in the corner of a ticked icon */
+.star, .badge { position: relative; }
+.wanted-mark {
+  position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--surface); pointer-events: none;
+}
+.wanted-mark svg path { fill: var(--wanted); stroke: var(--wanted); stroke-width: 1; }
+.tick .wanted-mark { right: 2px; bottom: 2px; }
+.tick.dim, .star.dim, .badge.dim { opacity: 0.25; cursor: not-allowed; }
+
+/* Back row with the icon legend */
+.back-row { display: flex; align-items: center; gap: 16px; margin: 0 0 8px; flex-wrap: wrap; }
+.back-link { color: var(--muted); text-decoration: none; }
+.legend { position: relative; }
+.legend summary { cursor: pointer; color: var(--muted); list-style: none; font-size: 0.95rem; }
+.legend summary::-webkit-details-marker { display: none; }
+.legend summary::before { content: "ⓘ "; }
+.legend[open] summary { color: var(--text); }
+.legend ul {
+  position: absolute; z-index: 20; top: 28px; left: 0; width: max-content; max-width: min(320px, 90vw);
+  margin: 0; padding: 10px 12px; list-style: none; display: grid; gap: 4px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.legend .legend-help { display: block; max-width: 280px; color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.legend-icon { position: static !important; width: 26px; height: 26px; display: inline-grid; place-items: center; flex: none; }
+.legend-icon.tick svg circle { fill: var(--done); stroke: var(--done); }
+.legend-icon.tick svg path { stroke: #fff; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.legend-icon.on svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.want-legend svg path { fill: var(--wanted); }
+.legend-icon.forbid {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23808080' stroke-width='9'%3E%3Ccircle cx='50' cy='50' r='40'/%3E%3Cpath d='M21.7 21.7l56.6 56.6'/%3E%3C/g%3E%3C/svg%3E") center / 80% no-repeat;
+}
+.switch svg path { fill: var(--wanted); }

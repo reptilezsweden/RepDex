@@ -6,14 +6,27 @@ import { imageUrls } from "@/lib/images";
 const PUZZLE =
   "M10 3.5a2 2 0 0 1 4 0V5h4a1 1 0 0 1 1 1v4h-1.5a2 2 0 1 0 0 4H19v4a1 1 0 0 1-1 1h-4v-1.5a2 2 0 1 0-4 0V19H6a1 1 0 0 1-1-1v-4h1.5a2 2 0 1 0 0-4H5V6a1 1 0 0 1 1-1h4V3.5z";
 
-/** Checkmark that ticks an entry off. */
-export function CheckButton({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+/** Small puzzle piece in the corner of an icon that is marked as wanted. */
+export function WantedMark() {
   return (
-    <button type="button" className="tick" aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+    <span className="wanted-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="12" height="12"><path d={PUZZLE} /></svg>
+    </span>
+  );
+}
+
+/** Extra props shared by the tick buttons: wanted corner mark, and dimmed (not usable in wanted mode). */
+type Extra = { wanted?: boolean; dim?: boolean };
+
+/** Checkmark that ticks an entry off. */
+export function CheckButton({ on, label, onClick, wanted, dim }: { on: boolean; label: string; onClick: () => void } & Extra) {
+  return (
+    <button type="button" className={`tick${dim ? " dim" : ""}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
         <circle cx="12" cy="12" r="10" />
         <path d="M7.5 12.5l3 3 6-6.5" />
       </svg>
+      {wanted && <WantedMark />}
     </button>
   );
 }
@@ -48,10 +61,11 @@ export function StarIcon({ kind, size = 22 }: { kind: "star" | "star3"; size?: n
   );
 }
 
-export function StarButton({ kind, on, label, onClick }: { kind: "star" | "star3"; on: boolean; label: string; onClick: () => void }) {
+export function StarButton({ kind, on, label, onClick, wanted, dim }: { kind: "star" | "star3"; on: boolean; label: string; onClick: () => void } & Extra) {
   return (
-    <button type="button" className={`star ${kind}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+    <button type="button" className={`star ${kind}${dim ? " dim" : ""}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
       <StarIcon kind={kind} />
+      {wanted && <WantedMark />}
     </button>
   );
 }
@@ -85,12 +99,18 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
   );
 }
 
-export function BadgeButton({ kind, on, label, onClick }: { kind: BadgeIconKind; on: boolean; label: string; onClick: () => void }) {
+export function BadgeButton({ kind, on, label, onClick, wanted, dim }: { kind: BadgeIconKind; on: boolean; label: string; onClick: () => void } & Extra) {
   return (
-    <button type="button" className={`badge ${kind}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
+    <button type="button" className={`badge ${kind}${dim ? " dim" : ""}`} aria-pressed={on} aria-label={label} title={label} onClick={onClick}>
       <BadgeIcon kind={kind} />
+      {wanted && <WantedMark />}
     </button>
   );
+}
+
+/** The puzzle icon on its own, for legends. */
+export function PuzzleIcon({ size = 18 }: { size?: number }) {
+  return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="puzzle-icon"><path d={PUZZLE} /></svg>;
 }
 
 function Img({ file, size }: { file: string | null; size: number }) {
