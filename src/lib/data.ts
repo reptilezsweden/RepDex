@@ -4,7 +4,7 @@ import type { Pokemon } from "./dexes";
 import { SUPABASE_KEY, SUPABASE_URL } from "./supabase/env";
 
 const COLUMNS =
-  "id,sort_order,dex_caught,dex_lucky,gen_nr,form_type,image_regular,image_shiny,species,name,alt_name,type1,type2," +
+  "id,sort_order,dex_caught,dex_lucky,gen_nr,form_type,image_regular,image_shiny,species,family,name,alt_name,type1,type2," +
   "released,release_shiny,release_shadow,release_shadow_shiny,release_dynamax,release_dynamax_shiny";
 
 const PAGE = 1000; // Supabase returns at most 1,000 rows per request.

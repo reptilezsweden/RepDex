@@ -33,11 +33,19 @@ export default async function DexPage({
   const speciesGen = new Map<number, number>();
   for (const p of all) speciesGen.set(p.species, Math.min(speciesGen.get(p.species) ?? Infinity, p.gen_nr));
 
+  // Every name in each evolution family, for the "search whole family" switch.
+  const familyNames: Record<string, string> = {};
+  for (const p of all) {
+    const key = String(p.family ?? `s${p.species}`);
+    familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}`.toLowerCase();
+  }
+
   const cards: Card[] = dexEntries(all, dex, allForms, day).map((e) => {
     const p = e.pokemon;
     return {
       id: p.id,
       no: p.species,
+      family: String(p.family ?? `s${p.species}`),
       name: allForms || dex.everyRow ? displayName(p) : p.name,
       gen: speciesGen.get(p.species) ?? p.gen_nr,
       image: p.image_regular,
@@ -64,6 +72,7 @@ export default async function DexPage({
       dexKey={dex.key}
       title={`${dex.name[lang]}${allForms ? ` · ${t.allForms}` : ""}`}
       cards={cards}
+      familyNames={familyNames}
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
       initialTicks={ticks}
       userId={profile.id}

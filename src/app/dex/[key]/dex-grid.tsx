@@ -14,6 +14,8 @@ type StarKind = "star" | "star3";
 export interface Card {
   id: string;
   no: number;
+  /** Evolution family key, used by the family search. */
+  family: string;
   name: string;
   gen: number;
   image: string | null;
@@ -31,13 +33,15 @@ type Target = "regular" | StarKind;
 type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
-  dexKey, title, notInGame, cards, gens, starKinds, initialTicks, userId,
+  dexKey, title, notInGame, cards, familyNames, gens, starKinds, initialTicks, userId,
   initialShowUpcoming, initialShowUnreleased, canSwitchForms, allForms, t,
 }: {
   dexKey: string;
   title: string;
   notInGame: boolean;
   cards: Card[];
+  /** All names in each family (lower case, "|"-separated), keyed by family. */
+  familyNames: Record<string, string>;
   gens: { gen_nr: number; region: string }[];
   /** Shiny toggles switched on for this dex, in display order. */
   starKinds: StarKind[];
@@ -57,6 +61,7 @@ export function DexGrid({
   const [bulk, setBulk] = useState<Bulk>(null);
   const [showUpcoming, setShowUpcoming] = useState(initialShowUpcoming);
   const [showUnreleased, setShowUnreleased] = useState(initialShowUnreleased);
+  const [searchFamily, setSearchFamily] = useState(false);
 
   // Saved on the profile, so every dex page and device uses the same choice.
   function saveSetting(field: "show_upcoming" | "show_unreleased", value: boolean) {
@@ -76,7 +81,11 @@ export function DexGrid({
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cards.filter((c) => {
-      if (q && !c.name.toLowerCase().includes(q) && String(c.no) !== q) return false;
+      if (q) {
+        const hit = c.name.toLowerCase().includes(q) || String(c.no) === q
+          || (searchFamily && (familyNames[c.family] ?? "").includes(q));
+        if (!hit) return false;
+      }
       if (gen && String(c.gen) !== gen) return false;
       if (c.status === "upcoming" && !showUpcoming) return false;
       if (c.status === "unreleased" && !showUnreleased) return false;
@@ -93,7 +102,7 @@ export function DexGrid({
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards, query, gen, show, get, showUpcoming, showUnreleased]);
+  }, [cards, query, gen, show, get, showUpcoming, showUnreleased, searchFamily, familyNames]);
 
   const groups = useMemo(() => {
     const byGen = new Map<number, Card[]>();
@@ -245,6 +254,10 @@ export function DexGrid({
           ))}
         </span>
         <span className="switches">
+          <button type="button" role="switch" aria-checked={searchFamily} className="switch" onClick={() => setSearchFamily(!searchFamily)}>
+            <span className="track" aria-hidden="true"><span className="knob" /></span>
+            {t.searchFamily}
+          </button>
           <button
             type="button" role="switch" aria-checked={showUpcoming} className="switch"
             onClick={() => { setShowUpcoming(!showUpcoming); saveSetting("show_upcoming", !showUpcoming); }}

@@ -18,6 +18,7 @@ export interface Pokemon {
   image_regular: string | null;
   image_shiny: string | null;
   species: number;
+  family: number | null;
   name: string;
   alt_name: string | null;
   type1: string | null;
