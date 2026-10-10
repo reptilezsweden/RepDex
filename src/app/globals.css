@@ -262,3 +262,33 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .help { color: var(--muted); font-size: 0.9rem; margin: -8px 0 12px 28px; }
 .checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; }
 .checks .check { margin-bottom: 0; }
+
+/* Admin */
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; }
+.admin-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.btn.small { min-height: 32px; padding: 0 10px; font-size: 0.85rem; }
+.btn.danger { background: var(--accent); }
+.danger-zone { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); margin-top: 24px; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.admin-table th, .admin-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.admin-table th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+.admin-table tr:last-child td { border-bottom: 0; }
+.admin-table td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-table a { color: var(--accent); text-decoration: none; }
+.admin-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 16px; }
+.admin-fields .field { margin-bottom: 12px; }
+.admin-fields input[type="text"], .admin-fields input[type="number"], .admin-fields input[type="date"] {
+  width: 100%; padding: 8px 10px; min-height: 40px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+}
+.admin-preview { display: flex; gap: 12px; margin-bottom: 12px; }
+.admin-preview img, .admin-preview .noimg { width: 96px; height: 96px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.gen-rows { display: flex; flex-direction: column; gap: 8px; }
+.gen-row { display: grid; grid-template-columns: 90px 1fr 1fr auto; gap: 8px; align-items: center; }
+.gen-row.head { color: var(--muted); font-size: 0.85rem; }
+.gen-row input { width: 100%; padding: 8px 10px; min-height: 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.gen-row .row-msg { grid-column: 1 / -1; font-size: 0.85rem; color: var(--muted); }
+.gen-row .row-msg.error { color: var(--accent); }
+.note-inline { color: var(--muted); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }

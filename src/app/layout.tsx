@@ -29,6 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav>
               <Link href="/">{t.dexes}</Link>
               <Link href="/settings">{t.settings}</Link>
+              {profile.role === "admin" && <Link href="/admin">{t.admin}</Link>}
             </nav>
           </header>
         )}
