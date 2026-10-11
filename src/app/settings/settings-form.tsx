@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { Dict, Lang } from "@/lib/i18n";
 import { saveSettings, type SettingsState } from "./actions";
 
@@ -16,6 +16,9 @@ export function SettingsForm({
   dexes: { key: string; name: string; on: boolean; locked: boolean; notInGame: boolean }[];
 }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, undefined);
+  // Shiny ⭐⭐⭐ needs Show shiny: switching it on switches Show shiny on, and switching Show shiny off switches it off.
+  const [shinyOn, setShinyOn] = useState(shiny);
+  const [shiny3On, setShiny3On] = useState(shiny3);
   return (
     <form action={action}>
       <section className="panel">
@@ -25,20 +28,6 @@ export function SettingsForm({
           <option value="sv">Svenska</option>
         </select>
       </section>
-
-      <section className="panel">
-        <h2>Shiny</h2>
-        <label className="check">
-          <input type="checkbox" name="shiny" defaultChecked={shiny} /> {t.shinySetting}
-        </label>
-        <p className="help">{t.shinyHelp}</p>
-        <label className="check">
-          <input type="checkbox" name="shiny3" defaultChecked={shiny3} /> {t.shiny3Setting}
-          <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>
-        </label>
-        <p className="help">{t.shiny3Help}</p>
-      </section>
-
 
       <section className="panel">
         <h2>{t.visibleDexes}</h2>
@@ -58,6 +47,31 @@ export function SettingsForm({
               {d.locked && <span id={`${d.key}-lock`} style={{ color: "var(--muted)", fontSize: "0.85rem" }}>({t.alwaysOn})</span>}
             </label>
           ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <h2>Shiny</h2>
+        <div className="shiny-cols">
+          <div>
+            <label className="check">
+              <input
+                type="checkbox" name="shiny" checked={shinyOn}
+                onChange={(e) => { setShinyOn(e.target.checked); if (!e.target.checked) setShiny3On(false); }}
+              /> {t.shinySetting}
+            </label>
+            <p className="help">{t.shinyHelp}</p>
+          </div>
+          <div>
+            <label className="check">
+              <input
+                type="checkbox" name="shiny3" checked={shiny3On}
+                onChange={(e) => { setShiny3On(e.target.checked); if (e.target.checked) setShinyOn(true); }}
+              /> {t.shiny3Setting}
+              <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>
+            </label>
+            <p className="help">{t.shiny3Help}</p>
+          </div>
         </div>
       </section>
 

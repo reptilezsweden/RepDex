@@ -427,3 +427,5 @@ a.start-link:hover { border-color: var(--accent); }
 }
 .mon.collected .star[aria-pressed="false"] svg path { stroke: color-mix(in srgb, var(--text) 65%, transparent); }
 .mon.collected .badge[aria-pressed="false"] > * { opacity: 0.5; }
+.shiny-cols { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+@media (min-width: 560px) { .shiny-cols { grid-template-columns: 1fr 1fr; } }
