@@ -9,6 +9,8 @@ export interface Profile {
   role: "user" | "admin";
   language: Lang;
   all_forms: boolean;
+  /** Dexes with their All forms version switched on (migration 0007). */
+  all_forms_dexes?: string[] | null;
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;

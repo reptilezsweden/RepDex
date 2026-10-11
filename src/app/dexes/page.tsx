@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StarIcon } from "@/components/mon-ui";
-import { dexEntries, progress, shinyToggles, today, visibleDexes, type Dex, type Pokemon, type Tick } from "@/lib/dexes";
+import { allFormsOn, dexEntries, progress, shinyToggles, today, visibleDexes, type Dex, type Pokemon, type Tick } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
@@ -70,7 +70,7 @@ export default async function DexesPage() {
                 <Progress all={all} dex={d} allForms={false} ticks={dt} day={day} />
                 {starLines(false)}
               </Link>
-              {profile.all_forms && !d.everyRow && (
+              {allFormsOn(d.key, profile) && (
                 <Link href={`/dex/${d.key}?forms=all`} className="tile-forms">
                   <div className="sub">{t.allForms}</div>
                   <Progress all={all} dex={d} allForms ticks={dt} day={day} />

@@ -85,6 +85,31 @@ export const BASE_DEXES = DEXES.filter((d) => !d.shinyOf);
 /** Shiny dexes switched together by the "Show shiny" setting (Shiny ⭐⭐⭐ has its own setting). */
 export const SHINY_KEYS = DEXES.filter((d) => d.shinyOf && d.key !== "shiny3").map((d) => d.key);
 export const ALWAYS_ON = "caught";
+/**
+ * How dexes are grouped in the settings: one switch for each group's visibility and one for its
+ * All forms version. Dexes that always show every row have no All forms switch.
+ */
+export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string } }[] = [
+  { keys: ["caught"], name: { en: "Caught", sv: "Fångade" } },
+  { keys: ["lucky"], name: { en: "Lucky", sv: "Lucky" } },
+  { keys: ["xxl", "xxs"], name: { en: "XXL/XXS", sv: "XXL/XXS" } },
+  { keys: ["gigantamax"], name: { en: "Gigantamax", sv: "Gigantamax" } },
+  { keys: ["mega"], name: { en: "Mega", sv: "Mega" } },
+  { keys: ["shadow", "purified"], name: { en: "Shadow/Purified", sv: "Shadow/Purified" } },
+  { keys: ["perfect"], name: { en: "100%", sv: "100%" } },
+  { keys: ["dynamax"], name: { en: "Dynamax", sv: "Dynamax" } },
+  { keys: ["costumes"], name: { en: "Costume/Event", sv: "Kostym/Event" } },
+];
+
+/** Whether the user has the All forms version of a dex switched on. */
+export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | null; all_forms?: boolean }): boolean {
+  const d = dexByKey(key);
+  if (!d || d.everyRow) return false;
+  // Before migration 0007 there was one switch for every dex.
+  if (!profile.all_forms_dexes) return !!profile.all_forms;
+  return profile.all_forms_dexes.includes(key);
+}
+
 /** Dexes that follow Caught: ticking one also ticks Caught, and unticking Caught unticks them. */
 export const CAUGHT_LINKED = ["lucky", "xxl", "xxs", "perfect"];
 

@@ -9,7 +9,8 @@ export function SettingsForm({
 }: {
   t: Dict;
   lang: Lang;
-  allForms: boolean;
+  /** One switch per dex group that has an All forms version; value is the group's dex keys. */
+  allForms: { value: string; name: string; on: boolean }[];
   shiny: boolean;
   shiny3: boolean;
   dexes: { key: string; name: string; on: boolean; locked: boolean; notInGame: boolean }[];
@@ -40,9 +41,13 @@ export function SettingsForm({
 
       <section className="panel">
         <h2>{t.allForms}</h2>
-        <label className="check">
-          <input type="checkbox" name="all_forms" defaultChecked={allForms} /> {t.allFormsSetting}
-        </label>
+        <div className="checks">
+          {allForms.map((g) => (
+            <label key={g.value} className="check">
+              <input type="checkbox" name="all_forms_dex" value={g.value} defaultChecked={g.on} /> {g.name}
+            </label>
+          ))}
+        </div>
         <p className="help">{t.allFormsHelp}</p>
       </section>
 

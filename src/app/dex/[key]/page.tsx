@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CAUGHT_LINKED, collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
+import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
@@ -23,7 +23,7 @@ export default async function DexPage({
   if (!profile) redirect("/login");
 
   const toggles = shinyToggles(dex, profile.visible_dexes);
-  const allForms = forms === "all" && profile.all_forms && !dex.everyRow;
+  const allForms = forms === "all" && allFormsOn(dex.key, profile);
   // Lucky, XXL, XXS and Perfect follow Caught: their ticks tick Caught, and unticking Caught unticks them.
   const parent = CAUGHT_LINKED.includes(dex.key) ? dexByKey("caught")! : null;
   const childDexes = dex.key === "caught" ? CAUGHT_LINKED : [];
@@ -91,7 +91,7 @@ export default async function DexPage({
       starKinds={toggles.map((s) => s.kind)}
       parentDex={parent?.key ?? null}
       childDexes={childDexes}
-      canSwitchForms={profile.all_forms && !dex.everyRow}
+      canSwitchForms={allFormsOn(dex.key, profile)}
       allForms={allForms}
       t={t}
     />

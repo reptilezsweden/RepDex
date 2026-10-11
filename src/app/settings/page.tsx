@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ALWAYS_ON, BASE_DEXES, SHINY_KEYS, isOn } from "@/lib/dexes";
+import { ALWAYS_ON, SETTING_GROUPS, SHINY_KEYS, allFormsOn, dexByKey, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "../auth-actions";
 import { CollectionForm } from "./collection-form";
@@ -18,10 +18,15 @@ export default async function SettingsPage() {
       <SettingsForm
         t={t}
         lang={lang}
-        allForms={profile.all_forms}
+        allForms={SETTING_GROUPS
+          .filter((g) => !dexByKey(g.keys[0])!.everyRow)
+          .map((g) => ({ value: g.keys.join(","), name: g.name[lang], on: allFormsOn(g.keys[0], profile) }))}
         shiny={SHINY_KEYS.some((k) => isOn(k, profile.visible_dexes))}
         shiny3={isOn("shiny3", profile.visible_dexes)}
-        dexes={BASE_DEXES.map((d) => ({ key: d.key, name: d.name[lang], on: isOn(d.key, profile.visible_dexes), locked: d.key === ALWAYS_ON, notInGame: !!d.notInGame }))}
+        dexes={SETTING_GROUPS.map((g) => ({
+          key: g.keys.join(","), name: g.name[lang], on: isOn(g.keys[0], profile.visible_dexes),
+          locked: g.keys.includes(ALWAYS_ON), notInGame: !!dexByKey(g.keys[0])!.notInGame,
+        }))}
       />
       <CollectionForm t={t} />
       <form action={signOut} style={{ marginTop: 24 }}>
