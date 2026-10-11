@@ -411,3 +411,10 @@ a.start-link:hover { border-color: var(--accent); }
 .other-form { position: absolute; top: 12px; right: 42px; z-index: 1; display: grid; place-items: center; cursor: help; }
 .other-form svg circle { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 2.5 2.5; }
 .other-form svg path { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 2 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Species page: previous / next species */
+.species-nav { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 10px; font-size: 0.9rem; }
+.species-step { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); text-decoration: none; }
+.species-step:hover { color: var(--text); }
+.species-step img, .species-step .noimg { width: 16px; height: 16px; object-fit: contain; flex: none; font-size: 10px; }
+.species-step .no { font-variant-numeric: tabular-nums; }
+.species-step .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -5,7 +5,7 @@ import {
 import { getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
-import { SpeciesForms, type Badge, type FormCard } from "./species-forms";
+import { SpeciesForms, type Badge, type FormCard, type SpeciesLink } from "./species-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +105,16 @@ export default async function SpeciesPage({
   }
   const ticks = await getTicks([...dexKeys]);
 
+  // Previous and next species, shown by their regular form (or first row).
+  const speciesNos = [...new Set(all.map((p) => p.species))].sort((a, b) => a - b);
+  const at = speciesNos.indexOf(no);
+  const neighbour = (n: number | undefined): SpeciesLink | null => {
+    if (n === undefined) return null;
+    const list = all.filter((p) => p.species === n).sort((a, b) => a.sort_order - b.sort_order);
+    const rep = list.find((p) => p.form_type === "Regular") ?? list[0];
+    return { no: n, name: rep.name, image: rep.image_regular, href: `/pokemon/${n}${dexParam ? `?dex=${encodeURIComponent(dexParam)}` : ""}` };
+  };
+
   return (
     <SpeciesForms
       title={rows.find((r) => r.form_type === "Regular")?.name ?? rows[0].name}
@@ -112,6 +122,8 @@ export default async function SpeciesPage({
       dexName={dex.name[lang]}
       backHref={dexParam ? `/dex/${dex.key}` : "/"}
       forms={forms}
+      prev={neighbour(speciesNos[at - 1])}
+      next={neighbour(speciesNos[at + 1])}
       initialTicks={ticks}
       userId={profile.id}
       isAdmin={profile.role === "admin"}

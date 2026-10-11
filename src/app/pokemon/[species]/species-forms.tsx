@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BadgeButton, BadgeIcon, CheckButton, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
+import { BadgeButton, BadgeIcon, CheckButton, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -33,14 +33,33 @@ export interface FormCard {
   badges: Badge[];
 }
 
+/** Link to the previous or next species. */
+export interface SpeciesLink { no: number; name: string; image: string | null; href: string }
+
+function NeighbourLink({ link, dir, label }: { link: SpeciesLink | null; dir: "prev" | "next"; label: string }) {
+  if (!link) return <span />;
+  const nr = `#${String(link.no).padStart(4, "0")}`;
+  return (
+    <Link href={link.href} className={`species-step ${dir}`} aria-label={`${label}: ${nr} ${link.name}`}>
+      {dir === "prev" && <span aria-hidden="true">←</span>}
+      <MonImage file={link.image} size={16} />
+      <span className="no">{nr}</span>
+      <span className="nm">{link.name}</span>
+      {dir === "next" && <span aria-hidden="true">→</span>}
+    </Link>
+  );
+}
+
 export function SpeciesForms({
-  title, no, dexName, backHref, forms, initialTicks, userId, isAdmin, t,
+  title, no, dexName, backHref, forms, prev, next, initialTicks, userId, isAdmin, t,
 }: {
   title: string;
   no: number;
   dexName: string;
   backHref: string;
   forms: FormCard[];
+  prev: SpeciesLink | null;
+  next: SpeciesLink | null;
   initialTicks: TickRow[];
   userId: string;
   isAdmin: boolean;
@@ -131,6 +150,10 @@ export function SpeciesForms({
           </ul>
         </details>
       </div>
+      <nav className="species-nav" aria-label={t.speciesNav}>
+        <NeighbourLink link={prev} dir="prev" label={t.previous} />
+        <NeighbourLink link={next} dir="next" label={t.next} />
+      </nav>
       <div className="dex-head">
         <h1>{title}</h1>
         <span className="count">#{String(no).padStart(4, "0")}</span>
