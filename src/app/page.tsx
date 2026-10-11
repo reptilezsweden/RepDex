@@ -32,14 +32,17 @@ export default async function Home() {
           <section key={g.date} className="upcoming">
             <h3>{fmt.format(new Date(`${g.date}T00:00:00Z`))}</h3>
             <ul>
-              {g.items.map(({ pokemon: p, type, withShiny }) => {
+              {g.items.map(({ pokemon: p, type, withShiny, forms }) => {
                 const shiny = type.endsWith("shiny");
                 return (
                   <li key={`${p.id}-${type}`}>
                     <Link href={`/pokemon/${p.species}`}>
                       <MonImage file={shiny ? p.image_shiny : p.image_regular} size={48} />
                       {withShiny && <MonImage file={p.image_shiny} size={48} />}
-                      <span className="nm">{displayName(p)}</span>
+                      <span className="nm">
+                        {forms ? p.name : displayName(p)}
+                        {forms && <small className="forms">{t.nForms.replace("{n}", String(forms))}</small>}
+                      </span>
                       <span className="type">{t.releaseType[type]}{withShiny ? ` + ${t.plusShiny}` : ""}</span>
                     </Link>
                   </li>

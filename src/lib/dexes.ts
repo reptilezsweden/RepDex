@@ -175,7 +175,11 @@ export const DATE_FIELDS: DateField[] = [
   "released", "release_shiny", "release_shadow", "release_shadow_shiny", "release_dynamax", "release_dynamax_shiny",
 ];
 
-export interface Upcoming { date: string; items: { pokemon: Pokemon; type: DateField; withShiny?: boolean }[] }
+export interface Upcoming {
+  date: string;
+  /** forms: how many forms of the species this item stands for (set when more than one). */
+  items: { pokemon: Pokemon; type: DateField; withShiny?: boolean; forms?: number }[];
+}
 
 /** The regular release a shiny date belongs to. */
 const SHINY_BASE: Partial<Record<DateField, DateField>> = {
@@ -205,10 +209,18 @@ export function upcomingReleases(all: Pokemon[], day: string): Upcoming[] {
   }
   return [...byDate.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, items]) => ({
-      date,
-      items: items.sort((a, b) => a.pokemon.sort_order - b.pokemon.sort_order || DATE_FIELDS.indexOf(a.type) - DATE_FIELDS.indexOf(b.type)),
-    }));
+    .map(([date, items]) => {
+      items.sort((a, b) => a.pokemon.sort_order - b.pokemon.sort_order || DATE_FIELDS.indexOf(a.type) - DATE_FIELDS.indexOf(b.type));
+      // Several forms of one species with the same kind of release that day become one item.
+      const grouped = new Map<string, Upcoming["items"][number]>();
+      for (const it of items) {
+        const key = `${it.pokemon.species}|${it.type}|${it.withShiny ? 1 : 0}`;
+        const first = grouped.get(key);
+        if (first) first.forms = (first.forms ?? 1) + 1;
+        else grouped.set(key, { ...it });
+      }
+      return { date, items: [...grouped.values()] };
+    });
 }
 
 export function displayName(p: Pokemon): string {
