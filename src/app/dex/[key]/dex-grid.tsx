@@ -81,6 +81,10 @@ export function DexGrid({
     collected: c.rows.some((r) => get(dexKey, r)?.collected),
     wanted: c.rows.some((r) => get(dexKey, r)?.wanted),
   });
+  // In game cards stand for every form of a species. The checkmark shows the card's own row
+  // (usually the regular form); another collected form shows as a dotted mark but still counts.
+  const mainRow = (c: Card) => (c.rows.includes(c.id) ? c.id : c.rows[0]);
+  const mainOn = (c: Card) => c.rows.length > 0 && !!get(dexKey, mainRow(c))?.collected;
   const starOf = (c: Card, kind: StarKind) => c.stars.find((s) => s.kind === kind);
   const starOn = (st: Card["stars"][number]) => st.rows.some((r) => get(st.dex, r)?.collected);
 
@@ -161,9 +165,8 @@ export function DexGrid({
     if (!st) return;
     if (on) {
       if (!starOn(st)) put(plan, st.dex, st.rows[0], { collected: true, wanted: false });
-      if (!stateOf(c).collected && c.rows.length > 0) {
-        put(plan, dexKey, c.rows.includes(st.rows[0]) ? st.rows[0] : c.rows[0], { collected: true, wanted: false });
-      }
+      const r = c.rows.includes(st.rows[0]) ? st.rows[0] : mainRow(c);
+      if (r && !get(dexKey, r)?.collected) put(plan, dexKey, r, { collected: true, wanted: false });
       if (kind === "star3") planStar(plan, c, "star", true);
     } else {
       for (const r of st.rows) { if (get(st.dex, r)) put(plan, st.dex, r, null); }
@@ -175,20 +178,26 @@ export function DexGrid({
    * Ticking the checkmark also ticks Caught (on Lucky, XXL, XXS and Perfect). Unticking it
    * unticks the shiny stars, and on Caught also Lucky, XXL, XXS and Perfect.
    */
-  function planRegular(plan: Plan, c: Card, on: boolean) {
+  function planRegular(plan: Plan, c: Card, on: boolean, allRows = true) {
     if (on) {
-      const r = c.rows[0];
+      const r = mainRow(c);
       put(plan, dexKey, r, { collected: true, wanted: false });
       if (parentDex && c.parentRows.includes(r) && !get(parentDex, r)?.collected) {
         put(plan, parentDex, r, { collected: true, wanted: false });
       }
     } else {
-      for (const r of c.rows) { if (has(r)) put(plan, dexKey, r, null); }
+      // A tap unticks the card's own row; Uncheck all unticks every form behind the card.
+      const rows = allRows ? c.rows : [mainRow(c)];
+      for (const r of rows) { if (has(r)) put(plan, dexKey, r, null); }
       for (const child of childDexes) {
-        for (const r of c.rows) { if (get(child, r)) put(plan, child, r, null); }
+        for (const r of rows) { if (get(child, r)) put(plan, child, r, null); }
       }
-      planStar(plan, c, "star", false);
-      planStar(plan, c, "star3", false);
+      if (allRows) {
+        planStar(plan, c, "star", false);
+        planStar(plan, c, "star3", false);
+      } else {
+        for (const st of c.stars) for (const r of rows) { if (get(st.dex, r)) put(plan, st.dex, r, null); }
+      }
     }
   }
 
@@ -201,7 +210,7 @@ export function DexGrid({
   function toggleCollected(c: Card) {
     if (c.status !== "available" || c.rows.length === 0) return;
     const plan: Plan = new Map();
-    planRegular(plan, c, !stateOf(c).collected);
+    planRegular(plan, c, !mainOn(c), false);
     commit(plan);
   }
 
@@ -416,9 +425,17 @@ export function DexGrid({
                   <div key={c.id} className={cls}>
                     {c.status === "available" && c.rows.length > 0 && (
                       <CheckButton
-                        on={s.collected} label={t.collect} onClick={() => tapCheck(c)}
+                        on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
                         wanted={s.wanted} dim={wantedMode && !s.collected}
                       />
+                    )}
+                    {c.status === "available" && s.collected && !mainOn(c) && (
+                      <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                          <circle cx="12" cy="12" r="9.5" />
+                          <path d="M7.5 12.5l3 3 6-6.5" />
+                        </svg>
+                      </span>
                     )}
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
                       <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>

@@ -407,3 +407,7 @@ a.start-link:hover { border-color: var(--accent); }
 .start-link small { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
 .start-link.disabled { opacity: 0.5; cursor: not-allowed; }
 .upcoming .nm .forms { display: block; font-size: 0.8rem; color: var(--muted); }
+/* In game cards: another form of the species is collected, but not this one. */
+.other-form { position: absolute; top: 12px; right: 42px; z-index: 1; display: grid; place-items: center; cursor: help; }
+.other-form svg circle { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 2.5 2.5; }
+.other-form svg path { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 2 2; stroke-linecap: round; stroke-linejoin: round; }
