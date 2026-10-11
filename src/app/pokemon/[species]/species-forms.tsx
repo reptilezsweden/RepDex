@@ -133,7 +133,7 @@ export function SpeciesForms({
       </div>
       <div className="dex-head">
         <h1>{title}</h1>
-        <span className="count">#{String(no).padStart(4, "0")} · {dexName}</span>
+        <span className="count">#{String(no).padStart(4, "0")}</span>
         <button type="button" role="switch" aria-checked={wantedMode} className="switch" style={{ marginLeft: "auto" }} onClick={() => setWantedMode(!wantedMode)}>
           <span className="track" aria-hidden="true"><span className="knob" /></span>
           <PuzzleIcon size={16} /> {t.wantedMode}
@@ -160,7 +160,6 @@ export function SpeciesForms({
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>
                     <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
-                    {f.tickable && f.dexName && <span className="tag">✓ {f.dexName}</span>}
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
                     {badgeRow(f, 1)}
                     {badgeRow(f, 2)}
