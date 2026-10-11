@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header className="topbar">
             <Link href="/" className="brand">Rep<span>Dex</span></Link>
             <nav>
-              <Link href="/">{t.dexes}</Link>
+              <Link href="/dexes">{t.dexes}</Link>
               <Link href="/settings">{t.settings}</Link>
               {profile.role === "admin" && <Link href="/admin">{t.admin}</Link>}
             </nav>

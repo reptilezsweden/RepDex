@@ -175,19 +175,32 @@ export const DATE_FIELDS: DateField[] = [
   "released", "release_shiny", "release_shadow", "release_shadow_shiny", "release_dynamax", "release_dynamax_shiny",
 ];
 
-export interface Upcoming { date: string; items: { pokemon: Pokemon; type: DateField }[] }
+export interface Upcoming { date: string; items: { pokemon: Pokemon; type: DateField; withShiny?: boolean }[] }
 
-/** Every release date after today, grouped by date, soonest first. */
+/** The regular release a shiny date belongs to. */
+const SHINY_BASE: Partial<Record<DateField, DateField>> = {
+  release_shiny: "released",
+  release_shadow_shiny: "release_shadow",
+  release_dynamax_shiny: "release_dynamax",
+};
+/** The shiny date belonging to a regular release. */
+const SHINY_FIELD = Object.fromEntries(Object.entries(SHINY_BASE).map(([s, b]) => [b, s])) as Partial<Record<DateField, DateField>>;
+
+/**
+ * Every release date after today, grouped by date, soonest first. When a form and its shiny come
+ * out on the same date they are one item, marked withShiny.
+ */
 export function upcomingReleases(all: Pokemon[], day: string): Upcoming[] {
   const byDate = new Map<string, Upcoming["items"]>();
   for (const p of all) {
     for (const f of DATE_FIELDS) {
       const d = p[f];
-      if (d && d > day) {
-        const list = byDate.get(d) ?? [];
-        list.push({ pokemon: p, type: f });
-        byDate.set(d, list);
-      }
+      if (!d || d <= day) continue;
+      const base = SHINY_BASE[f];
+      if (base && p[base] === d) continue; // Shown with its regular release.
+      const list = byDate.get(d) ?? [];
+      list.push({ pokemon: p, type: f, ...(SHINY_FIELD[f] && p[SHINY_FIELD[f]!] === d ? { withShiny: true } : {}) });
+      byDate.set(d, list);
     }
   }
   return [...byDate.entries()]
