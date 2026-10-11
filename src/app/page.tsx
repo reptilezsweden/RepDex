@@ -34,16 +34,24 @@ export default async function Home() {
             <ul>
               {g.items.map(({ pokemon: p, type, withShiny, forms }) => {
                 const shiny = type.endsWith("shiny");
+                // Every form's picture (regular and shiny when both come out); half size past two.
+                const images = (forms ?? [p]).flatMap((f) =>
+                  withShiny ? [f.image_regular, f.image_shiny] : [shiny ? f.image_shiny : f.image_regular]);
+                const size = images.length > 2 ? 24 : 48;
                 return (
                   <li key={`${p.id}-${type}`}>
                     <Link href={`/pokemon/${p.species}`}>
-                      <MonImage file={shiny ? p.image_shiny : p.image_regular} size={48} />
-                      {withShiny && <MonImage file={p.image_shiny} size={48} />}
+                      <span className={`imgs${images.length > 2 ? " small" : ""}`}>
+                        {images.map((img, i) => <MonImage key={i} file={img} size={size} />)}
+                      </span>
                       <span className="nm">
                         {forms ? p.name : displayName(p)}
-                        {forms && <small className="forms">{t.nForms.replace("{n}", String(forms))}</small>}
+                        {forms && <small className="forms">{t.nForms.replace("{n}", String(forms.length))}</small>}
                       </span>
-                      <span className="type">{t.releaseType[type]}{withShiny ? ` + ${t.plusShiny}` : ""}</span>
+                      <span className="type">
+                        {t.releaseType[type]}
+                        {withShiny && <><br />+ {t.plusShiny}</>}
+                      </span>
                     </Link>
                   </li>
                 );

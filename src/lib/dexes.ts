@@ -177,8 +177,8 @@ export const DATE_FIELDS: DateField[] = [
 
 export interface Upcoming {
   date: string;
-  /** forms: how many forms of the species this item stands for (set when more than one). */
-  items: { pokemon: Pokemon; type: DateField; withShiny?: boolean; forms?: number }[];
+  /** forms: every form of the species this item stands for (set when more than one). */
+  items: { pokemon: Pokemon; type: DateField; withShiny?: boolean; forms?: Pokemon[] }[];
 }
 
 /** The regular release a shiny date belongs to. */
@@ -216,7 +216,7 @@ export function upcomingReleases(all: Pokemon[], day: string): Upcoming[] {
       for (const it of items) {
         const key = `${it.pokemon.species}|${it.type}|${it.withShiny ? 1 : 0}`;
         const first = grouped.get(key);
-        if (first) first.forms = (first.forms ?? 1) + 1;
+        if (first) first.forms = [...(first.forms ?? [first.pokemon]), it.pokemon];
         else grouped.set(key, { ...it });
       }
       return { date, items: [...grouped.values()] };
