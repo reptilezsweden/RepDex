@@ -39,17 +39,6 @@ export function SettingsForm({
         <p className="help">{t.shiny3Help}</p>
       </section>
 
-      <section className="panel">
-        <h2>{t.allForms}</h2>
-        <div className="checks">
-          {allForms.map((g) => (
-            <label key={g.value} className="check">
-              <input type="checkbox" name="all_forms_dex" value={g.value} defaultChecked={g.on} /> {g.name}
-            </label>
-          ))}
-        </div>
-        <p className="help">{t.allFormsHelp}</p>
-      </section>
 
       <section className="panel">
         <h2>{t.visibleDexes}</h2>
@@ -72,9 +61,21 @@ export function SettingsForm({
         </div>
       </section>
 
+      <section className="panel">
+        <h2>{t.allForms}</h2>
+        <div className="checks">
+          {allForms.map((g) => (
+            <label key={g.value} className="check">
+              <input type="checkbox" name="all_forms_dex" value={g.value} defaultChecked={g.on} /> {g.name}
+            </label>
+          ))}
+        </div>
+        <p className="help">{t.allFormsHelp}</p>
+      </section>
+
       {state?.error && <p className="msg error" role="alert">{state.error}</p>}
       {state?.saved && <p className="msg" role="status">{t.saved}</p>}
-      <button className="btn" disabled={pending}>{pending ? t.loading : t.save}</button>
+      <button className="btn" disabled={pending} style={{ marginBottom: 16 }}>{pending ? t.loading : t.save}</button>
     </form>
   );
 }

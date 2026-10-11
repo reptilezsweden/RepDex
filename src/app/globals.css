@@ -419,9 +419,9 @@ a.start-link:hover { border-color: var(--accent); }
 .species-step .no { font-variant-numeric: tabular-nums; }
 .species-step .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Unticked icons on a collected (green) card: give them a light backing so they stand out. */
-.mon.collected .star[aria-pressed="false"],
-.mon.collected .badge[aria-pressed="false"] {
+/* Icons on a collected (green) card get a light backing so they stand out. */
+.mon.collected .star,
+.mon.collected .badge {
   background: var(--surface); border-radius: 999px;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--done) 25%, transparent);
 }
