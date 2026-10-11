@@ -415,6 +415,6 @@ a.start-link:hover { border-color: var(--accent); }
 .species-nav { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 10px; font-size: 0.9rem; }
 .species-step { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); text-decoration: none; }
 .species-step:hover { color: var(--text); }
-.species-step img, .species-step .noimg { width: 16px; height: 16px; object-fit: contain; flex: none; font-size: 10px; }
+.species-step img, .species-step .noimg { width: 32px; height: 32px; object-fit: contain; flex: none; font-size: 14px; }
 .species-step .no { font-variant-numeric: tabular-nums; }
 .species-step .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -42,7 +42,7 @@ function NeighbourLink({ link, dir, label }: { link: SpeciesLink | null; dir: "p
   return (
     <Link href={link.href} className={`species-step ${dir}`} aria-label={`${label}: ${nr} ${link.name}`}>
       {dir === "prev" && <span aria-hidden="true">←</span>}
-      <MonImage file={link.image} size={16} />
+      <MonImage file={link.image} size={32} />
       <span className="no">{nr}</span>
       <span className="nm">{link.name}</span>
       {dir === "next" && <span aria-hidden="true">→</span>}
