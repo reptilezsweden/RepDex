@@ -181,32 +181,46 @@ export function PuzzleIcon({ size = 18 }: { size?: number }) {
   return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="puzzle-icon"><path d={PUZZLE} /></svg>;
 }
 
-function Img({ file, size }: { file: string | null; size: number }) {
+function Img({ file, size, onMissing }: { file: string | null; size: number; onMissing?: () => void }) {
   const urls = imageUrls(file);
   const [i, setI] = useState(0);
   if (i >= urls.length) {
     return <span className="noimg" style={{ width: size, height: size }} aria-hidden="true">?</span>;
   }
-  return <img src={urls[i]} alt="" width={size} height={size} loading="lazy" decoding="async" onError={() => setI(i + 1)} />;
+  const next = () => {
+    if (i + 1 >= urls.length) onMissing?.();
+    setI(i + 1);
+  };
+  return <img src={urls[i]} alt="" width={size} height={size} loading="lazy" decoding="async" onError={next} />;
 }
 
 export function MonImage({ file, size = 72 }: { file: string | null; size?: number }) {
   return <Img file={file} size={size} />;
 }
 
-/** Dex card image: regular, swapping to shiny while the pointer hovers (desktop). */
+/** Dex card image: regular, swapping to shiny while the pointer hovers (desktop). No swap when the shiny image is missing. */
 export function HoverShiny({ regular, shiny, size = 72 }: { regular: string | null; shiny: string | null; size?: number }) {
+  const [missing, setMissing] = useState(false);
   return (
     <span className="hover-shiny" style={{ width: size, height: size }}>
       <span className="reg"><Img file={regular} size={size} /></span>
-      {shiny && <span className="shy"><Img file={shiny} size={size} /></span>}
+      {shiny && !missing && <span className="shy"><Img file={shiny} size={size} onMissing={() => setMissing(true)} /></span>}
     </span>
   );
 }
 
-/** Regular image that shows the shiny one on hover (desktop) or click (any device). */
+/** Regular image that shows the shiny one on hover (desktop) or click (any device). No swap when the shiny image is missing. */
 export function ShinySwap({ regular, shiny, size = 96, label }: { regular: string | null; shiny: string | null; size?: number; label: string }) {
   const [pinned, setPinned] = useState(false);
+  const [missing, setMissing] = useState(false);
+  const hasShiny = !!shiny && !missing;
+  if (!hasShiny) {
+    return (
+      <span className="swap" style={{ width: size, height: size }}>
+        <span className="reg"><Img file={regular} size={size} /></span>
+      </span>
+    );
+  }
   return (
     <button
       type="button"
@@ -218,7 +232,7 @@ export function ShinySwap({ regular, shiny, size = 96, label }: { regular: strin
       style={{ width: size, height: size }}
     >
       <span className="reg"><Img file={regular} size={size} /></span>
-      <span className="shy"><Img file={shiny} size={size} /></span>
+      <span className="shy"><Img file={shiny} size={size} onMissing={() => setMissing(true)} /></span>
     </button>
   );
 }
