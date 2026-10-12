@@ -71,7 +71,8 @@ export function StarButton({ kind, on, label, onClick, wanted, dim }: { kind: "s
 }
 
 export type BadgeIconKind =
-  | "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified" | "shadow_shiny" | "purified_shiny";
+  | "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified" | "shadow_shiny" | "purified_shiny"
+  | "mega" | "gigantamax" | "dynamax";
 
 const FLAME =
   "M12 22C7.6 22 5 19 5.2 15.4C5.4 12.4 7.4 10.6 8.2 8C8.6 9.6 8.4 10.8 7.8 12C9.6 10.8 10.2 8.6 10 6.4C9.9 4.8 10.6 3.2 12.2 2C11.6 4.6 13 6.6 14.6 8.6C15.4 9.6 15.8 10.8 15.6 12C16.2 11.2 16.4 10.2 16.2 9.2C18 11 19 13.2 18.8 15.6C18.6 19.4 15.8 22 12 22Z";
@@ -117,6 +118,40 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
       </svg>
     );
   }
+  if (kind === "dynamax") {
+    // Original art: four arrows pushing outwards — growing big.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dynamax">
+        <path d="M9.5 9.5L4 4M4 9V4h5M14.5 9.5L20 4M15 4h5v5M9.5 14.5L4 20M4 15v5h5M14.5 14.5L20 20M20 15v5h-5" />
+        <circle cx="12" cy="12" r="2.2" />
+      </svg>
+    );
+  }
+  if (kind === "gigantamax") {
+    // Original art: three stacked chevrons rising out of a base — something huge growing up.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="gigantamax">
+        <path d="M5 11.5L12 4.5L19 11.5" />
+        <path d="M6.5 16L12 10.5L17.5 16" />
+        <path d="M8 20.5L12 16.5L16 20.5" />
+      </svg>
+    );
+  }
+  if (kind === "mega") {
+    // Original art: a rainbow-ringed orb with a spark in the middle.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="mega">
+        <defs>
+          <linearGradient id="mega-ring" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ff6fb1" /><stop offset="0.35" stopColor="#ffd25e" />
+            <stop offset="0.65" stopColor="#5fe0a8" /><stop offset="1" stopColor="#6c8dff" />
+          </linearGradient>
+        </defs>
+        <circle className="ring" cx="12" cy="12" r="8.6" />
+        <path className="spark" d="M12 6.6l1.4 3.9 3.9 1.5-3.9 1.5L12 17.4l-1.4-3.9-3.9-1.5 3.9-1.5z" />
+      </svg>
+    );
+  }
   const base = kind === "shadow" || kind === "shadow_shiny" ? <Flame /> : <Burst />;
   if (kind === "shadow" || kind === "purified") {
     return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dex-art">{base}</svg>;
@@ -134,6 +169,7 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
 export const DEX_ICON: Partial<Record<string, BadgeIconKind>> = {
   lucky: "lucky", xxl: "xxl", xxs: "xxs", perfect: "perfect", shadow: "shadow", purified: "purified",
   shadow_shiny: "shadow_shiny", purified_shiny: "purified_shiny",
+  mega: "mega", gigantamax: "gigantamax", dynamax: "dynamax",
 };
 
 /** The tick for an entry in a dex: the dex's own icon, or the checkmark. */
