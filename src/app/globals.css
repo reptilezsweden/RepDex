@@ -12,6 +12,7 @@
   --upcoming: #22a55a;
   --wanted: #c98a00;
   --radius: 12px;
+  --tray: #ebe9e4;
   color-scheme: light;
 }
 
@@ -28,6 +29,7 @@
     --done: #4cbf80;
     --upcoming: #3ccf78;
     --wanted: #f0b429;
+    --tray: #2c2b28;
     color-scheme: dark;
   }
 }
@@ -309,19 +311,18 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .inline-field input { flex: 1; padding: 10px 12px; min-height: 44px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
 
 .edit-pen {
-  position: absolute; right: 2px; bottom: 2px; width: 36px; height: 36px; z-index: 1;
+  position: absolute; left: 2px; top: 2px; width: 36px; height: 36px; z-index: 1;
   display: grid; place-items: center; border-radius: 8px; color: var(--muted);
 }
 .edit-pen:hover { color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
 .edit-pen svg path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-.grid.forms .mon { padding-bottom: 34px; }
 
 /* Extra dex icons on regular forms (species page): colour when ticked, faded when not */
 .badge {
   width: 32px; height: 32px; padding: 0; display: grid; place-items: center;
   border: 0; background: transparent; cursor: pointer;
 }
-.badge[aria-pressed="false"] > * { filter: grayscale(1); opacity: 0.35; }
+.badge[aria-pressed="false"] > * { filter: grayscale(1); opacity: 0.5; }
 .badge:hover[aria-pressed="false"] > * { opacity: 0.6; }
 .badge .clover circle { fill: #2e9e4f; }
 .badge .clover .stem { fill: none; stroke: #2e9e4f; stroke-width: 1.8; stroke-linecap: round; }
@@ -423,13 +424,16 @@ a.start-link:hover { border-color: var(--accent); }
 .species-step .no { font-variant-numeric: tabular-nums; }
 .species-step .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Icons on a collected (green) card get a light backing so they stand out. */
-.mon.collected .star,
-.mon.collected .badge {
-  background: var(--surface); border-radius: 999px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--done) 25%, transparent);
+/* Icon tray: the tick icons sit at the bottom of each card on a neutral strip that contrasts
+   with the grey icons whether or not the card is collected. Two rows tall on the species page. */
+.icon-tray {
+  margin: auto -6px -10px; width: calc(100% + 12px); padding: 4px 4px 5px;
+  min-height: calc(2 * 32px + 9px); display: flex; flex-direction: column; justify-content: flex-end;
+  background: var(--tray); border-top: 1px solid var(--line);
+  border-radius: 0 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px);
 }
-.mon.collected .star[aria-pressed="false"] svg path { stroke: color-mix(in srgb, var(--text) 65%, transparent); }
-.mon.collected .badge[aria-pressed="false"] > * { opacity: 0.5; }
+.icon-tray.one { min-height: calc(32px + 9px); }
+.icon-tray .extras { margin-top: 0; }
+.mon.collected .icon-tray { border-top-color: color-mix(in srgb, var(--done) 35%, var(--line)); }
 .shiny-cols { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
 @media (min-width: 560px) { .shiny-cols { grid-template-columns: 1fr 1fr; } }

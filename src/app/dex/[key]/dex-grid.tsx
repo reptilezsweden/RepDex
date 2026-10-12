@@ -447,17 +447,22 @@ export function DexGrid({
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>
-                    {c.status === "available" && c.stars.length > 0 && (
-                      <span className="extras">
-                        {c.stars.map((st) => (
-                          <span key={st.dex} className="star-pair">
-                            <StarButton
-                              kind={st.kind} label={st.label} on={starOn(st)} onClick={() => tapStar(c, st)}
-                              wanted={st.rows.some((r) => get(st.dex, r)?.wanted)} dim={wantedMode && !starOn(st)}
-                            />
+                    {starKinds.length > 0 && (
+                      // Same-height tray on every card when the dex shows stars, so cards line up.
+                      <div className="icon-tray one">
+                        {c.status === "available" && c.stars.length > 0 && (
+                          <span className="extras">
+                            {c.stars.map((st) => (
+                              <span key={st.dex} className="star-pair">
+                                <StarButton
+                                  kind={st.kind} label={st.label} on={starOn(st)} onClick={() => tapStar(c, st)}
+                                  wanted={st.rows.some((r) => get(st.dex, r)?.wanted)} dim={wantedMode && !starOn(st)}
+                                />
+                              </span>
+                            ))}
                           </span>
-                        ))}
-                      </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 );

@@ -184,8 +184,12 @@ export function SpeciesForms({
                     <span className="nm">{f.name}</span>
                     <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
-                    {badgeRow(f, 1)}
-                    {badgeRow(f, 2)}
+                    {f.tickable && (
+                      <div className="icon-tray">
+                        {badgeRow(f, 1)}
+                        {badgeRow(f, 2)}
+                      </div>
+                    )}
                     {isAdmin && (
                       <Link href={`/admin/pokemon/${encodeURIComponent(f.id)}`} className="edit-pen" aria-label={`${t.edit} ${f.name}`} title={t.edit}>
                         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
