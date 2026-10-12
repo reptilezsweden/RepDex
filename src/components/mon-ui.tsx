@@ -93,7 +93,18 @@ const Burst = () => (
 
 /** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified combos. */
 export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: number }) {
-  if (kind === "perfect") return <span className="emoji" style={{ fontSize: size * 0.85 }} aria-hidden="true">💯</span>;
+  if (kind === "perfect") {
+    // A hand-drawn "100" with two underlines, as strokes so it can turn grey when not ticked.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="hundred">
+        <path d="M5.4 7.6L7.5 6.1L5.5 16.3" />
+        <ellipse cx="11.1" cy="11.2" rx="2.3" ry="4.9" transform="rotate(12 11.1 11.2)" />
+        <ellipse cx="17.3" cy="11.2" rx="2.3" ry="4.9" transform="rotate(12 17.3 11.2)" />
+        <path d="M3.8 19C9 18.3 15 18.1 20.6 18.5" />
+        <path d="M5.2 21.4C10 20.9 14.5 20.8 18.8 21.1" />
+      </svg>
+    );
+  }
   if (kind === "xxl" || kind === "xxs") {
     return <span className="text-badge" aria-hidden="true">{kind.toUpperCase()}</span>;
   }

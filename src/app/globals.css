@@ -329,7 +329,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   padding: 3px 4px; border-radius: 5px; color: #fff; background: #3a6fd8;
 }
 .badge.xxs .text-badge { background: #d8743a; }
-.badge .emoji { line-height: 1; }
+.badge .hundred :is(path, ellipse) { fill: none; stroke: #e5483b; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .badge .flame .body, .badge .flame .flick { fill: #c99af0; stroke: #a874d9; stroke-linejoin: round; }
 .badge .flame .body { stroke-width: 1; }
 .badge .flame .flick { stroke-width: 0.8; }
@@ -337,13 +337,12 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .badge .mini-star path { fill: #f5c518; stroke: #d9a800; stroke-width: 1; }
 
 /* Not ticked: the same grey outline as the shiny stars. */
-.badge[aria-pressed="false"][aria-pressed] svg :is(circle, path, line) { fill: none; stroke: var(--muted); }
+.badge[aria-pressed="false"][aria-pressed] svg :is(circle, ellipse, path, line) { fill: none; stroke: var(--muted); }
 .badge[aria-pressed="false"] .clover circle { stroke-width: 1.3; }
 .badge[aria-pressed="false"] .flame .body { stroke-width: 1.3; }
 .badge[aria-pressed="false"] .mini-star path { stroke-width: 1.6; }
 .badge[aria-pressed="false"] .text-badge { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--muted); }
-.badge[aria-pressed="false"] .emoji { filter: grayscale(1); opacity: 0.7; }
-.badge:hover[aria-pressed="false"][aria-pressed] svg :is(circle, path, line) { stroke: var(--text); }
+.badge:hover[aria-pressed="false"][aria-pressed] svg :is(circle, ellipse, path, line) { stroke: var(--text); }
 .grid.forms .extras + .extras { margin-top: 0; }
 
 /* Wanted mark: small puzzle in the corner of a ticked icon */
