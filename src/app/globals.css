@@ -4,8 +4,10 @@
   --text: #1c1b19;
   --muted: #6b6862;
   --line: #e3e0da;
-  --accent: #d6402f;
+  --accent: #2f8f5b;
   --accent-text: #ffffff;
+  /* Errors and destructive actions stay red. */
+  --danger: #d6402f;
   --done: #2f8f5b;
   --upcoming: #22a55a;
   --wanted: #c98a00;
@@ -20,7 +22,9 @@
     --text: #f1efea;
     --muted: #a19d95;
     --line: #34332f;
-    --accent: #ef5a46;
+    --accent: #4cbf80;
+    --accent-text: #0f1f16;
+    --danger: #ef5a46;
     --done: #4cbf80;
     --upcoming: #3ccf78;
     --wanted: #f0b429;
@@ -77,7 +81,7 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
 .links { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; color: var(--muted); }
 .msg { padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; font-size: 0.95rem; background: var(--bg); }
-.msg.error { color: var(--accent); }
+.msg.error { color: var(--danger); }
 
 /* Dex overview */
 /* At most 4 columns; fewer on narrow screens. */
@@ -271,8 +275,8 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; }
 .admin-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 .btn.small { min-height: 32px; padding: 0 10px; font-size: 0.85rem; }
-.btn.danger { background: var(--accent); }
-.danger-zone { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); margin-top: 24px; }
+.btn.danger { background: var(--danger); color: #ffffff; }
+.danger-zone { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); margin-top: 24px; }
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .admin-table th, .admin-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
@@ -293,7 +297,7 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .gen-row.head { color: var(--muted); font-size: 0.85rem; }
 .gen-row input { width: 100%; padding: 8px 10px; min-height: 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .gen-row .row-msg { grid-column: 1 / -1; font-size: 0.85rem; color: var(--muted); }
-.gen-row .row-msg.error { color: var(--accent); }
+.gen-row .row-msg.error { color: var(--danger); }
 .note-inline { color: var(--muted); }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
 
