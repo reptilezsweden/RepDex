@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {profile && (
           <header className="topbar">
-            <Link href="/" className="brand">Rep<span>Dex</span></Link>
+            <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion}</small></Link>
             <nav>
               <Link href="/dexes">{t.dexes}</Link>
               <Link href="/settings">{t.settings}</Link>

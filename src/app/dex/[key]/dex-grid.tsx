@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
-import { CheckButton, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
+import { BadgeButton, DEX_ICON, DexTick, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
@@ -423,20 +423,6 @@ export function DexGrid({
                 const cls = ["mon", c.status !== "available" ? c.status : s.collected ? "collected" : ""].join(" ");
                 return (
                   <div key={c.id} className={cls}>
-                    {c.status === "available" && c.rows.length > 0 && (
-                      <CheckButton
-                        on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
-                        wanted={s.wanted} dim={wantedMode && !s.collected}
-                      />
-                    )}
-                    {c.status === "available" && s.collected && !mainOn(c) && (
-                      <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
-                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                          <circle cx="12" cy="12" r="9.5" />
-                          <path d="M7.5 12.5l3 3 6-6.5" />
-                        </svg>
-                      </span>
-                    )}
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
                       <span className="pic"><HoverShiny regular={c.image} shiny={c.shinyImage} /></span>
                       <span className="no">#{String(c.no).padStart(4, "0")}</span>
@@ -447,23 +433,37 @@ export function DexGrid({
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>
-                    {starKinds.length > 0 && (
-                      // Same-height tray on every card when the dex shows stars, so cards line up.
-                      <div className="icon-tray one">
-                        {c.status === "available" && c.stars.length > 0 && (
-                          <span className="extras">
-                            {c.stars.map((st) => (
+                    {/* Tick icons at the bottom of every card, so cards line up. */}
+                    <div className="icon-tray one">
+                      {c.status === "available" && c.rows.length > 0 && (
+                        <span className="extras">
+                          <DexTick
+                            dex={dexKey} on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
+                            wanted={s.wanted} dim={wantedMode && !s.collected}
+                          />
+                          {s.collected && !mainOn(c) && (
+                            <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
+                              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9.5" />
+                                <path d="M7.5 12.5l3 3 6-6.5" />
+                              </svg>
+                            </span>
+                          )}
+                          {c.stars.map((st) => {
+                            const props = {
+                              label: st.label, on: starOn(st), onClick: () => tapStar(c, st),
+                              wanted: st.rows.some((r) => get(st.dex, r)?.wanted), dim: wantedMode && !starOn(st),
+                            };
+                            // Shiny Shadow / Purified have their own combined icon; other shinies use the star.
+                            return (
                               <span key={st.dex} className="star-pair">
-                                <StarButton
-                                  kind={st.kind} label={st.label} on={starOn(st)} onClick={() => tapStar(c, st)}
-                                  wanted={st.rows.some((r) => get(st.dex, r)?.wanted)} dim={wantedMode && !starOn(st)}
-                                />
+                                {DEX_ICON[st.dex] ? <BadgeButton kind={DEX_ICON[st.dex]!} {...props} /> : <StarButton kind={st.kind} {...props} />}
                               </span>
-                            ))}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}

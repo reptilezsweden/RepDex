@@ -70,13 +70,28 @@ export function StarButton({ kind, on, label, onClick, wanted, dim }: { kind: "s
   );
 }
 
-export type BadgeIconKind = "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified";
+export type BadgeIconKind =
+  | "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified" | "shadow_shiny" | "purified_shiny";
 
-const SMOKE =
-  "M12 2.5c1.6 2.6-.9 3.7.1 6.2.8 2 3.6 1.6 3.6 4.7 0 3.2-2.6 5.8-5.7 5.8s-5.6-2.6-5.6-5.8c0-2.7 2.1-4 3.3-5.4.4 1.7 1.6 2.4 2.7 2.2C9.4 7.9 11.1 5.7 12 2.5z";
-const WISPS = "M16.8 6.5c1.4 1.4 1.1 2.9.2 4.1M6.2 18.7c-1.2.9-2.6.7-3.4-.2M17.6 18.3c1.2.6 2.5.3 3.2-.7";
+const FLAME =
+  "M12 22C7.6 22 5 19 5.2 15.4C5.4 12.4 7.4 10.6 8.2 8C8.6 9.6 8.4 10.8 7.8 12C9.6 10.8 10.2 8.6 10 6.4C9.9 4.8 10.6 3.2 12.2 2C11.6 4.6 13 6.6 14.6 8.6C15.4 9.6 15.8 10.8 15.6 12C16.2 11.2 16.4 10.2 16.2 9.2C18 11 19 13.2 18.8 15.6C18.6 19.4 15.8 22 12 22Z";
+const FLICKS = "M6.2 5.4C4.6 6.6 4 8.6 4.6 10.4C5 9 5.8 8 6.8 7.4C6.2 6.8 6 6.1 6.2 5.4ZM19.6 18.4C18.7 19.4 18.2 20.7 18.4 22C19.7 21.4 20.5 20.3 20.7 19.1Z";
+/** Purified burst: eight rays, alternating long and short. */
+const RAYS = Array.from({ length: 8 }, (_, i) => {
+  const a = (i * Math.PI) / 4;
+  const [r1, r2] = i % 2 ? [3.4, 8] : [3, 10.4];
+  const f = (n: number) => n.toFixed(2);
+  return { x1: f(12 + r1 * Math.sin(a)), y1: f(12 - r1 * Math.cos(a)), x2: f(12 + r2 * Math.sin(a)), y2: f(12 - r2 * Math.cos(a)) };
+});
 
-/** Icons for the extra dexes on regular forms: Lucky, XXL, XXS, Perfect, Shadow, Purified. */
+const Flame = () => (
+  <g className="flame"><path className="body" d={FLAME} /><path className="flick" d={FLICKS} /></g>
+);
+const Burst = () => (
+  <g className="burst">{RAYS.map((r, i) => <line key={i} {...r} />)}</g>
+);
+
+/** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified combos. */
 export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: number }) {
   if (kind === "perfect") return <span className="emoji" style={{ fontSize: size * 0.85 }} aria-hidden="true">💯</span>;
   if (kind === "xxl" || kind === "xxs") {
@@ -91,12 +106,29 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
       </svg>
     );
   }
+  const base = kind === "shadow" || kind === "shadow_shiny" ? <Flame /> : <Burst />;
+  if (kind === "shadow" || kind === "purified") {
+    return <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dex-art">{base}</svg>;
+  }
+  // Shiny Shadow / shiny Purified: the dex icon with a small star in the corner.
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={`smoke ${kind}`}>
-      <path d={SMOKE} />
-      <path d={WISPS} className="wisp" />
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dex-art">
+      <g transform="translate(0 3) scale(0.82)">{base}</g>
+      <g className="mini-star" transform="translate(13.2 0) scale(0.45)"><path d={STAR} /></g>
     </svg>
   );
+}
+
+/** Icon a dex uses for its own tick; dexes without one use the checkmark. */
+export const DEX_ICON: Partial<Record<string, BadgeIconKind>> = {
+  lucky: "lucky", xxl: "xxl", xxs: "xxs", perfect: "perfect", shadow: "shadow", purified: "purified",
+  shadow_shiny: "shadow_shiny", purified_shiny: "purified_shiny",
+};
+
+/** The tick for an entry in a dex: the dex's own icon, or the checkmark. */
+export function DexTick({ dex, ...props }: { dex: string; on: boolean; label: string; onClick: () => void } & Extra) {
+  const kind = DEX_ICON[dex];
+  return kind ? <BadgeButton kind={kind} {...props} /> : <CheckButton {...props} />;
 }
 
 export function BadgeButton({ kind, on, label, onClick, wanted, dim }: { kind: BadgeIconKind; on: boolean; label: string; onClick: () => void } & Extra) {

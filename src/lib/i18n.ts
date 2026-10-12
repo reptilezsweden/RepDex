@@ -3,6 +3,7 @@ export const LANG_COOKIE = "rd-lang";
 
 const en = {
   appName: "RepDex",
+  betaVersion: "Beta version",
   dexes: "Dexes",
   settings: "Settings",
   signIn: "Sign in",
@@ -138,6 +139,7 @@ const en = {
 
 const sv: typeof en = {
   appName: "RepDex",
+  betaVersion: "Betaversion",
   dexes: "Dexar",
   settings: "Inställningar",
   signIn: "Logga in",

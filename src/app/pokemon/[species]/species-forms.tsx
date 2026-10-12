@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { BadgeButton, BadgeIcon, CheckButton, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
+import { useState, type ReactNode } from "react";
+import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
 import type { Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -112,11 +112,12 @@ export function SpeciesForms({
     { key: "unreleased", heading: t.unreleased, match: (f) => f.status === "unreleased" },
   ];
 
-  const badgeRow = (f: FormCard, row: 1 | 2) => {
+  const badgeRow = (f: FormCard, row: 1 | 2, lead?: ReactNode) => {
     const list = f.badges.filter((b) => b.row === row);
-    if (list.length === 0) return null;
+    if (list.length === 0 && !lead) return null;
     return (
       <span className="extras">
+        {lead}
         {list.map((b) => (
           <span key={b.dex} className="star-pair">
             {b.icon === "star" || b.icon === "star3"
@@ -143,7 +144,9 @@ export function SpeciesForms({
             <li><span className="badge xxs legend-icon"><BadgeIcon kind="xxs" /></span>XXS</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="perfect" size={20} /></span>{t.legendPerfect}</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="shadow" size={20} /></span>Shadow</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="shadow_shiny" size={20} /></span>Shadow shiny</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="purified" size={20} /></span>Purified</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="purified_shiny" size={20} /></span>Purified shiny</li>
             <li><span className="legend-icon want-legend"><PuzzleIcon /></span>{t.wanted}</li>
             <li><span className="legend-icon forbid" aria-hidden="true" />{t.legendUnavailable}</li>
             <li className="legend-help">{t.legendHelp}</li>
@@ -177,16 +180,13 @@ export function SpeciesForms({
                 const cls = ["mon", f.status !== "available" ? f.status : s?.collected ? "collected" : ""].join(" ");
                 return (
                   <div key={f.id} className={cls}>
-                    {f.tickable && (
-                      <CheckButton on={!!s?.collected} label={t.collect} onClick={() => tap(f, f.dex)} {...extra(f.dex, f.id)} />
-                    )}
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>
                     <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
                     {f.tickable && (
                       <div className="icon-tray">
-                        {badgeRow(f, 1)}
+                        {badgeRow(f, 1, <DexTick dex={f.dex} on={!!s?.collected} label={t.collect} onClick={() => tap(f, f.dex)} {...extra(f.dex, f.id)} />)}
                         {badgeRow(f, 2)}
                       </div>
                     )}

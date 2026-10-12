@@ -322,8 +322,6 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   width: 32px; height: 32px; padding: 0; display: grid; place-items: center;
   border: 0; background: transparent; cursor: pointer;
 }
-.badge[aria-pressed="false"] > * { filter: grayscale(1); opacity: 0.5; }
-.badge:hover[aria-pressed="false"] > * { opacity: 0.6; }
 .badge .clover circle { fill: #2e9e4f; }
 .badge .clover .stem { fill: none; stroke: #2e9e4f; stroke-width: 1.8; stroke-linecap: round; }
 .badge .text-badge {
@@ -332,12 +330,20 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 }
 .badge.xxs .text-badge { background: #d8743a; }
 .badge .emoji { line-height: 1; }
-.badge .smoke path { stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
-.badge .smoke .wisp { fill: none; }
-.badge .smoke.shadow path { fill: #7b3fd0; stroke: #5a2aa0; }
-.badge .smoke.shadow .wisp { fill: none; stroke: #7b3fd0; }
-.badge .smoke.purified path { fill: #ffffff; stroke: #8a8f99; }
-.badge .smoke.purified .wisp { fill: none; stroke: #8a8f99; }
+.badge .flame .body, .badge .flame .flick { fill: #c99af0; stroke: #a874d9; stroke-linejoin: round; }
+.badge .flame .body { stroke-width: 1; }
+.badge .flame .flick { stroke-width: 0.8; }
+.badge .burst line { stroke: #86d6ec; stroke-width: 2.1; stroke-linecap: round; }
+.badge .mini-star path { fill: #f5c518; stroke: #d9a800; stroke-width: 1; }
+
+/* Not ticked: the same grey outline as the shiny stars. */
+.badge[aria-pressed="false"][aria-pressed] svg :is(circle, path, line) { fill: none; stroke: var(--muted); }
+.badge[aria-pressed="false"] .clover circle { stroke-width: 1.3; }
+.badge[aria-pressed="false"] .flame .body { stroke-width: 1.3; }
+.badge[aria-pressed="false"] .mini-star path { stroke-width: 1.6; }
+.badge[aria-pressed="false"] .text-badge { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--muted); }
+.badge[aria-pressed="false"] .emoji { filter: grayscale(1); opacity: 0.7; }
+.badge:hover[aria-pressed="false"][aria-pressed] svg :is(circle, path, line) { stroke: var(--text); }
 .grid.forms .extras + .extras { margin-top: 0; }
 
 /* Wanted mark: small puzzle in the corner of a ticked icon */
@@ -428,12 +434,18 @@ a.start-link:hover { border-color: var(--accent); }
    with the grey icons whether or not the card is collected. Two rows tall on the species page. */
 .icon-tray {
   margin: auto -6px -10px; width: calc(100% + 12px); padding: 4px 4px 5px;
-  min-height: calc(2 * 32px + 9px); display: flex; flex-direction: column; justify-content: flex-end;
+  min-height: calc(2 * 30px + 9px); display: flex; flex-direction: column; justify-content: center;
   background: var(--tray); border-top: 1px solid var(--line);
   border-radius: 0 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px);
 }
-.icon-tray.one { min-height: calc(32px + 9px); }
-.icon-tray .extras { margin-top: 0; }
+.icon-tray.one { min-height: calc(30px + 9px); }
+.icon-tray .extras { margin-top: 0; align-items: center; }
+.icon-tray .extras { gap: 1px; }
+.icon-tray .tick { position: relative; top: auto; right: auto; }
+.icon-tray :is(.tick, .star, .badge, .extras .star) { width: 24px; height: 30px; }
+.icon-tray .badge .text-badge { font-size: 0.56rem; padding: 3px 2px; }
+.icon-tray .other-form { position: static; width: 22px; height: 30px; }
 .mon.collected .icon-tray { border-top-color: color-mix(in srgb, var(--done) 35%, var(--line)); }
 .shiny-cols { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
 @media (min-width: 560px) { .shiny-cols { grid-template-columns: 1fr 1fr; } }
+.topbar .brand .beta { margin-left: 8px; font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }

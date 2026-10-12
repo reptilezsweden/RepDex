@@ -19,11 +19,11 @@ const CAUGHT_BADGES: { dex: string; icon: Badge["icon"]; row: 1 | 2; parent?: st
   { dex: "lucky", icon: "lucky", row: 1, parent: "caught" },
   { dex: "xxl", icon: "xxl", row: 1, parent: "caught" },
   { dex: "xxs", icon: "xxs", row: 1, parent: "caught" },
-  { dex: "perfect", icon: "perfect", row: 1, parent: "caught" },
   { dex: "shadow", icon: "shadow", row: 2 },
-  { dex: "shadow_shiny", icon: "star", row: 2, parent: "shadow" },
+  { dex: "shadow_shiny", icon: "shadow_shiny", row: 2, parent: "shadow" },
   { dex: "purified", icon: "purified", row: 2 },
-  { dex: "purified_shiny", icon: "star", row: 2, parent: "purified" },
+  { dex: "purified_shiny", icon: "purified_shiny", row: 2, parent: "purified" },
+  { dex: "perfect", icon: "perfect", row: 2, parent: "caught" },
 ];
 
 export default async function SpeciesPage({
