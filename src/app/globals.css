@@ -334,13 +334,15 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .badge .flame .body { stroke-width: 1; }
 .badge .flame .flick { stroke-width: 0.8; }
 .badge .burst line { stroke: #86d6ec; stroke-width: 2.1; stroke-linecap: round; }
-.badge .dynamax path { fill: none; stroke: #e0307a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.badge .dynamax circle { fill: #e0307a; }
-.badge .gigantamax path { fill: none; stroke: #c4213a; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
-.badge .mega .ring { fill: none; stroke: url(#mega-ring); stroke-width: 3; }
-.badge .mega .spark { fill: #7d5cff; stroke: #5b3fd6; stroke-width: 0.8; stroke-linejoin: round; }
-.badge[aria-pressed="false"][aria-pressed] .mega .ring { stroke-width: 1.6; }
-.badge[aria-pressed="false"][aria-pressed] :is(.dynamax, .gigantamax) path { stroke-width: 1.6; }
+.badge .dai path { fill: none; stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+.badge .dai.dynamax path { stroke: var(--text); }
+.badge .dai.gigantamax path { stroke: #e0307a; }
+.badge .dna path { fill: none; stroke: url(#dna-rainbow); stroke-linecap: round; }
+.badge .dna .strand { stroke-width: 2.6; }
+.badge .dna .rung { stroke-width: 1.7; }
+.badge[aria-pressed="false"][aria-pressed] .dai path { stroke-width: 2; }
+.badge[aria-pressed="false"][aria-pressed] .dna .strand { stroke-width: 1.7; }
+.badge[aria-pressed="false"][aria-pressed] .dna .rung { stroke-width: 1.3; }
 .badge .mini-star path { fill: #f5c518; stroke: #d9a800; stroke-width: 1; }
 
 /* Not ticked: the same grey outline as the shiny stars. */

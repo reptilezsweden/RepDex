@@ -119,37 +119,32 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
       </svg>
     );
   }
-  if (kind === "dynamax") {
-    // Original art: four arrows pushing outwards — growing big.
+  if (kind === "dynamax" || kind === "gigantamax") {
+    // The kanji 大 ("big"), drawn as extra-bold strokes: black for Dynamax, pink for Gigantamax.
     return (
-      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dynamax">
-        <path d="M9.5 9.5L4 4M4 9V4h5M14.5 9.5L20 4M15 4h5v5M9.5 14.5L4 20M4 15v5h5M14.5 14.5L20 20M20 15v5h-5" />
-        <circle cx="12" cy="12" r="2.2" />
-      </svg>
-    );
-  }
-  if (kind === "gigantamax") {
-    // Original art: three stacked chevrons rising out of a base — something huge growing up.
-    return (
-      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="gigantamax">
-        <path d="M5 11.5L12 4.5L19 11.5" />
-        <path d="M6.5 16L12 10.5L17.5 16" />
-        <path d="M8 20.5L12 16.5L16 20.5" />
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={`dai ${kind}`}>
+        <path d="M3.6 9.4H20.4" />
+        <path d="M12 2.6V9.4C11.7 14.6 9 18.6 3.8 21.4" />
+        <path d="M12.6 10.8C14 15.2 16.6 18.7 20.6 21" />
       </svg>
     );
   }
   if (kind === "mega") {
-    // Original art: a rainbow-ringed orb with a spark in the middle.
+    // A rainbow DNA strand: two twisting strands joined by rungs.
     return (
-      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="mega">
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dna">
         <defs>
-          <linearGradient id="mega-ring" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#ff6fb1" /><stop offset="0.35" stopColor="#ffd25e" />
-            <stop offset="0.65" stopColor="#5fe0a8" /><stop offset="1" stopColor="#6c8dff" />
+          <linearGradient id="dna-rainbow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ff4d4d" /><stop offset="0.2" stopColor="#ff9f2e" />
+            <stop offset="0.4" stopColor="#f4d03a" /><stop offset="0.6" stopColor="#3cc46b" />
+            <stop offset="0.8" stopColor="#3e8bff" /><stop offset="1" stopColor="#9b5cff" />
           </linearGradient>
         </defs>
-        <circle className="ring" cx="12" cy="12" r="8.6" />
-        <path className="spark" d="M12 6.6l1.4 3.9 3.9 1.5-3.9 1.5L12 17.4l-1.4-3.9-3.9-1.5 3.9-1.5z" />
+        <g transform="translate(12 12) rotate(28) scale(1.05) translate(-12 -12)">
+          <path className="rung" d="M8.2 4.2H15.8M7.4 12H16.6M8.2 19.8H15.8" />
+          <path className="strand" d="M7 1.5C7 6 17 7.5 17 12S7 18 7 22.5" />
+          <path className="strand" d="M17 1.5C17 6 7 7.5 7 12S17 18 17 22.5" />
+        </g>
       </svg>
     );
   }
