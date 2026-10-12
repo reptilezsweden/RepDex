@@ -328,7 +328,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.2px; line-height: 1;
   padding: 3px 4px; border-radius: 5px; color: #fff; background: #3a6fd8;
 }
-.badge.xxs .text-badge { background: #d8743a; }
+.badge .text-badge.xxs { background: #d8743a; }
 .badge .hundred :is(path, ellipse) { fill: none; stroke: #e5483b; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .badge .flame .body, .badge .flame .flick { fill: #c99af0; stroke: #a874d9; stroke-linejoin: round; }
 .badge .flame .body { stroke-width: 1; }

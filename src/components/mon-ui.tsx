@@ -108,7 +108,7 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
     );
   }
   if (kind === "xxl" || kind === "xxs") {
-    return <span className="text-badge" aria-hidden="true">{kind.toUpperCase()}</span>;
+    return <span className={`text-badge ${kind}`} aria-hidden="true">{kind.toUpperCase()}</span>;
   }
   if (kind === "lucky") {
     return (
