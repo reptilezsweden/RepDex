@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
 import { BadgeButton, DEX_ICON, DexTick, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
-import type { Status } from "@/lib/dexes";
+import { canWant, type Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -79,7 +79,7 @@ export function DexGrid({
 
   const stateOf = (c: Card) => ({
     collected: c.rows.some((r) => get(dexKey, r)?.collected),
-    wanted: c.rows.some((r) => get(dexKey, r)?.wanted),
+    wanted: canWant(dexKey) && c.rows.some((r) => get(dexKey, r)?.wanted),
   });
   // In game cards stand for every form of a species. The checkmark shows the card's own row
   // (usually the regular form); another collected form shows as a dotted mark but still counts.
@@ -114,7 +114,7 @@ export function DexGrid({
         const s = stateOf(c);
         if (!s.collected || s.wanted) return true;
         // Shown shiny stars count too: a shiny not yet ticked, or one marked wanted.
-        return c.stars.some((st) => !starOn(st) || st.rows.some((r) => get(st.dex, r)?.wanted));
+        return c.stars.some((st) => !starOn(st) || (canWant(st.dex) && st.rows.some((r) => get(st.dex, r)?.wanted)));
       }
       if (show === "collected") return c.status === "available" && stateOf(c).collected;
       return true;
@@ -222,7 +222,7 @@ export function DexGrid({
   }
   function tapStar(c: Card, st: Card["stars"][number]) {
     if (!wantedMode) return toggleStarOf(c, st);
-    if (starOn(st)) toggleStarWanted(st.dex, st.rows);
+    if (starOn(st) && canWant(st.dex)) toggleStarWanted(st.dex, st.rows);
   }
 
   // Filters float at the top; once scrolled past, they collapse into a slim bar until tapped.
@@ -396,10 +396,12 @@ export function DexGrid({
         <span className="bulk">
           <button type="button" className="btn ghost" disabled={!anyFor("check")} onClick={() => openBulk("check")}>{t.checkAll}</button>
           <button type="button" className="btn ghost" disabled={!anyFor("uncheck")} onClick={() => openBulk("uncheck")}>{t.uncheckAll}</button>
-          <button type="button" role="switch" aria-checked={wantedMode} className="switch" onClick={() => setWantedMode(!wantedMode)}>
-            <span className="track" aria-hidden="true"><span className="knob" /></span>
-            <PuzzleIcon size={16} /> {t.wantedMode}
-          </button>
+          {canWant(dexKey) && (
+            <button type="button" role="switch" aria-checked={wantedMode} className="switch" onClick={() => setWantedMode(!wantedMode)}>
+              <span className="track" aria-hidden="true"><span className="knob" /></span>
+              <PuzzleIcon size={16} /> {t.wantedMode}
+            </button>
+          )}
         </span>
         {scrolled && (
           <button type="button" className="btn ghost small collapse-btn" onClick={() => setOpen(false)}>▴ {t.hideFilters}</button>
@@ -452,7 +454,7 @@ export function DexGrid({
                           {c.stars.map((st) => {
                             const props = {
                               label: st.label, on: starOn(st), onClick: () => tapStar(c, st),
-                              wanted: st.rows.some((r) => get(st.dex, r)?.wanted), dim: wantedMode && !starOn(st),
+                              wanted: canWant(st.dex) && st.rows.some((r) => get(st.dex, r)?.wanted), dim: wantedMode && (!starOn(st) || !canWant(st.dex)),
                             };
                             // Shiny Shadow / Purified have their own combined icon; other shinies use the star.
                             return (

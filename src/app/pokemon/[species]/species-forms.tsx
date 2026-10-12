@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
-import type { Status } from "@/lib/dexes";
+import { canWant, type Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
 
@@ -97,10 +97,11 @@ export function SpeciesForms({
   const [wantedMode, setWantedMode] = useState(false);
   const tap = (f: FormCard, dex: string) => {
     if (!wantedMode) return flip(f, dex);
-    if (on(dex, f.id)) toggleWanted(dex, [f.id]);
+    if (on(dex, f.id) && canWant(dex)) toggleWanted(dex, [f.id]);
   };
-  const isWanted = (dex: string, id: string) => !!get(dex, id)?.wanted;
-  const extra = (dex: string, id: string) => ({ wanted: isWanted(dex, id), dim: wantedMode && !on(dex, id) });
+  // Shadow and Purified have no wanted marks.
+  const isWanted = (dex: string, id: string) => canWant(dex) && !!get(dex, id)?.wanted;
+  const extra = (dex: string, id: string) => ({ wanted: isWanted(dex, id), dim: wantedMode && (!on(dex, id) || !canWant(dex)) });
 
   // Released forms, then released costumes under their own heading (only when there are any),
   // then upcoming and unreleased forms.

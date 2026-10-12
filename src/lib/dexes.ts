@@ -110,6 +110,10 @@ export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | 
   return profile.all_forms_dexes.includes(key);
 }
 
+/** Dexes without the wanted (puzzle piece) feature. */
+export const NO_WANTED = ["shadow", "purified", "shadow_shiny", "purified_shiny"];
+export const canWant = (dex: string) => !NO_WANTED.includes(dex);
+
 /** Dexes that follow Caught: ticking one also ticks Caught, and unticking Caught unticks them. */
 export const CAUGHT_LINKED = ["lucky", "xxl", "xxs", "perfect"];
 
@@ -191,7 +195,7 @@ export function missing(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, da
     if (e.status !== "available") return false;
     const avail = e.rows.filter((r) => statusOf(r, dex, day) === "available");
     const collected = avail.some((r) => ticks.get(r.id)?.collected);
-    const wanted = avail.some((r) => ticks.get(r.id)?.wanted);
+    const wanted = canWant(dex.key) && avail.some((r) => ticks.get(r.id)?.wanted);
     return !collected || wanted;
   });
 }
