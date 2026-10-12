@@ -352,7 +352,8 @@ export function DexGrid({
 
   // Check all / Uncheck all open the confirmation box; shiny choices are picked inside it.
   const openBulk = (action: "check" | "uncheck") =>
-    setBulk({ action, targets: new Set<Target>(["regular"]) });
+    // On combined pages (XXL/XXS, Shadow/Purified) the parts are equal, so nothing is pre-picked.
+    setBulk({ action, targets: new Set<Target>(hasPeers ? [] : ["regular"]) });
   const pickTarget = (target: Target) =>
     setBulk((b) => {
       if (!b) return b;
@@ -528,7 +529,7 @@ export function DexGrid({
           <div className="bulk-choices">
             {targets.map((tg) => {
               const n = bulkCards(bulk.action, tg).length;
-              const icon = slotDefs.find((d) => d.dex === tg)?.icon;
+              const icon = tg === "regular" ? (hasPeers ? DEX_ICON[dexKey] : undefined) : slotDefs.find((d) => d.dex === tg)?.icon;
               return (
                 <label key={tg} className="check">
                   <input type="checkbox" checked={bulk.targets.has(tg)} disabled={n === 0} onChange={() => pickTarget(tg)} />
