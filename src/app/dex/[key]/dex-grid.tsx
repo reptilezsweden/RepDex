@@ -3,13 +3,26 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
-import { BadgeButton, DEX_ICON, DexTick, HoverShiny, PuzzleIcon, StarButton, StarIcon } from "@/components/mon-ui";
-import { canWant, type Status } from "@/lib/dexes";
+import { BadgeButton, BadgeIcon, DEX_ICON, DexTick, HoverShiny, PuzzleIcon, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
+import { CAUGHT_LINKED, canWant, type Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
 
-type StarKind = "star" | "star3";
+export type SlotIcon = "star" | "star3" | BadgeIconKind;
+
+/**
+ * An extra tick on each card besides the page's own dex: a shiny star, or a second dex shown on
+ * the same page (XXS on the XXL page, Purified on the Shadow page) with its own shiny.
+ */
+export interface SlotDef {
+  dex: string;
+  icon: SlotIcon;
+  label: string;
+  /** Ticking this also ticks the parent, and unticking the parent unticks this. The page's own
+   * dex, another slot, or null for a dex of its own (XXS, Purified). */
+  parent: string | null;
+}
 
 export interface Card {
   id: string;
@@ -28,29 +41,39 @@ export interface Card {
   formType: string;
   /** Battle-only forms: shown, but can't be ticked or counted. */
   showOnly: boolean;
-  /** Shiny toggles on this card: one star, plus three stars on Caught. */
-  stars: { kind: StarKind; dex: string; label: string; rows: string[] }[];
+  /** Extra ticks on this card (released ones only), with the rows each can tick. */
+  slots: (SlotDef & { rows: string[] })[];
+}
+
+type Slot = Card["slots"][number];
+
+function SlotIconView({ icon, size }: { icon: SlotIcon; size: number }) {
+  return icon === "star" || icon === "star3"
+    ? <StarIcon kind={icon} size={size} />
+    : <span className="badge slot-icon"><BadgeIcon kind={icon} size={size} /></span>;
 }
 
 type Show = "all" | "missing" | "collected";
-/** What a bulk action targets: the regular checkmark or one of the shiny stars. */
-type Target = "regular" | StarKind;
+/** What a bulk action targets: the page's own tick ("regular") or one of the slots, by dex key. */
+type Target = string;
 type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
-  dexKey, title, notInGame, cards, familyNames, gens, starKinds, parentDex, childDexes, initialTicks, userId,
+  dexKey, title, ownName, notInGame, cards, familyNames, gens, slotDefs, parentDex, childDexes, initialTicks, userId,
   initialShowUpcoming, initialShowUnreleased, canSwitchForms, allForms, t,
 }: {
   dexKey: string;
   title: string;
+  /** This dex's own name (XXL on the XXL/XXS page). */
+  ownName: string;
   notInGame: boolean;
   cards: Card[];
   /** All names in each family (lower case, "|"-separated), keyed by family. */
   familyNames: Record<string, string>;
   gens: { gen_nr: number; region: string }[];
-  /** Shiny toggles switched on for this dex, in display order. */
-  starKinds: StarKind[];
-  /** Dex that a tick here also ticks (Caught, on the Lucky, XXL, XXS and Perfect pages). */
+  /** Extra ticks shown on this page, in display order. */
+  slotDefs: SlotDef[];
+  /** Caught, when this page has a dex that follows it (Lucky, XXL/XXS, 100%): ticking those ticks Caught too. */
   parentDex: string | null;
   /** Dexes unticked along with this one (Lucky, XXL, XXS and Perfect, on the Caught page). */
   childDexes: string[];
@@ -85,16 +108,21 @@ export function DexGrid({
   // (usually the regular form); another collected form shows as a dotted mark but still counts.
   const mainRow = (c: Card) => (c.rows.includes(c.id) ? c.id : c.rows[0]);
   const mainOn = (c: Card) => c.rows.length > 0 && !!get(dexKey, mainRow(c))?.collected;
-  const starOf = (c: Card, kind: StarKind) => c.stars.find((s) => s.kind === kind);
-  const starOn = (st: Card["stars"][number]) => st.rows.some((r) => get(st.dex, r)?.collected);
+  const slotOf = (c: Card, dex: string) => c.slots.find((s) => s.dex === dex);
+  const slotOn = (sl: Slot) => sl.rows.some((r) => get(sl.dex, r)?.collected);
+  const slotWanted = (sl: Slot) => canWant(sl.dex) && sl.rows.some((r) => get(sl.dex, r)?.wanted);
+  // A card counts as collected (green) when its own tick or a dex of its own on the card is ticked.
+  const anyCollected = (c: Card) => stateOf(c).collected || c.slots.some((sl) => sl.parent === null && slotOn(sl));
+  const linksCaught = (dex: string) => !!parentDex && CAUGHT_LINKED.includes(dex);
 
   const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
   const done = available.filter((c) => stateOf(c).collected).length;
-  // Shiny counters: released shiny versions in this dex, and how many are ticked.
-  const starCounts = starKinds.map((kind) => {
-    const withStar = cards.filter((c) => c.status === "available" && starOf(c, kind));
-    return { kind, total: withStar.length, done: withStar.filter((c) => starOn(starOf(c, kind)!)).length };
+  // Counters for the extra ticks: how many released ones there are, and how many are ticked.
+  const slotCounts = slotDefs.map((d) => {
+    const withSlot = cards.filter((c) => c.status === "available" && slotOf(c, d.dex));
+    return { ...d, total: withSlot.length, done: withSlot.filter((c) => slotOn(slotOf(c, d.dex)!)).length };
   });
+  const hasPeers = slotDefs.some((d) => d.parent === null);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -113,10 +141,10 @@ export function DexGrid({
         if (c.status !== "available" || c.rows.length === 0) return false;
         const s = stateOf(c);
         if (!s.collected || s.wanted) return true;
-        // Shown shiny stars count too: a shiny not yet ticked, or one marked wanted.
-        return c.stars.some((st) => !starOn(st) || (canWant(st.dex) && st.rows.some((r) => get(st.dex, r)?.wanted)));
+        // The extra ticks count too: one not yet ticked, or one marked wanted.
+        return c.slots.some((sl) => !slotOn(sl) || slotWanted(sl));
       }
-      if (show === "collected") return c.status === "available" && stateOf(c).collected;
+      if (show === "collected") return c.status === "available" && anyCollected(c);
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,9 +169,9 @@ export function DexGrid({
         : live.filter((c) => c.rows.some(has));
     }
     return live.filter((c) => {
-      const st = starOf(c, target);
-      if (!st) return false;
-      return action === "check" ? !starOn(st) : st.rows.some((r) => get(st.dex, r));
+      const sl = slotOf(c, target);
+      if (!sl) return false;
+      return action === "check" ? !slotOn(sl) : sl.rows.some((r) => get(sl.dex, r));
     });
   }
 
@@ -156,35 +184,48 @@ export function DexGrid({
   };
   const commit = (plan: Plan) => { for (const [dex, changes] of plan) void save(dex, changes); };
 
+  /** Ticks Caught along with a dex that follows it (XXL, XXS, Lucky, 100%). */
+  const tickCaught = (plan: Plan, c: Card, dex: string, r: string) => {
+    if (linksCaught(dex) && c.parentRows.includes(r) && !get(parentDex!, r)?.collected) {
+      put(plan, parentDex!, r, { collected: true, wanted: false });
+    }
+  };
+
   /**
-   * Shiny rules: ticking any shiny also ticks the regular checkmark; ticking the 3-star also
-   * ticks the single star; unticking the single star also unticks the 3-star.
+   * Slot rules: ticking one also ticks its parent (a shiny ticks its regular, the 3-star ticks the
+   * single star); unticking one unticks the slots below it. Dexes of their own (XXS, Purified)
+   * have no parent.
    */
-  function planStar(plan: Plan, c: Card, kind: StarKind, on: boolean) {
-    const st = starOf(c, kind);
-    if (!st) return;
+  function planSlot(plan: Plan, c: Card, dex: string, on: boolean) {
+    const sl = slotOf(c, dex);
+    if (!sl) return;
     if (on) {
-      if (!starOn(st)) put(plan, st.dex, st.rows[0], { collected: true, wanted: false });
-      const r = c.rows.includes(st.rows[0]) ? st.rows[0] : mainRow(c);
-      if (r && !get(dexKey, r)?.collected) put(plan, dexKey, r, { collected: true, wanted: false });
-      if (kind === "star3") planStar(plan, c, "star", true);
+      if (!slotOn(sl)) {
+        put(plan, sl.dex, sl.rows[0], { collected: true, wanted: false });
+        tickCaught(plan, c, sl.dex, sl.rows[0]);
+      }
+      if (sl.parent === dexKey) {
+        const r = c.rows.includes(sl.rows[0]) ? sl.rows[0] : mainRow(c);
+        if (r && !get(dexKey, r)?.collected) {
+          put(plan, dexKey, r, { collected: true, wanted: false });
+          tickCaught(plan, c, dexKey, r);
+        }
+      } else if (sl.parent) planSlot(plan, c, sl.parent, true);
     } else {
-      for (const r of st.rows) { if (get(st.dex, r)) put(plan, st.dex, r, null); }
-      if (kind === "star") planStar(plan, c, "star3", false);
+      for (const r of sl.rows) { if (get(sl.dex, r)) put(plan, sl.dex, r, null); }
+      for (const child of c.slots.filter((x) => x.parent === sl.dex)) planSlot(plan, c, child.dex, false);
     }
   }
 
   /**
-   * Ticking the checkmark also ticks Caught (on Lucky, XXL, XXS and Perfect). Unticking it
-   * unticks the shiny stars, and on Caught also Lucky, XXL, XXS and Perfect.
+   * The page's own tick. Ticking also ticks Caught (on Lucky, XXL/XXS and 100%). Unticking it
+   * unticks its shiny stars, and on Caught also Lucky, XXL, XXS and 100%.
    */
   function planRegular(plan: Plan, c: Card, on: boolean, allRows = true) {
     if (on) {
       const r = mainRow(c);
       put(plan, dexKey, r, { collected: true, wanted: false });
-      if (parentDex && c.parentRows.includes(r) && !get(parentDex, r)?.collected) {
-        put(plan, parentDex, r, { collected: true, wanted: false });
-      }
+      tickCaught(plan, c, dexKey, r);
     } else {
       // A tap unticks the card's own row; Uncheck all unticks every form behind the card.
       const rows = allRows ? c.rows : [mainRow(c)];
@@ -192,18 +233,17 @@ export function DexGrid({
       for (const child of childDexes) {
         for (const r of rows) { if (get(child, r)) put(plan, child, r, null); }
       }
-      if (allRows) {
-        planStar(plan, c, "star", false);
-        planStar(plan, c, "star3", false);
-      } else {
-        for (const st of c.stars) for (const r of rows) { if (get(st.dex, r)) put(plan, st.dex, r, null); }
+      const below = (dex: string): Slot[] => c.slots.filter((x) => x.parent === dex).flatMap((x) => [x, ...below(x.dex)]);
+      for (const sl of below(dexKey)) {
+        if (allRows) planSlot(plan, c, sl.dex, false);
+        else for (const r of rows) { if (get(sl.dex, r)) put(plan, sl.dex, r, null); }
       }
     }
   }
 
-  function toggleStarOf(c: Card, st: Card["stars"][number]) {
+  function toggleSlot(c: Card, sl: Slot) {
     const plan: Plan = new Map();
-    planStar(plan, c, st.kind, !starOn(st));
+    planSlot(plan, c, sl.dex, !slotOn(sl));
     commit(plan);
   }
 
@@ -220,9 +260,9 @@ export function DexGrid({
     if (!wantedMode) return toggleCollected(c);
     if (stateOf(c).collected) toggleWanted(c);
   }
-  function tapStar(c: Card, st: Card["stars"][number]) {
-    if (!wantedMode) return toggleStarOf(c, st);
-    if (starOn(st) && canWant(st.dex)) toggleStarWanted(st.dex, st.rows);
+  function tapSlot(c: Card, sl: Slot) {
+    if (!wantedMode) return toggleSlot(c, sl);
+    if (slotOn(sl) && canWant(sl.dex)) toggleStarWanted(sl.dex, sl.rows);
   }
 
   // Filters float at the top; once scrolled past, they collapse into a slim bar until tapped.
@@ -300,18 +340,15 @@ export function DexGrid({
     for (const target of targets) {
       for (const c of bulkCards(action, target)) {
         if (target === "regular") planRegular(plan, c, action === "check");
-        else planStar(plan, c, target, action === "check");
+        else planSlot(plan, c, target, action === "check");
       }
     }
     commit(plan);
   }
 
-  const label = (action: "check" | "uncheck", target: Target) =>
-    target === "regular"
-      ? t.checkRegular
-      : target === "star"
-        ? action === "check" ? t.checkShiny : t.uncheckShiny
-        : action === "check" ? t.checkShiny3 : t.uncheckShiny3;
+  const label = (target: Target) =>
+    target === "regular" ? (hasPeers ? ownName : t.checkRegular) : (slotDefs.find((d) => d.dex === target)?.label ?? target);
+  const targets: Target[] = ["regular", ...slotDefs.map((d) => d.dex)];
 
   // Check all / Uncheck all open the confirmation box; shiny choices are picked inside it.
   const openBulk = (action: "check" | "uncheck") =>
@@ -325,17 +362,19 @@ export function DexGrid({
       return { ...b, targets };
     });
   const anyFor = (action: "check" | "uncheck") =>
-    (["regular", ...starKinds] as Target[]).some((tg) => bulkCards(action, tg).length > 0);
+    targets.some((tg) => bulkCards(action, tg).length > 0);
 
   return (
     <>
       <div className="dex-head">
         <h1>{title}</h1>
         {notInGame && <span className="not-in-game" title={t.notInGameHelp}>{t.notInGame}</span>}
-        <span className="count">{done} / {available.length}</span>
-        {starCounts.map((sc) => (
-          <span key={sc.kind} className="count star-count">
-            <StarIcon kind={sc.kind} size={16} />{sc.done} / {sc.total}
+        <span className="count star-count">
+          {hasPeers && DEX_ICON[dexKey] && <SlotIconView icon={DEX_ICON[dexKey]!} size={16} />}{done} / {available.length}
+        </span>
+        {slotCounts.map((sc) => (
+          <span key={sc.dex} className="count star-count" title={sc.label}>
+            <SlotIconView icon={sc.icon} size={16} />{sc.done} / {sc.total}
           </span>
         ))}
         {canSwitchForms && (
@@ -422,7 +461,7 @@ export function DexGrid({
             <div className="grid">
               {g.cards.map((c) => {
                 const s = stateOf(c);
-                const cls = ["mon", c.status !== "available" ? c.status : s.collected ? "collected" : ""].join(" ");
+                const cls = ["mon", c.status !== "available" ? c.status : anyCollected(c) ? "collected" : ""].join(" ");
                 return (
                   <div key={c.id} className={cls}>
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
@@ -451,15 +490,16 @@ export function DexGrid({
                               </svg>
                             </span>
                           )}
-                          {c.stars.map((st) => {
+                          {c.slots.map((sl) => {
                             const props = {
-                              label: st.label, on: starOn(st), onClick: () => tapStar(c, st),
-                              wanted: canWant(st.dex) && st.rows.some((r) => get(st.dex, r)?.wanted), dim: wantedMode && (!starOn(st) || !canWant(st.dex)),
+                              label: sl.label, on: slotOn(sl), onClick: () => tapSlot(c, sl),
+                              wanted: slotWanted(sl), dim: wantedMode && (!slotOn(sl) || !canWant(sl.dex)),
                             };
-                            // Shiny Shadow / Purified have their own combined icon; other shinies use the star.
                             return (
-                              <span key={st.dex} className="star-pair">
-                                {DEX_ICON[st.dex] ? <BadgeButton kind={DEX_ICON[st.dex]!} {...props} /> : <StarButton kind={st.kind} {...props} />}
+                              <span key={sl.dex} className="star-pair">
+                                {sl.icon === "star" || sl.icon === "star3"
+                                  ? <StarButton kind={sl.icon} {...props} />
+                                  : <BadgeButton kind={sl.icon} {...props} />}
                               </span>
                             );
                           })}
@@ -486,13 +526,14 @@ export function DexGrid({
           onCancel={() => setBulk(null)}
         >
           <div className="bulk-choices">
-            {(["regular", ...starKinds] as Target[]).map((tg) => {
+            {targets.map((tg) => {
               const n = bulkCards(bulk.action, tg).length;
+              const icon = slotDefs.find((d) => d.dex === tg)?.icon;
               return (
                 <label key={tg} className="check">
                   <input type="checkbox" checked={bulk.targets.has(tg)} disabled={n === 0} onChange={() => pickTarget(tg)} />
-                  {tg !== "regular" && <StarIcon kind={tg} size={18} />}
-                  <span>{label(bulk.action, tg)}</span>
+                  {icon && <SlotIconView icon={icon} size={18} />}
+                  <span>{label(tg)}</span>
                   <span className="n">{n}</span>
                 </label>
               );

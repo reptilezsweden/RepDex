@@ -50,6 +50,12 @@ export interface Dex {
   shiny3Key?: string;
   /** Tracked in RepDex only; Pokémon GO has no such dex. */
   notInGame?: boolean;
+  /** Dexes shown on this dex's page as a tick of their own (XXS on XXL, Purified on Shadow). */
+  peers?: string[];
+  /** Set on those dexes: the dex whose page they are shown on. */
+  mergedInto?: string;
+  /** Name of the combined page, when it has peers. */
+  groupName?: { en: string; sv: string };
 }
 
 const caught = (p: Pokemon) => p.dex_caught;
@@ -59,12 +65,12 @@ const dynamaxForms = formType("Regular", "Regional", "Gender", "Form");
 export const DEXES: Dex[] = [
   { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, shinyKey: "shiny", shiny3Key: "shiny3" },
   { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky, dateField: "released", defaultOn: true, shiny: false },
-  { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
-  { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS" } },
+  { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
   { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
   { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
-  { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny" },
-  { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny" },
+  { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny", peers: ["purified"], groupName: { en: "Shadow/Purified", sv: "Shadow/Purified" } },
+  { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny", mergedInto: "shadow" },
   { key: "perfect", name: { en: "100%", sv: "100%" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, everyRow: true, shinyKey: "dynamax_shiny", notInGame: true },
   { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
@@ -118,6 +124,14 @@ export const canWant = (dex: string) => !NO_WANTED.includes(dex);
 export const CAUGHT_LINKED = ["lucky", "xxl", "xxs", "perfect"];
 
 export const dexByKey = (key: string) => DEXES.find((d) => d.key === key);
+
+/** The dex whose page shows a dex: itself, or the page it's merged into (shiny dexes via their regular dex). */
+export function pageDexOf(key: string): Dex | undefined {
+  let d = dexByKey(key);
+  if (d?.shinyOf) d = dexByKey(d.shinyOf);
+  if (d?.mergedInto) d = dexByKey(d.mergedInto);
+  return d;
+}
 
 export type Status = "available" | "upcoming" | "unreleased";
 
@@ -267,6 +281,11 @@ export function isOn(key: string, visible: string[] | null | undefined): boolean
 /** Regular dexes shown on the start page, in order. */
 export function visibleDexes(visible: string[] | null | undefined): Dex[] {
   return BASE_DEXES.filter((d) => isOn(d.key, visible));
+}
+
+/** Dex pages to list: one per dex or combined dex (XXL/XXS, Shadow/Purified) that is switched on. */
+export function pageDexes(visible: string[] | null | undefined): Dex[] {
+  return BASE_DEXES.filter((d) => !d.mergedInto && [d.key, ...(d.peers ?? [])].some((k) => isOn(k, visible)));
 }
 
 /** The shiny toggles a regular dex shows: its star and, for Caught, the triple star. */

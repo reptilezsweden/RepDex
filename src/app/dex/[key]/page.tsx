@@ -1,9 +1,10 @@
 import { notFound, redirect } from "next/navigation";
-import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, shinyToggles, statusOf, today } from "@/lib/dexes";
+import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, isOn, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
+import { DEX_ICON } from "@/lib/dex-icons";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
-import { DexGrid, type Card } from "./dex-grid";
+import { DexGrid, type Card, type SlotDef } from "./dex-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -16,20 +17,44 @@ export default async function DexPage({
   const [{ key }, { forms }] = await Promise.all([params, searchParams]);
   const found = dexByKey(key);
   if (!found) notFound();
-  // Shiny dexes live on their regular dex's page now.
-  if (found.shinyOf) redirect(`/dex/${found.shinyOf}${forms === "all" ? "?forms=all" : ""}`);
-  const dex = found;
+  // Shiny dexes live on their regular dex's page, XXS on XXL's and Purified on Shadow's.
+  const dex = pageDexOf(key)!;
+  if (dex.key !== found.key) redirect(`/dex/${dex.key}${forms === "all" ? "?forms=all" : ""}`);
   const profile = await getProfile();
   if (!profile) redirect("/login");
 
-  const toggles = shinyToggles(dex, profile.visible_dexes);
   const allForms = forms === "all" && allFormsOn(dex.key, profile);
-  // Lucky, XXL, XXS and Perfect follow Caught: their ticks tick Caught, and unticking Caught unticks them.
-  const parent = CAUGHT_LINKED.includes(dex.key) ? dexByKey("caught")! : null;
+  const { lang, t } = await getDict();
+
+  // Extra ticks on each card: this dex's shiny stars, then each peer dex (XXS, Purified) with its own
+  // shiny. A shiny ticks its regular; a peer stands on its own.
+  const slotDexes: { def: SlotDef; dex: Dex }[] = [];
+  const addShiny = (base: Dex) => {
+    for (const s of shinyToggles(base, profile.visible_dexes)) {
+      slotDexes.push({
+        dex: s.dex,
+        def: {
+          dex: s.dex.key, icon: DEX_ICON[s.dex.key] ?? s.kind, label: s.dex.name[lang],
+          parent: s.kind === "star3" ? (base.shinyKey ?? base.key) : base.key,
+        },
+      });
+    }
+  };
+  addShiny(dex);
+  for (const key of dex.peers ?? []) {
+    const peer = dexByKey(key)!;
+    if (!isOn(peer.key, profile.visible_dexes)) continue;
+    slotDexes.push({ dex: peer, def: { dex: peer.key, icon: DEX_ICON[peer.key] ?? "star", label: peer.name[lang], parent: null } });
+    addShiny(peer);
+  }
+
+  // Lucky, XXL, XXS and 100% follow Caught: their ticks tick Caught, and unticking Caught unticks them.
+  const linked = [dex.key, ...slotDexes.map((s) => s.dex.key)].some((k) => CAUGHT_LINKED.includes(k));
+  const parent = linked ? dexByKey("caught")! : null;
   const childDexes = dex.key === "caught" ? CAUGHT_LINKED : [];
-  const [{ lang, t }, all, gens, ticks] = await Promise.all([
-    getDict(), getPokemon(), getGens(),
-    getTicks([dex.key, ...toggles.map((s) => s.dex.key), ...(parent ? [parent.key] : []), ...childDexes]),
+  const [all, gens, ticks] = await Promise.all([
+    getPokemon(), getGens(),
+    getTicks([dex.key, ...slotDexes.map((s) => s.dex.key), ...(parent ? [parent.key] : []), ...childDexes]),
   ]);
   const day = today();
 
@@ -63,13 +88,11 @@ export default async function DexPage({
         : [],
       formType: p.form_type,
       showOnly: !e.rows.some(collectible),
-      // Shiny toggles, only where that shiny version is released.
-      stars: toggles
+      // Extra ticks, only where that version is released.
+      slots: slotDexes
         .map((s) => ({
-          kind: s.kind,
-          dex: s.dex.key,
-          label: s.dex.name[lang],
-          rows: e.rows.filter((r) => collectible(r) && statusOf(r, s.dex, day) === "available").map((r) => r.id),
+          ...s.def,
+          rows: e.rows.filter((r) => collectible(r) && s.dex.includes(r) && statusOf(r, s.dex, day) === "available").map((r) => r.id),
         }))
         .filter((s) => s.rows.length > 0),
     };
@@ -79,7 +102,8 @@ export default async function DexPage({
   return (
     <DexGrid
       dexKey={dex.key}
-      title={`${dex.name[lang]}${allForms ? ` · ${t.allForms}` : ""}`}
+      title={`${(dex.groupName ?? dex.name)[lang]}${allForms ? ` · ${t.allForms}` : ""}`}
+      ownName={dex.name[lang]}
       cards={cards}
       familyNames={familyNames}
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
@@ -88,7 +112,7 @@ export default async function DexPage({
       initialShowUpcoming={profile.show_upcoming ?? profile.show_unavailable ?? true}
       initialShowUnreleased={profile.show_unreleased ?? profile.show_unavailable ?? true}
       notInGame={!!dex.notInGame}
-      starKinds={toggles.map((s) => s.kind)}
+      slotDefs={slotDexes.map((s) => s.def)}
       parentDex={parent?.key ?? null}
       childDexes={childDexes}
       canSwitchForms={allFormsOn(dex.key, profile)}

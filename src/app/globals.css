@@ -99,7 +99,7 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .dex-tile .name { font-weight: 600; }
 .dex-tile .sub { font-size: 0.85rem; color: var(--muted); }
 .dex-tile .mini { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
-.dex-tile .mini svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.dex-tile .mini .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .dex-tile .mini + .bar { height: 4px; }
 .dex-tile .count { color: var(--muted); font-size: 0.9rem; margin: 2px 0 8px; font-variant-numeric: tabular-nums; }
 .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
@@ -136,7 +136,7 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .bulk-choices { display: flex; flex-direction: column; margin: -4px 0 12px; }
 .bulk-choices .check { margin-bottom: 0; gap: 10px; }
 .bulk-choices .n { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
-.bulk-choices svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.bulk-choices .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .btn svg { margin-right: 6px; flex: none; }
 .btn svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .not-in-game {
@@ -304,7 +304,7 @@ input[type="email"], input[type="password"], input[type="search"], select {
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
 
 .star-count { display: inline-flex; align-items: center; gap: 4px; }
-.star-count svg path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.star-count .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 
 .hint { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 .inline-field { display: flex; gap: 8px; max-width: 420px; }
@@ -455,3 +455,6 @@ a.start-link:hover { border-color: var(--accent); }
 .shiny-cols { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
 @media (min-width: 560px) { .shiny-cols { grid-template-columns: 1fr 1fr; } }
 .topbar .brand .beta { margin-left: 8px; font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+
+/* A dex icon shown outside a button (counters, bulk choices, dex boxes). */
+.badge.slot-icon { width: auto; height: auto; display: inline-grid; cursor: inherit; }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { DEX_ICON, type BadgeIconKind } from "@/lib/dex-icons";
 import { imageUrls } from "@/lib/images";
+
+export { DEX_ICON, type BadgeIconKind };
 
 const PUZZLE =
   "M10 3.5a2 2 0 0 1 4 0V5h4a1 1 0 0 1 1 1v4h-1.5a2 2 0 1 0 0 4H19v4a1 1 0 0 1-1 1h-4v-1.5a2 2 0 1 0-4 0V19H6a1 1 0 0 1-1-1v-4h1.5a2 2 0 1 0 0-4H5V6a1 1 0 0 1 1-1h4V3.5z";
@@ -47,7 +50,7 @@ const STAR = "M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.25 6.5L12 17.3l-5.85 3.15 1.2
 /** Shiny toggles: one star for shiny, three grouped stars for Shiny ⭐⭐⭐. Outline when off, yellow when on. */
 export function StarIcon({ kind, size = 22 }: { kind: "star" | "star3"; size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="star-icon">
       {kind === "star" ? (
         <path d={STAR} />
       ) : (
@@ -70,9 +73,7 @@ export function StarButton({ kind, on, label, onClick, wanted, dim }: { kind: "s
   );
 }
 
-export type BadgeIconKind =
-  | "lucky" | "xxl" | "xxs" | "perfect" | "shadow" | "purified" | "shadow_shiny" | "purified_shiny"
-  | "mega" | "gigantamax" | "dynamax";
+
 
 const FLAME =
   "M12 22C7.6 22 5 19 5.2 15.4C5.4 12.4 7.4 10.6 8.2 8C8.6 9.6 8.4 10.8 7.8 12C9.6 10.8 10.2 8.6 10 6.4C9.9 4.8 10.6 3.2 12.2 2C11.6 4.6 13 6.6 14.6 8.6C15.4 9.6 15.8 10.8 15.6 12C16.2 11.2 16.4 10.2 16.2 9.2C18 11 19 13.2 18.8 15.6C18.6 19.4 15.8 22 12 22Z";
@@ -164,13 +165,6 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
     </svg>
   );
 }
-
-/** Icon a dex uses for its own tick; dexes without one use the checkmark. */
-export const DEX_ICON: Partial<Record<string, BadgeIconKind>> = {
-  lucky: "lucky", xxl: "xxl", xxs: "xxs", perfect: "perfect", shadow: "shadow", purified: "purified",
-  shadow_shiny: "shadow_shiny", purified_shiny: "purified_shiny",
-  mega: "mega", gigantamax: "gigantamax", dynamax: "dynamax",
-};
 
 /** The tick for an entry in a dex: the dex's own icon, or the checkmark. */
 export function DexTick({ dex, ...props }: { dex: string; on: boolean; label: string; onClick: () => void } & Extra) {
