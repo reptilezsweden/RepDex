@@ -110,7 +110,7 @@ export default async function DexPage({
       initialTicks={ticks}
       userId={profile.id}
       initialShowUpcoming={profile.show_upcoming ?? profile.show_unavailable ?? true}
-      initialShowUnreleased={profile.show_unreleased ?? false}
+      initialShowUnreleased={profile.show_unreleased ?? profile.show_unavailable ?? true}
       notInGame={!!dex.notInGame}
       slotDefs={slotDexes.map((s) => s.def)}
       parentDex={parent?.key ?? null}
