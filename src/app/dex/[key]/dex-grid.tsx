@@ -117,11 +117,6 @@ export function DexGrid({
 
   const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
   const done = available.filter((c) => stateOf(c).collected).length;
-  // Counters for the extra ticks: how many released ones there are, and how many are ticked.
-  const slotCounts = slotDefs.map((d) => {
-    const withSlot = cards.filter((c) => c.status === "available" && slotOf(c, d.dex));
-    return { ...d, total: withSlot.length, done: withSlot.filter((c) => slotOn(slotOf(c, d.dex)!)).length };
-  });
   const hasPeers = slotDefs.some((d) => d.parent === null);
 
   const visible = useMemo(() => {
@@ -365,19 +360,34 @@ export function DexGrid({
   const anyFor = (action: "check" | "uncheck") =>
     targets.some((tg) => bulkCards(action, tg).length > 0);
 
+  /** Counters for a set of cards: this dex's own tick, then each extra tick (shiny, XXS, Purified…). */
+  const counters = (list: Card[]) => {
+    const own = list.filter((c) => c.status === "available" && c.rows.length > 0);
+    return (
+      <>
+        <span className="count star-count">
+          {hasPeers && DEX_ICON[dexKey] && <SlotIconView icon={DEX_ICON[dexKey]!} size={16} />}
+          {own.filter((c) => stateOf(c).collected).length} / {own.length}
+        </span>
+        {slotDefs.map((d) => {
+          const withSlot = list.filter((c) => c.status === "available" && slotOf(c, d.dex));
+          if (withSlot.length === 0 && list !== cards) return null;
+          return (
+            <span key={d.dex} className="count star-count" title={d.label}>
+              <SlotIconView icon={d.icon} size={16} />{withSlot.filter((c) => slotOn(slotOf(c, d.dex)!)).length} / {withSlot.length}
+            </span>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <>
       <div className="dex-head">
         <h1>{title}</h1>
         {notInGame && <span className="not-in-game" title={t.notInGameHelp}>{t.notInGame}</span>}
-        <span className="count star-count">
-          {hasPeers && DEX_ICON[dexKey] && <SlotIconView icon={DEX_ICON[dexKey]!} size={16} />}{done} / {available.length}
-        </span>
-        {slotCounts.map((sc) => (
-          <span key={sc.dex} className="count star-count" title={sc.label}>
-            <SlotIconView icon={sc.icon} size={16} />{sc.done} / {sc.total}
-          </span>
-        ))}
+        {counters(cards)}
         {canSwitchForms && (
           <span className="seg" style={{ marginLeft: "auto" }}>
             <Link href={`/dex/${dexKey}`} aria-current={!allForms ? "page" : undefined}>{t.inGame}</Link>
@@ -458,7 +468,11 @@ export function DexGrid({
       ) : (
         groups.map((g) => (
           <section key={g.gen_nr}>
-            <h2 className="gen-title">{g.region}</h2>
+            <h2 className="gen-title">
+              <span>{g.region}</span>
+              {/* Counters for the whole generation, whatever the filters show. */}
+              <span className="gen-counts">{counters(cards.filter((c) => c.gen === g.gen_nr))}</span>
+            </h2>
             <div className="grid">
               {g.cards.map((c) => {
                 const s = stateOf(c);

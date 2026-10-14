@@ -519,3 +519,6 @@ a.start-link:hover { border-color: var(--accent); }
 .col-picker .check { margin: 0; gap: 8px; align-items: center; }
 .col-picker .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
 @media (min-width: 720px) { .full-filters { grid-template-columns: 2fr 1fr auto auto; } }
+.gen-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.gen-title .gen-counts { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.82rem; font-weight: 400; color: var(--muted); }
+.gen-title .gen-counts .count { color: var(--muted); font-variant-numeric: tabular-nums; }
