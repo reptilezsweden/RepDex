@@ -99,7 +99,8 @@ export function DexGrid({
 
   // Saved on the profile, so every dex page and device uses the same choice.
   function saveSetting(field: "show_upcoming" | "show_unreleased" | "show_filter" | "search_family", value: boolean | string) {
-    void createClient().from("profiles").update({ [field]: value }).eq("id", userId);
+    // Supabase only sends the request once the query is awaited, so .then() is needed here.
+    void createClient().from("profiles").update({ [field]: value }).eq("id", userId).then(() => {});
   }
   const setShow = (v: Show) => { setShowState(v); saveSetting("show_filter", v); };
   const setSearchFamily = (v: boolean) => { setSearchFamilyState(v); saveSetting("search_family", v); };

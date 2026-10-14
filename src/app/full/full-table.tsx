@@ -75,7 +75,8 @@ export function FullTable({ title, columns: allColumns, rows: allRows, gens, use
   const [show, setShowState] = useState<Show>(initialShow);
   const setShow = (v: Show) => {
     setShowState(v);
-    void createClient().from("profiles").update({ show_filter: v }).eq("id", userId);
+    // Supabase only sends the request once the query is awaited, so .then() is needed here.
+    void createClient().from("profiles").update({ show_filter: v }).eq("id", userId).then(() => {});
   };
 
   // Totals per column: species complete in that dex / species it has.
