@@ -70,7 +70,7 @@ export function FullTable({ title, columns: allColumns, rows: allRows, gens, use
 
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState("");
-  const [show, setShow] = useState<Show>("all");
+  const [show, setShow] = useState<Show>("missing");
 
   // Totals per column: species complete in that dex / species it has.
   const totals = columns.map((_, i) => {

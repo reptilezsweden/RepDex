@@ -89,7 +89,7 @@ export function DexGrid({
   const has = (id: string) => !!get(dexKey, id);
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState<string>("");
-  const [show, setShow] = useState<Show>("all");
+  const [show, setShow] = useState<Show>("missing");
   const [bulk, setBulk] = useState<Bulk>(null);
   const [showUpcoming, setShowUpcoming] = useState(initialShowUpcoming);
   const [showUnreleased, setShowUnreleased] = useState(initialShowUnreleased);
