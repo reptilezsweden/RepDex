@@ -432,15 +432,19 @@ export function DexGrid({
             <span className="track" aria-hidden="true"><span className="knob" /></span>
             {t.searchFamily}
           </button>
+          {/* Collected never shows upcoming entries, and only All shows unreleased ones: those switches
+              are greyed out and struck through while they have no effect. */}
           <button
-            type="button" role="switch" aria-checked={showUpcoming} className="switch"
+            type="button" role="switch" aria-checked={showUpcoming} className={`switch${show === "collected" ? " inactive" : ""}`}
+            disabled={show === "collected"}
             onClick={() => { setShowUpcoming(!showUpcoming); saveSetting("show_upcoming", !showUpcoming); }}
           >
             <span className="track" aria-hidden="true"><span className="knob" /></span>
             {t.showUpcoming}
           </button>
           <button
-            type="button" role="switch" aria-checked={showUnreleased} className="switch"
+            type="button" role="switch" aria-checked={showUnreleased} className={`switch${show !== "all" ? " inactive" : ""}`}
+            disabled={show !== "all"}
             onClick={() => { setShowUnreleased(!showUnreleased); saveSetting("show_unreleased", !showUnreleased); }}
           >
             <span className="track" aria-hidden="true"><span className="knob" /></span>
