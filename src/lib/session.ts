@@ -13,6 +13,9 @@ export interface Profile {
   all_forms_dexes?: string[] | null;
   /** Dex columns hidden in Full collection (migration 0008). */
   full_hidden?: string[] | null;
+  /** All / Missing / Collected and Search whole family, saved for every dex page (migration 0009). */
+  show_filter?: "all" | "missing" | "collected" | null;
+  search_family?: boolean | null;
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;

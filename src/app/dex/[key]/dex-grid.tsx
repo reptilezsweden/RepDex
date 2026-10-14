@@ -60,7 +60,7 @@ type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
   dexKey, title, ownName, notInGame, cards, familyNames, gens, slotDefs, parentDex, childDexes, initialTicks, userId,
-  initialShowUpcoming, initialShowUnreleased, canSwitchForms, allForms, t,
+  initialShowUpcoming, initialShowUnreleased, initialShow, initialSearchFamily, canSwitchForms, allForms, t,
 }: {
   dexKey: string;
   title: string;
@@ -81,6 +81,8 @@ export function DexGrid({
   userId: string;
   initialShowUpcoming: boolean;
   initialShowUnreleased: boolean;
+  initialShow: Show;
+  initialSearchFamily: boolean;
   canSwitchForms: boolean;
   allForms: boolean;
   t: Dict;
@@ -89,16 +91,18 @@ export function DexGrid({
   const has = (id: string) => !!get(dexKey, id);
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState<string>("");
-  const [show, setShow] = useState<Show>("missing");
+  const [show, setShowState] = useState<Show>(initialShow);
   const [bulk, setBulk] = useState<Bulk>(null);
   const [showUpcoming, setShowUpcoming] = useState(initialShowUpcoming);
   const [showUnreleased, setShowUnreleased] = useState(initialShowUnreleased);
-  const [searchFamily, setSearchFamily] = useState(false);
+  const [searchFamily, setSearchFamilyState] = useState(initialSearchFamily);
 
   // Saved on the profile, so every dex page and device uses the same choice.
-  function saveSetting(field: "show_upcoming" | "show_unreleased", value: boolean) {
+  function saveSetting(field: "show_upcoming" | "show_unreleased" | "show_filter" | "search_family", value: boolean | string) {
     void createClient().from("profiles").update({ [field]: value }).eq("id", userId);
   }
+  const setShow = (v: Show) => { setShowState(v); saveSetting("show_filter", v); };
+  const setSearchFamily = (v: boolean) => { setSearchFamilyState(v); saveSetting("search_family", v); };
 
   const stateOf = (c: Card) => ({
     collected: c.rows.some((r) => get(dexKey, r)?.collected),

@@ -39,7 +39,7 @@ function ColumnIcon({ icon }: { icon: Column["icon"] }) {
 
 const missingCell = (c: Row["cells"][number]) => !!c && (c[0] < c[1] || c[2] === 1);
 
-export function FullTable({ title, columns: allColumns, rows: allRows, gens, userId, initialHidden, t }: {
+export function FullTable({ title, columns: allColumns, rows: allRows, gens, userId, initialHidden, initialShow, t }: {
   title: string;
   columns: Column[];
   rows: Row[];
@@ -47,6 +47,8 @@ export function FullTable({ title, columns: allColumns, rows: allRows, gens, use
   userId: string;
   /** Dex columns the user hid earlier (saved on the profile). */
   initialHidden: string[];
+  /** All / Missing / Collected, shared with the dex pages. */
+  initialShow: Show;
   t: Dict;
 }) {
   // Columns can be hidden from the dex menu; the choice is saved on the profile.
@@ -70,7 +72,11 @@ export function FullTable({ title, columns: allColumns, rows: allRows, gens, use
 
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState("");
-  const [show, setShow] = useState<Show>("missing");
+  const [show, setShowState] = useState<Show>(initialShow);
+  const setShow = (v: Show) => {
+    setShowState(v);
+    void createClient().from("profiles").update({ show_filter: v }).eq("id", userId);
+  };
 
   // Totals per column: species complete in that dex / species it has.
   const totals = columns.map((_, i) => {
