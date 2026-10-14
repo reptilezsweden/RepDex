@@ -120,7 +120,7 @@ export default async function SpeciesPage({
       title={rows.find((r) => r.form_type === "Regular")?.name ?? rows[0].name}
       no={no}
       dexName={dex.name[lang]}
-      backHref={dexParam ? `/dex/${dex.key}` : "/"}
+      backHref={dexParam === "full" ? "/full" : dexParam ? `/dex/${dex.key}` : "/"}
       forms={forms}
       prev={neighbour(speciesNos[at - 1])}
       next={neighbour(speciesNos[at + 1])}

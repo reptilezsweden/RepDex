@@ -163,6 +163,7 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
 
 /** The tick for an entry in a dex: the dex's own icon, or the checkmark. */
 export function DexTick({ dex, ...props }: { dex: string; on: boolean; label: string; onClick: () => void } & Extra) {
+  if (dex === "shiny") return <StarButton kind="star" {...props} />;
   const kind = DEX_ICON[dex];
   return kind ? <BadgeButton kind={kind} {...props} /> : <CheckButton {...props} />;
 }

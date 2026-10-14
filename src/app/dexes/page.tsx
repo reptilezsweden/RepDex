@@ -57,6 +57,12 @@ export default async function DexesPage() {
     <>
       <h1>{t.dexes}</h1>
       <div className="dex-list">
+        <Link href="/full" className="dex-tile full-tile">
+          <div className="tile-main">
+            <div className="name">{t.fullCollection}</div>
+            <div className="sub">{t.fullCollectionShort}</div>
+          </div>
+        </Link>
         {pageDexes(profile.visible_dexes).map((d) => {
           const dt = ticksBy.get(d.key) ?? new Map<string, Tick>();
           const peers = (d.peers ?? []).map((k) => dexByKey(k)!).filter((p) => isOn(p.key, profile.visible_dexes));

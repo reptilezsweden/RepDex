@@ -63,7 +63,10 @@ const formType = (...types: FormType[]) => (p: Pokemon) => types.includes(p.form
 const dynamaxForms = formType("Regular", "Regional", "Gender", "Form");
 
 export const DEXES: Dex[] = [
-  { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, shinyKey: "shiny", shiny3Key: "shiny3" },
+  { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  // Shiny has a page of its own, with Shiny ⭐⭐⭐ as its triple star; both follow Caught.
+  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shiny3Key: "shiny3" },
+  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "shiny", notInGame: true },
   { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS" } },
   { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
@@ -76,8 +79,6 @@ export const DEXES: Dex[] = [
   { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
 
   // Shiny dexes: ticked with a star on their regular dex's pages, not shown as dexes of their own.
-  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shinyOf: "caught" },
-  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "caught", notInGame: true },
   { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
   { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
   { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "mega" },
@@ -89,7 +90,7 @@ export const DEXES: Dex[] = [
 /** Regular dexes, i.e. the ones with their own page. */
 export const BASE_DEXES = DEXES.filter((d) => !d.shinyOf);
 /** Shiny dexes switched together by the "Show shiny" setting (Shiny ⭐⭐⭐ has its own setting). */
-export const SHINY_KEYS = DEXES.filter((d) => d.shinyOf && d.key !== "shiny3").map((d) => d.key);
+export const SHINY_KEYS = DEXES.filter((d) => d.shiny && d.key !== "shiny3").map((d) => d.key);
 export const ALWAYS_ON = "caught";
 /**
  * How dexes are grouped in the settings: one switch for each group's visibility and one for its
@@ -111,6 +112,8 @@ export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string } 
 export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | null; all_forms?: boolean }): boolean {
   const d = dexByKey(key);
   if (!d || d.everyRow) return false;
+  // Shiny follows Caught's All forms choice.
+  if (key === "shiny") key = "caught";
   // Before migration 0007 there was one switch for every dex.
   if (!profile.all_forms_dexes) return !!profile.all_forms;
   return profile.all_forms_dexes.includes(key);
@@ -121,7 +124,7 @@ export const NO_WANTED = ["shadow", "purified", "shadow_shiny", "purified_shiny"
 export const canWant = (dex: string) => !NO_WANTED.includes(dex);
 
 /** Dexes that follow Caught: ticking one also ticks Caught, and unticking Caught unticks them. */
-export const CAUGHT_LINKED = ["lucky", "xxl", "xxs", "perfect"];
+export const CAUGHT_LINKED = ["shiny", "shiny3", "lucky", "xxl", "xxs", "perfect"];
 
 export const dexByKey = (key: string) => DEXES.find((d) => d.key === key);
 

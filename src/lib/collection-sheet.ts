@@ -8,7 +8,7 @@ export type SheetChanges = Map<string, Map<string, TickState | null>>;
 
 export const SHEET_HEADER = ["caught", "caught_shiny", "ID", "form_type", "species", "name"];
 /** Dexes the upload reads and may change: Caught and Shiny, plus the ones unticked along with them. */
-export const SHEET_DEXES = ["caught", "shiny", "shiny3", ...CAUGHT_LINKED];
+export const SHEET_DEXES = [...new Set(["caught", "shiny", "shiny3", ...CAUGHT_LINKED])];
 
 const caughtDex = () => dexByKey("caught")!;
 const shinyDex = () => dexByKey("shiny")!;
