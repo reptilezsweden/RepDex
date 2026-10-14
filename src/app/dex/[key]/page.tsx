@@ -111,7 +111,7 @@ export default async function DexPage({
       userId={profile.id}
       initialShowUpcoming={profile.show_upcoming ?? profile.show_unavailable ?? true}
       initialShowUnreleased={profile.show_unreleased ?? profile.show_unavailable ?? true}
-      initialShow={profile.show_filter ?? "missing"}
+      initialShow={profile.show_filter ?? "all"}
       initialSearchFamily={profile.search_family ?? false}
       notInGame={!!dex.notInGame}
       slotDefs={slotDexes.map((s) => s.def)}

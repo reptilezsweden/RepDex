@@ -84,7 +84,7 @@ export default async function FullCollectionPage() {
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
       userId={profile.id}
       initialHidden={profile.full_hidden ?? []}
-      initialShow={profile.show_filter ?? "missing"}
+      initialShow={profile.show_filter ?? "all"}
       t={t}
     />
   );
