@@ -16,6 +16,8 @@ export interface Profile {
   /** All / Missing / Collected and Search whole family, saved for every dex page (migration 0009). */
   show_filter?: "all" | "missing" | "collected" | null;
   search_family?: boolean | null;
+  /** Wishlists shown on the public page /user/<nickname> (migration 0011). */
+  public_wishlists?: string[] | null;
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;
