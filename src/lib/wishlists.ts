@@ -1,6 +1,6 @@
 // Wishlists: what the user is missing in a few dexes, with a Pokémon GO search phrase that a
 // trading partner can paste to find matching Pokémon in their own storage.
-import { collectible, dexByKey, dexEntries, displayName, missing, statusOf, type Pokemon, type Tick } from "./dexes";
+import { collectible, dexByKey, dexEntries, displayName, missing, type Pokemon, type Tick } from "./dexes";
 
 export interface WishlistDef {
   key: string;
@@ -54,34 +54,35 @@ export function buildWishlist(
   lowestOnly = false,
 ): Wishlist {
   const items = new Map<string, WishItem>();
+  // Evolution family and stage of each item, for "lowest evolution" below.
+  const evo = new Map<string, { family: number; stage: number }>();
   for (const key of def.dexes) {
     const dex = dexByKey(key)!;
-    // Lowest evolution: the lowest-stage family member that is released in this dex, so a
-    // missing Venusaur shows as Bulbasaur (which evolves into it, keeping shiny, size etc.).
-    const lowest = new Map<number, Pokemon>();
-    if (lowestOnly && def.evolves) {
-      for (const p of all) {
-        if (!collectible(p) || p.family == null || !dex.includes(p) || statusOf(p, dex, day) !== "available") continue;
-        if (p.form_type !== "Regular") continue;
-        const cur = lowest.get(p.family);
-        const rank = (x: Pokemon) => (x.stage ?? 9) * 10000 + x.species;
-        if (!cur || rank(p) < rank(cur)) lowest.set(p.family, p);
-      }
-    }
     for (const e of missing(dexEntries(all, dex, false, day), dex, ticks.get(key) ?? new Map(), day)) {
-      let p = e.rows.find(collectible);
+      const p = e.rows.find(collectible);
       if (!p) continue;
-      const base = lowestOnly && def.evolves && p.form_type === "Regular" && p.family != null ? lowest.get(p.family) : undefined;
-      if (base) p = base;
       const id = dex.everyRow ? p.id : `s${p.species}`;
       if (items.has(id)) continue;
       items.set(id, {
         id,
         no: p.species,
-        name: dex.everyRow || base ? displayName(p) : e.pokemon.name,
+        name: dex.everyRow ? displayName(p) : e.pokemon.name,
         image: (def.shiny ? p.image_shiny : null) ?? p.image_regular,
       });
+      if (def.evolves && p.family != null && p.form_type === "Regular") evo.set(id, { family: p.family, stage: p.stage ?? 9 });
     }
+  }
+  // Lowest evolution: of the missing members of a family, keep only the lowest stage, since the
+  // others can be evolved from it (keeping shiny, size, Dynamax…). Missing only Venusaur still
+  // shows Venusaur; missing Ivysaur and Venusaur shows just Ivysaur.
+  if (lowestOnly && def.evolves) {
+    const best = new Map<number, string>();
+    for (const [id, x] of evo) {
+      const cur = best.get(x.family);
+      const rank = (k: string) => evo.get(k)!.stage * 10000 + items.get(k)!.no;
+      if (!cur || rank(id) < rank(cur)) best.set(x.family, id);
+    }
+    for (const [id, x] of evo) if (best.get(x.family) !== id) items.delete(id);
   }
   const list = [...items.values()].sort((a, b) => a.no - b.no || a.name.localeCompare(b.name));
   return {

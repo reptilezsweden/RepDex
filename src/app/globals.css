@@ -554,3 +554,4 @@ a.start-link:hover { border-color: var(--accent); }
 .no-user { max-width: 420px; margin: 12vh auto 0; text-align: center; }
 .no-user h1 { margin: 0; }
 .wish-common { margin: 0 0 10px; }
+.help-inline { color: var(--muted); font-size: 0.85rem; align-self: center; }

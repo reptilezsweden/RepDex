@@ -39,18 +39,16 @@ function SearchPhrase({ text, t }: { text: string; t: Dict }) {
  * Wishlist tabs. On the user's own page each list has a "Show in public" box, saved in
  * profiles.public_wishlists; on the public page (no userId) the boxes are left out.
  */
-export function WishlistTabs({ lists: fullLists, listsLowest, t, userId, initialPublic = [], initialLowest = false }: {
+export function WishlistTabs({ lists, t, userId, initialPublic = [], initialLowest = false }: {
   lists: Wishlist[];
-  /** The same lists showing only the lowest evolution of each family (own page only). */
-  listsLowest?: Wishlist[];
   t: Dict;
   userId?: string;
   initialPublic?: string[];
   initialLowest?: boolean;
 }) {
-  // One "lowest evolution" choice for every list, saved on the profile.
+  // One "lowest evolution" choice for every list, saved on the profile. It only changes the
+  // public page; this page always lists every missing Pokémon.
   const [lowest, setLowest] = useState(initialLowest);
-  const lists = lowest && listsLowest ? listsLowest : fullLists;
   function toggleLowest() {
     if (!userId) return;
     const next = !lowest;
@@ -78,12 +76,13 @@ export function WishlistTabs({ lists: fullLists, listsLowest, t, userId, initial
   if (!current) return null;
   return (
     <>
-      {userId && listsLowest && (
+      {userId && (
         <div className="switches wish-common">
           <button type="button" role="switch" aria-checked={lowest} className="switch" onClick={toggleLowest}>
             <span className="track" aria-hidden="true"><span className="knob" /></span>
             {t.lowestEvolution}
           </button>
+          <span className="help-inline">{t.lowestEvolutionHelp}</span>
         </div>
       )}
       <div className="wish-tabs" role="tablist">
