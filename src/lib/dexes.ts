@@ -19,6 +19,8 @@ export interface Pokemon {
   image_shiny: string | null;
   species: number;
   family: number | null;
+  /** Evolution stage within the family: 1 for the lowest (babies included). */
+  stage?: number | null;
   name: string;
   alt_name: string | null;
   type1: string | null;

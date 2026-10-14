@@ -16,7 +16,9 @@ export default async function WishlistsPage() {
     getDict(), getPokemon(), getTicks([...new Set(WISHLISTS.flatMap((w) => w.dexes))]),
   ]);
   const ticksBy = byDex(ticks);
+  // Both versions, so the "lowest evolution" switch flips instantly.
   const lists = WISHLISTS.map((w) => buildWishlist(w, all, ticksBy, today(), lang));
+  const listsLowest = WISHLISTS.map((w) => buildWishlist(w, all, ticksBy, today(), lang, true));
   const publicHref = profile.nickname ? `/user/${encodeURIComponent(profile.nickname)}` : null;
 
   return (
@@ -26,7 +28,10 @@ export default async function WishlistsPage() {
         {publicHref && <Link href={publicHref} className="public-link">{t.yourPublicPage}: {publicHref}</Link>}
       </div>
       <p className="note">{t.wishlistsHelp}</p>
-      <WishlistTabs lists={lists} t={t} userId={profile.id} initialPublic={profile.public_wishlists ?? []} />
+      <WishlistTabs
+        lists={lists} listsLowest={listsLowest} t={t} userId={profile.id}
+        initialPublic={profile.public_wishlists ?? []} initialLowest={profile.wish_lowest ?? false}
+      />
     </>
   );
 }

@@ -18,6 +18,8 @@ export interface Profile {
   search_family?: boolean | null;
   /** Wishlists shown on the public page /user/<nickname> (migration 0011). */
   public_wishlists?: string[] | null;
+  /** Wishlists: show only the lowest evolution of each family (migration 0012). */
+  wish_lowest?: boolean | null;
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;

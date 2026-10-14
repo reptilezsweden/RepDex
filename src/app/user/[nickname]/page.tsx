@@ -39,9 +39,21 @@ export default async function PublicUserPage({ params }: { params: Promise<{ nic
   const ticks: Tick[] = rows
     .filter((r) => r.dex && r.pokemon_id)
     .map((r) => ({ dex: r.dex!, pokemon_id: r.pokemon_id!, collected: !!r.collected, wanted: !!r.wanted }));
-  const all = await getPokemon();
+  const [all, lowestRes] = await Promise.all([
+    getPokemon(),
+    supabase.rpc("public_wish_lowest", { p_nickname: decodeURIComponent(nickname) }),
+  ]);
+  const lowest = lowestRes.data === true;
   const ticksBy = byDex(ticks);
-  const lists = defs.map((w) => buildWishlist(w, all, ticksBy, today(), lang));
+  // Follows the owner's "lowest evolution" choice; lists with nothing missing are left out.
+  const lists = defs.map((w) => buildWishlist(w, all, ticksBy, today(), lang, lowest)).filter((l) => l.items.length > 0);
+  if (lists.length === 0) {
+    return (
+      <div className="panel no-user">
+        <h1>{t.noUserFound}</h1>
+      </div>
+    );
+  }
 
   return (
     <>
