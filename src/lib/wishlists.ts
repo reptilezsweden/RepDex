@@ -52,37 +52,40 @@ export function numberList(nos: number[]): string {
 export function buildWishlist(
   def: WishlistDef, all: Pokemon[], ticks: Map<string, Map<string, Tick>>, day: string, lang: "en" | "sv",
   lowestOnly = false,
+  /** Dexes with All forms on: each missing form is listed instead of each species. */
+  allFormsFor: (dexKey: string) => boolean = () => false,
 ): Wishlist {
   const items = new Map<string, WishItem>();
   // Evolution family and stage of each item, for "lowest evolution" below.
   const evo = new Map<string, { family: number; stage: number }>();
   for (const key of def.dexes) {
     const dex = dexByKey(key)!;
-    for (const e of missing(dexEntries(all, dex, false, day), dex, ticks.get(key) ?? new Map(), day)) {
+    const perForm = !!dex.everyRow || allFormsFor(key);
+    for (const e of missing(dexEntries(all, dex, perForm, day), dex, ticks.get(key) ?? new Map(), day)) {
       const p = e.rows.find(collectible);
       if (!p) continue;
-      const id = dex.everyRow ? p.id : `s${p.species}`;
+      // Keyed by row, so Caught (per form) and Lucky (per species) don't list the same Pokémon twice.
+      const id = p.id;
       if (items.has(id)) continue;
       items.set(id, {
         id,
         no: p.species,
-        name: dex.everyRow ? displayName(p) : e.pokemon.name,
+        name: perForm ? displayName(p) : e.pokemon.name,
         image: (def.shiny ? p.image_shiny : null) ?? p.image_regular,
       });
-      if (def.evolves && p.family != null && p.form_type === "Regular") evo.set(id, { family: p.family, stage: p.stage ?? 9 });
+      if (def.evolves && p.family != null && (p.form_type === "Regular" || p.form_type === "Form")) {
+        evo.set(id, { family: p.family, stage: p.stage ?? 9 });
+      }
     }
   }
-  // Lowest evolution: of the missing members of a family, keep only the lowest stage, since the
-  // others can be evolved from it (keeping shiny, size, Dynamax…). Missing only Venusaur still
-  // shows Venusaur; missing Ivysaur and Venusaur shows just Ivysaur.
+  // Lowest evolution: of the missing members of a family (regular forms and Form rows), keep
+  // only those at the lowest missing stage, since the others can be evolved from them (keeping
+  // shiny, size, Dynamax…). Missing only Venusaur still shows Venusaur; missing Ivysaur and
+  // Venusaur shows just Ivysaur; split evolutions at the same stage (Flapple, Appletun) all stay.
   if (lowestOnly && def.evolves) {
-    const best = new Map<number, string>();
-    for (const [id, x] of evo) {
-      const cur = best.get(x.family);
-      const rank = (k: string) => evo.get(k)!.stage * 10000 + items.get(k)!.no;
-      if (!cur || rank(id) < rank(cur)) best.set(x.family, id);
-    }
-    for (const [id, x] of evo) if (best.get(x.family) !== id) items.delete(id);
+    const minStage = new Map<number, number>();
+    for (const x of evo.values()) minStage.set(x.family, Math.min(minStage.get(x.family) ?? Infinity, x.stage));
+    for (const [id, x] of evo) if (x.stage > minStage.get(x.family)!) items.delete(id);
   }
   const list = [...items.values()].sort((a, b) => a.no - b.no || a.name.localeCompare(b.name));
   return {
