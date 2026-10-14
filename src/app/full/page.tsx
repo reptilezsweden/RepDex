@@ -82,6 +82,8 @@ export default async function FullCollectionPage() {
       columns={columns}
       rows={rows}
       gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
+      userId={profile.id}
+      initialHidden={profile.full_hidden ?? []}
       t={t}
     />
   );

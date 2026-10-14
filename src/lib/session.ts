@@ -11,6 +11,8 @@ export interface Profile {
   all_forms: boolean;
   /** Dexes with their All forms version switched on (migration 0007). */
   all_forms_dexes?: string[] | null;
+  /** Dex columns hidden in Full collection (migration 0008). */
+  full_hidden?: string[] | null;
   visible_dexes: string[] | null;
   /** Show upcoming and unreleased entries on dex pages (one setting for all dexes). */
   show_unavailable?: boolean;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { BadgeIcon, MonImage, StarIcon, WantedMark, type BadgeIconKind } from "@/components/mon-ui";
 import type { Dict } from "@/lib/i18n";
 
@@ -38,13 +39,35 @@ function ColumnIcon({ icon }: { icon: Column["icon"] }) {
 
 const missingCell = (c: Row["cells"][number]) => !!c && (c[0] < c[1] || c[2] === 1);
 
-export function FullTable({ title, columns, rows, gens, t }: {
+export function FullTable({ title, columns: allColumns, rows: allRows, gens, userId, initialHidden, t }: {
   title: string;
   columns: Column[];
   rows: Row[];
   gens: { gen_nr: number; region: string }[];
+  userId: string;
+  /** Dex columns the user hid earlier (saved on the profile). */
+  initialHidden: string[];
   t: Dict;
 }) {
+  // Columns can be hidden from the dex menu; the choice is saved on the profile.
+  const [hidden, setHidden] = useState(() => new Set(initialHidden));
+  const [saveFailed, setSaveFailed] = useState(false);
+  function toggleColumn(key: string) {
+    const next = new Set(hidden);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setHidden(next);
+    void createClient().from("profiles").update({ full_hidden: [...next] }).eq("id", userId)
+      .then(({ error }: { error: unknown }) => setSaveFailed(!!error));
+  }
+  const shownIdx = allColumns.map((c, i) => (hidden.has(c.key) ? -1 : i)).filter((i) => i >= 0);
+  const columns = shownIdx.map((i) => allColumns[i]);
+  const rows = useMemo(
+    () => allRows.map((r) => ({ ...r, cells: shownIdx.map((i) => r.cells[i]) })).filter((r) => r.cells.some((c) => c !== null)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allRows, hidden],
+  );
+
   const [query, setQuery] = useState("");
   const [gen, setGen] = useState("");
   const [show, setShow] = useState<Show>("all");
@@ -78,12 +101,23 @@ export function FullTable({ title, columns, rows, gens, t }: {
         <h1>{title}</h1>
         <span className="count">{doneCells} / {allCells.length}</span>
       </div>
-      <div className="filters">
+      <div className="filters full-filters">
         <input type="search" placeholder={t.search} value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t.search} />
         <select value={gen} onChange={(e) => setGen(e.target.value)} aria-label={t.allGens}>
           <option value="">{t.allGens}</option>
           {gens.map((g) => <option key={g.gen_nr} value={String(g.gen_nr)}>{g.region}</option>)}
         </select>
+        <details className="col-picker">
+          <summary>{t.dexes} ({columns.length}/{allColumns.length}) ▾</summary>
+          <div className="col-list">
+            {allColumns.map((c) => (
+              <label key={c.key} className="check">
+                <input type="checkbox" checked={!hidden.has(c.key)} onChange={() => toggleColumn(c.key)} />
+                <ColumnIcon icon={c.icon} /> {c.name}
+              </label>
+            ))}
+          </div>
+        </details>
         <span className="seg" role="group" aria-label={t.show}>
           {(["all", "missing", "collected"] as Show[]).map((s) => (
             <button key={s} type="button" aria-pressed={show === s} onClick={() => setShow(s)}>
@@ -93,6 +127,7 @@ export function FullTable({ title, columns, rows, gens, t }: {
         </span>
       </div>
       <p className="note">{t.fullCollectionHelp}</p>
+      {saveFailed && <p className="msg error" role="alert">{t.fullColumnsNotSaved}</p>}
 
       {groups.length === 0 ? (
         <p className="empty">{t.noResults}</p>
