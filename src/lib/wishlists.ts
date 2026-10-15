@@ -13,7 +13,7 @@ export interface WishlistDef {
   shiny: boolean;
   /** "Show only lowest evolution" applies (forms that come from evolving keep the dex's trait). */
   evolves: boolean;
-  /** Leave out rows that can't be traded (dex_lucky = false, e.g. mythicals). */
+  /** Leave out rows that can't be traded (dex_lucky = false: mythicals, Zygarde, fused forms…). */
   tradeableOnly: boolean;
 }
 
@@ -23,10 +23,10 @@ export const WISHLISTS: WishlistDef[] = [
   { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, dexes: ["shiny"], prefix: "shiny&!traded&", shiny: true, evolves: true, tradeableOnly: true },
   { key: "xxs", name: { en: "XXS", sv: "XXS" }, dexes: ["xxs"], prefix: "xxs&!traded&", shiny: false, evolves: true, tradeableOnly: true },
   { key: "xxl", name: { en: "XXL", sv: "XXL" }, dexes: ["xxl"], prefix: "xxl&!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", shiny: false, evolves: false, tradeableOnly: false },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", shiny: false, evolves: false, tradeableOnly: true },
   { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, dexes: ["dynamax"], prefix: "dynamax&!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, dexes: ["costumes"], prefix: "costume&!traded&", shiny: false, evolves: false, tradeableOnly: false },
-  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", shiny: true, evolves: false, tradeableOnly: false },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, dexes: ["costumes"], prefix: "costume&!traded&", shiny: false, evolves: false, tradeableOnly: true },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", shiny: true, evolves: false, tradeableOnly: true },
 ];
 
 export const WISHLIST_KEYS = WISHLISTS.map((w) => w.key);

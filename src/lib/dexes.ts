@@ -69,7 +69,7 @@ export const DEXES: Dex[] = [
   // Shiny has a page of its own, with Shiny ⭐⭐⭐ as its triple star; both follow Caught.
   { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shiny3Key: "shiny3" },
   { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "shiny", notInGame: true },
-  { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky, dateField: "released", defaultOn: true, shiny: false },
+  { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky && p.dex_caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS" } },
   { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
   { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
