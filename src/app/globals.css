@@ -612,8 +612,9 @@ a.start-link:hover { border-color: var(--accent); }
   background: var(--danger); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1.5; text-align: center; vertical-align: middle;
 }
 .pending-badge.zero { background: var(--line); color: var(--muted); }
-/* Tiles in a row share the tallest one's height: the last link stretches so its hover area fills the box. */
-.dex-tile > a:last-child { flex: 1; }
+/* Tiles in a row share the tallest one's height. Its links split the box in equal rows (one link: the whole box,
+   two: half each), so every hover area reaches the edges. */
+.dex-tile { display: grid; grid-auto-rows: 1fr; }
 /* Top menu: a row of links on wide screens, a ☰ fold-out on narrow ones. */
 .topbar .nav-menu { display: none; margin-left: auto; position: relative; }
 .topbar .nav-menu summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: 40px; height: 36px; color: var(--text); border-radius: 8px; }
