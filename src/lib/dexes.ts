@@ -243,11 +243,22 @@ const SHINY_FIELD = Object.fromEntries(Object.entries(SHINY_BASE).map(([s, b]) =
  * out on the same date they are one item, marked withShiny.
  */
 export function upcomingReleases(all: Pokemon[], day: string): Upcoming[] {
+  return releasesWhere(all, (d) => d > day);
+}
+
+/** Releases from the last `days` days up to and including `day`, newest first. */
+export function recentReleases(all: Pokemon[], day: string, days = 14): Upcoming[] {
+  const from = new Date(Date.parse(`${day}T00:00:00Z`) - days * 86400_000).toISOString().slice(0, 10);
+  return releasesWhere(all, (d) => d > from && d <= day).reverse();
+}
+
+/** Release dates matching `keep`, grouped by date (oldest first) in the upcoming-list format. */
+function releasesWhere(all: Pokemon[], keep: (date: string) => boolean): Upcoming[] {
   const byDate = new Map<string, Upcoming["items"]>();
   for (const p of all) {
     for (const f of DATE_FIELDS) {
       const d = p[f];
-      if (!d || d <= day) continue;
+      if (!d || !keep(d)) continue;
       const base = SHINY_BASE[f];
       if (base && p[base] === d) continue; // Shown with its regular release.
       const list = byDate.get(d) ?? [];
