@@ -596,3 +596,7 @@ a.start-link:hover { border-color: var(--accent); }
   .events-page .event-row summary .event-dates { grid-column: 1 / -1; }
 }
 .events-page .event-card .upcoming li a, .events-page .event-card .upcoming li .no-link { background: var(--bg); }
+.events-page .event-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.events-page .event-filters .note { margin: 0; font-size: 0.85rem; color: var(--muted); }
+/* The Dexes menu only matters with Missing chosen. */
+.col-picker.inactive summary { opacity: 0.55; }

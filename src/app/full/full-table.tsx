@@ -25,7 +25,7 @@ export interface Row {
 
 type Show = "all" | "missing" | "collected";
 
-function ColumnIcon({ icon }: { icon: Column["icon"] }) {
+export function ColumnIcon({ icon }: { icon: Column["icon"] }) {
   if (icon === "check") {
     return (
       <span className="tick legend-icon" aria-hidden="true">

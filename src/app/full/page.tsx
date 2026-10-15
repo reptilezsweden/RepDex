@@ -1,29 +1,12 @@
 import { redirect } from "next/navigation";
-import { DEX_ICON } from "@/lib/dex-icons";
-import { DEXES, canWant, collectible, dexRows, isOn, statusOf, today, type Dex } from "@/lib/dexes";
+import { columnIcon, columnOrder } from "@/lib/dex-columns";
+import { canWant, collectible, dexRows, isOn, statusOf, today } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
 import { FullTable, type Column, type Row } from "./full-table";
 
 export const dynamic = "force-dynamic";
-
-/** Icon shown in a column header: the dex's own icon, a star for shiny dexes, else the checkmark. */
-const columnIcon = (d: Dex): Column["icon"] =>
-  d.key === "shiny3" ? "star3" : DEX_ICON[d.key] ?? (d.shiny ? "star" : "check");
-
-/** Dexes in page order, each followed by its shiny dexes (Caught, Shiny, Shiny ⭐⭐⭐, Lucky, …). */
-function columnOrder(): Dex[] {
-  const out: Dex[] = [];
-  const add = (d: Dex) => {
-    if (out.includes(d)) return;
-    out.push(d);
-    for (const s of DEXES.filter((x) => x.shinyOf === d.key)) add(s);
-    for (const k of d.peers ?? []) add(DEXES.find((x) => x.key === k)!);
-  };
-  for (const d of DEXES) if (!d.shinyOf && !d.mergedInto) add(d);
-  return out;
-}
 
 /**
  * Full collection: every switched-on dex side by side, one row per species. A cell is one tick for
