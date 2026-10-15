@@ -24,7 +24,9 @@ export default async function AdminHome() {
             <Link href={s.href}>
               <div className="name">
                 {s.title}
-                {!!pending[s.href] && <span className="pending-badge" title="Waiting for a decision">{pending[s.href]}</span>}
+                {s.href in pending && (
+                  <span className={`pending-badge${pending[s.href] ? "" : " zero"}`} title="Waiting for a decision">{pending[s.href]}</span>
+                )}
               </div>
               <div className="count">{s.text}</div>
             </Link>

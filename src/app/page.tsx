@@ -34,7 +34,7 @@ export default async function Home() {
         <Link href="/events" className="start-link">{t.events}</Link>
         {profile?.role === "admin" && (
           <Link href="/admin" className="start-link">
-            <span>{t.admin}{pending > 0 && <span className="pending-badge" title={t.adminPending}>{pending}</span>}</span>
+            <span>{t.admin}<span className={`pending-badge${pending ? "" : " zero"}`} title={t.adminPending}>{pending}</span></span>
           </Link>
         )}
       </nav>

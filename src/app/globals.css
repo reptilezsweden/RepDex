@@ -611,3 +611,4 @@ a.start-link:hover { border-color: var(--accent); }
   display: inline-block; min-width: 1.5em; margin-left: 8px; padding: 1px 7px; border-radius: 999px;
   background: var(--danger); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1.5; text-align: center; vertical-align: middle;
 }
+.pending-badge.zero { background: var(--line); color: var(--muted); }
