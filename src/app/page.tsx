@@ -22,6 +22,7 @@ export default async function Home() {
       <nav className="start-links" aria-label={t.appName}>
         <Link href="/dexes" className="start-link">{t.dexes}</Link>
         <Link href="/wishlists" className="start-link">{t.wishlists}</Link>
+        <Link href="/events" className="start-link">{t.events}</Link>
       </nav>
 
       <h1 className="section-title">{t.recentReleases}</h1>

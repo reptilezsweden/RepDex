@@ -571,3 +571,28 @@ a.start-link:hover { border-color: var(--accent); }
 .crawler .event-cat { margin-top: 10px; }
 .crawler .event-cat-name { font-weight: 600; font-size: 0.9rem; }
 .crawler .event-cat ul { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+
+/* Events page */
+.events-page .event-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 8px 0 16px; }
+.events-page .event-card header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.events-page .event-name { margin: 0; font-size: 1.1rem; }
+.events-page .event-when { color: var(--muted); font-size: 0.9rem; }
+.events-page .event-cat h3 { color: var(--muted); }
+.events-page .upcoming li .no-link { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.events-page .event-upcoming { display: grid; gap: 6px; }
+.events-page .event-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.events-page .event-row summary { display: grid; grid-template-columns: 13.5em 1fr auto 1em; gap: 12px; align-items: baseline; padding: 10px 14px; cursor: pointer; list-style: none; }
+.events-page .event-row summary::-webkit-details-marker { display: none; }
+.events-page .event-row summary .event-name { font-size: 1rem; font-weight: 600; }
+.events-page .event-dates { color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.events-page .event-row summary::after { content: "›"; color: var(--muted); font-size: 1.2rem; line-height: 1; transition: transform 0.15s; justify-self: end; }
+.events-page .event-row[open] summary::after { transform: rotate(90deg); }
+.events-page .event-count { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+.events-page .event-row[open] summary { border-bottom: 1px solid var(--line); }
+.events-page .event-body { padding: 0 14px 12px; }
+.events-page .event-source { margin-top: 24px; }
+@media (max-width: 560px) {
+  .events-page .event-row summary { grid-template-columns: 1fr auto 1em; row-gap: 2px; }
+  .events-page .event-row summary .event-dates { grid-column: 1 / -1; }
+}
+.events-page .event-card .upcoming li a, .events-page .event-card .upcoming li .no-link { background: var(--bg); }

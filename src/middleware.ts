@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { REMEMBER_COOKIE, SUPABASE_KEY, SUPABASE_URL, applyRemember } from "@/lib/supabase/env";
 
-const PUBLIC = ["/login", "/signup", "/forgot-password", "/reset-password", "/auth", "/share", "/user"];
+const PUBLIC = ["/login", "/signup", "/forgot-password", "/reset-password", "/auth", "/share", "/user", "/events"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
