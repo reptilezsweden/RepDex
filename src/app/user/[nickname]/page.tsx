@@ -5,7 +5,7 @@ import { allFormsOn, today, type Tick } from "@/lib/dexes";
 import { getDict } from "@/lib/session";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { byDex } from "@/lib/ticks";
-import { WISHLISTS, buildWishlist } from "@/lib/wishlists";
+import { buildWishlist, wishlistDefs } from "@/lib/wishlists";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,9 @@ export default async function PublicUserPage({ params }: { params: Promise<{ nic
   }
 
   const shown = rows[0]?.lists ?? [];
-  const defs = WISHLISTS.filter((w) => shown.includes(w.key));
+  // The Shiny list also covers Shiny ⭐⭐⭐ when the owner has it on (the rows then include its ticks).
+  const shiny3 = rows.length > 0 && (await supabase.rpc("public_wish_shiny3", { p_nickname: decodeURIComponent(nickname) })).data === true;
+  const defs = wishlistDefs(shiny3).filter((w) => shown.includes(w.key));
   if (defs.length === 0) {
     return (
       <div className="panel no-user">

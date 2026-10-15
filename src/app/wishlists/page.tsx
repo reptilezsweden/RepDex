@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPokemon } from "@/lib/data";
-import { allFormsOn, today } from "@/lib/dexes";
+import { allFormsOn, isOn, today } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
-import { WISHLISTS, buildWishlist } from "@/lib/wishlists";
+import { buildWishlist, wishlistDefs } from "@/lib/wishlists";
 import { WishlistTabs } from "./wishlist-tabs";
 
 export const dynamic = "force-dynamic";
@@ -12,13 +12,14 @@ export const dynamic = "force-dynamic";
 export default async function WishlistsPage() {
   const profile = await getProfile();
   if (!profile) redirect("/login");
+  const defs = wishlistDefs(isOn("shiny3", profile.visible_dexes));
   const [{ lang, t }, all, ticks] = await Promise.all([
-    getDict(), getPokemon(), getTicks([...new Set(WISHLISTS.flatMap((w) => w.dexes))]),
+    getDict(), getPokemon(), getTicks([...new Set(defs.flatMap((w) => w.dexes))]),
   ]);
   const ticksBy = byDex(ticks);
   // Your own page always lists everything; "lowest evolution" only applies to the public page.
   // Dexes with All forms on list each missing form.
-  const lists = WISHLISTS.map((w) => buildWishlist(w, all, ticksBy, today(), lang, false, (k) => allFormsOn(k, profile)));
+  const lists = defs.map((w) => buildWishlist(w, all, ticksBy, today(), lang, false, (k) => allFormsOn(k, profile)));
   const publicHref = profile.nickname ? `/user/${encodeURIComponent(profile.nickname)}` : null;
 
   return (

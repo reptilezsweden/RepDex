@@ -29,6 +29,15 @@ export const WISHLISTS: WishlistDef[] = [
 
 export const WISHLIST_KEYS = WISHLISTS.map((w) => w.key);
 
+/** The lists for a user: with Shiny ⭐⭐⭐ switched on, the Shiny list also covers missing 3-star shinies. */
+export function wishlistDefs(shiny3: boolean): WishlistDef[] {
+  if (!shiny3) return WISHLISTS;
+  return WISHLISTS.map((w) =>
+    w.key === "shiny"
+      ? { ...w, dexes: ["shiny", "shiny3"], name: { en: "Shiny + Shiny ⭐⭐⭐", sv: "Shiny + Shiny ⭐⭐⭐" } }
+      : w);
+}
+
 export interface WishItem { id: string; no: number; name: string; image: string | null }
 export interface Wishlist { key: string; name: string; search: string; items: WishItem[] }
 
