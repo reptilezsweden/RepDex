@@ -99,6 +99,15 @@ New costume/event Pokémon on the event list (within the 14-day window) that Rep
 | [List of Shadow Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Shadow_Pok%C3%A9mon_by_release_date) | `release_shadow`, `release_shadow_shiny` | Shadow, Purified, Shadow shiny, Purified shiny | Dates written as "July 22nd, 2019"; shiny on a separate tab |
 | [List of Dynamax Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Dynamax_Pok%C3%A9mon_by_release_date) | `release_dynamax`, `release_dynamax_shiny` | Dynamax, Dynamax shiny | Gigantamax entries on this page are skipped (they come from the forms pages) |
 
+### Event crawler
+
+A second crawler (Edge Function `events`, daily at 04:47 UTC, "Run now" at /admin/events) reads current and upcoming events from [Leek Duck](https://leekduck.com/events/). Only the "Event" type for now (`event_crawler.event_types`); GO Battle League, raids and the like are skipped.
+
+- `events`: name, start and end (as listed, usually local time), page URL.
+- `event_pokemon`: each Pokémon an event page lists, with its category ("Spawns", "Raids – One-Star Raids", "Egg 7 km", "Shiny" …), whether it can be shiny, its species number and the matched RepDex row when it can be told (by image name, display name, Mega/regional prefix). "Pokémon Debut" and "Shiny Debut" sections are skipped since they repeat Pokémon listed below.
+- An event's Pokémon are replaced on every run, so edits on Leek Duck carry over. Past events stay in the table.
+- Planned: a page showing users which Pokémon in current events they are missing.
+
 ## 2. Dexes
 
 The app has 19 dexes, each a filtered view of the availability list. A dex is defined by three settings. Dex names, order and rules are maintained in code only; there is no admin screen for them.
