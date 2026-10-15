@@ -636,3 +636,12 @@ a.start-link:hover { border-color: var(--accent); }
 .events-page .missing-in > span { display: inline-grid; place-items: center; }
 .events-page .missing-in svg { width: 16px; height: 16px; }
 .events-page .missing-in .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+/* Species page: evolution */
+.evolution { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 24px; margin: 0 0 16px; }
+.evolution h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 6px; }
+.evolution ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.evolution li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.evolution .evo-link { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; min-width: 0; }
+.evolution .evo-link img, .evolution .evo-link .noimg { width: 40px; height: 40px; object-fit: contain; flex: none; }
+.evolution .evo-cost { margin-left: auto; text-align: right; font-size: 0.85rem; color: var(--muted); }
+.evolution .evo-own { color: var(--text); }

@@ -51,7 +51,7 @@ function NeighbourLink({ link, dir, label }: { link: SpeciesLink | null; dir: "p
 }
 
 export function SpeciesForms({
-  title, no, dexName, backHref, forms, prev, next, initialTicks, userId, isAdmin, t,
+  title, no, dexName, backHref, forms, prev, next, initialTicks, userId, isAdmin, evolution, t,
 }: {
   title: string;
   no: number;
@@ -63,6 +63,8 @@ export function SpeciesForms({
   initialTicks: TickRow[];
   userId: string;
   isAdmin: boolean;
+  /** What it evolves from and into (built on the server). */
+  evolution?: ReactNode;
   t: Dict;
 }) {
   const { get, save, toggleWanted, error } = useTicks(userId, initialTicks);
@@ -171,6 +173,7 @@ export function SpeciesForms({
       </div>
       {wantedMode && <p className="note">{t.wantedModeHelp}</p>}
       {error && <p className="msg error" role="alert">{t.errorGeneric}</p>}
+      {evolution}
 
       {groups.map(({ key, heading, match }) => {
         const list = forms.filter(match);

@@ -31,6 +31,10 @@ export interface Pokemon {
   release_shadow_shiny: string | null;
   release_dynamax: string | null;
   release_dynamax_shiny: string | null;
+  /** ID of the row it evolves from, the candy that costs, and any extra requirement. */
+  evolves_from?: string | null;
+  evolve_candy?: number | null;
+  evolution_requirement?: string | null;
 }
 
 export interface Dex {

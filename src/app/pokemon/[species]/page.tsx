@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { MonImage } from "@/components/mon-ui";
+import type { Dict } from "@/lib/i18n";
 import { notFound, redirect } from "next/navigation";
 import {
   BASE_DEXES, collectible, dexByKey, displayName, isOn, shinyToggles, statusOf, today, type Dex, type Pokemon,
@@ -127,7 +130,65 @@ export default async function SpeciesPage({
       initialTicks={ticks}
       userId={profile.id}
       isAdmin={profile.role === "admin"}
+      evolution={<Evolution rows={rows} all={all} no={no} t={t} />}
       t={t}
     />
+  );
+}
+
+/** Forms that don't take part in evolution chains here (they'd repeat every costume or Mega). */
+const NO_EVOLUTION = ["Costume", "Mega", "Gigantamax"];
+
+/** Evolves from / evolves into, with candy cost and any extra requirement. */
+function Evolution({ rows, all, no, t }: { rows: Pokemon[]; all: Pokemon[]; no: number; t: Dict }) {
+  const byId = new Map(all.map((p) => [p.id, p]));
+  const own = rows.filter((r) => !NO_EVOLUTION.includes(r.form_type));
+  const ownIds = new Set(own.map((r) => r.id));
+  const from = own
+    .filter((r) => r.evolves_from && byId.has(r.evolves_from))
+    .map((r) => ({ from: byId.get(r.evolves_from!)!, to: r }));
+  const into = all
+    .filter((p) => p.evolves_from && ownIds.has(p.evolves_from) && p.species !== no && !NO_EVOLUTION.includes(p.form_type))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((p) => ({ from: byId.get(p.evolves_from!)!, to: p }));
+  if (from.length === 0 && into.length === 0) return null;
+
+  // Name the form on this page only when more than one of its forms is involved.
+  const manyOwn = (list: { from: Pokemon; to: Pokemon }[], side: "from" | "to") => new Set(list.map((e) => e[side].id)).size > 1;
+  const cost = (p: Pokemon) => [
+    p.evolve_candy ? t.candyCost.replace("{n}", String(p.evolve_candy)) : null,
+    p.evolution_requirement || null,
+  ].filter(Boolean).join(" · ");
+
+  const line = (shown: Pokemon, via: Pokemon, ownName: string | null) => (
+    <li key={`${via.id}-${shown.id}`}>
+      <Link href={`/pokemon/${shown.species}`} className="evo-link">
+        <MonImage file={shown.image_regular} size={40} />
+        <span className="evo-name">{displayName(shown)}</span>
+      </Link>
+      <span className="evo-cost">
+        {ownName && <span className="evo-own">{ownName} · </span>}
+        {cost(via) || t.noEvolutionCost}
+      </span>
+    </li>
+  );
+
+  const ownFrom = manyOwn(from, "to");
+  const ownInto = manyOwn(into, "from");
+  return (
+    <section className="evolution">
+      {from.length > 0 && (
+        <div>
+          <h2>{t.evolvesFrom}</h2>
+          <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to) : null))}</ul>
+        </div>
+      )}
+      {into.length > 0 && (
+        <div>
+          <h2>{t.evolvesInto}</h2>
+          <ul>{into.map((e) => line(e.to, e.to, ownInto ? t.evolvesFromForm.replace("{name}", displayName(e.from)) : null))}</ul>
+        </div>
+      )}
+    </section>
   );
 }
