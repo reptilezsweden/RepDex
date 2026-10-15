@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { getDict, getProfile } from "@/lib/session";
+import { signOut } from "./auth-actions";
 import { ServiceWorker } from "./sw-register";
 
 export const metadata: Metadata = {
@@ -23,16 +24,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={lang}>
       <body>
-        {profile && (
-          <header className="topbar">
-            <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion}</small></Link>
-            <nav>
-              <Link href="/dexes">{t.dexes}</Link>
-              <Link href="/settings">{t.settings}</Link>
-              {profile.role === "admin" && <Link href="/admin">{t.admin}</Link>}
-            </nav>
-          </header>
-        )}
+        <header className="topbar">
+          <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion}</small></Link>
+          <nav>
+            {profile && <Link href="/dexes">{t.dexes}</Link>}
+            {profile && <Link href="/settings">{t.settings}</Link>}
+            {profile ? (
+              <form action={signOut}>
+                <button type="submit" className="link-button">{t.signOut}</button>
+              </form>
+            ) : (
+              <Link href="/login">{t.signIn}</Link>
+            )}
+          </nav>
+        </header>
         <main>{children}</main>
         <ServiceWorker />
       </body>

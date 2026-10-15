@@ -27,7 +27,8 @@ export async function middleware(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  if (!data.user && !PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) {
+  // The start page is open to everyone; it shows sign-in-only parts to signed-in users.
+  if (!data.user && path !== "/" && !PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";

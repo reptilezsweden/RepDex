@@ -1,16 +1,13 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { MonImage } from "@/components/mon-ui";
 import { displayName, recentReleases, today, upcomingReleases, type Upcoming } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
-import { getDict, getProfile } from "@/lib/session";
+import { getDict } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 /** Start page: links to the app's sections, then the upcoming releases. */
 export default async function Home() {
-  const profile = await getProfile();
-  if (!profile) redirect("/login");
   const [{ lang, t }, all] = await Promise.all([getDict(), getPokemon()]);
   const day = today();
   const upcoming = upcomingReleases(all, day);

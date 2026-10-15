@@ -600,3 +600,8 @@ a.start-link:hover { border-color: var(--accent); }
 .events-page .event-filters .note { margin: 0; font-size: 0.85rem; color: var(--muted); }
 /* The Dexes menu only matters with Missing chosen. */
 .col-picker.inactive summary { opacity: 0.55; }
+.topbar nav form { display: contents; }
+.link-button { background: none; border: 0; padding: 0; font: inherit; color: var(--muted); cursor: pointer; }
+.link-button:hover { color: var(--text); }
+.dex-head .head-link { margin-left: auto; text-decoration: none; color: var(--muted); }
+.dex-head .head-link:hover { color: var(--text); }

@@ -93,5 +93,5 @@ export async function setNickname(_: FormState, form: FormData): Promise<FormSta
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect("/");
 }

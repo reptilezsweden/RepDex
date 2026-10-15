@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ALWAYS_ON, SETTING_GROUPS, SHINY_KEYS, allFormsOn, dexByKey, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
@@ -13,7 +14,10 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <h1>{t.settings}</h1>
+      <div className="dex-head">
+        <h1>{t.settings}</h1>
+        {profile.role === "admin" && <Link href="/admin" className="head-link">{t.admin}</Link>}
+      </div>
       <NicknameForm t={t} current={profile.nickname ?? ""} />
       <SettingsForm
         t={t}
