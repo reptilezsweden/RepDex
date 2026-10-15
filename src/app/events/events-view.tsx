@@ -3,7 +3,7 @@ import type { Dict } from "@/lib/i18n";
 import { EventsClient, type EventData, type DexChoice } from "./events-client";
 
 export type EventRow = { id: string; name: string; url: string; starts_at: string | null; ends_at: string | null };
-export type EventMon = { event_id: string; category: string; name: string; shiny: boolean; species: number | null; pokemon_id: string | null; sort: number };
+export type EventMon = { event_id: string; category: string; name: string; shiny: boolean; shadow: boolean; species: number | null; pokemon_id: string | null; sort: number };
 
 /**
  * The events page body. Prepares each event's Pokémon (display name, image, link, and for signed-in users
@@ -16,8 +16,8 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
   now: string;
   lang: string;
   t: Dict;
-  /** For signed-in users: dexes where a row is missing (shiny dexes only count when the event says it can be shiny). */
-  missingIn?: (rowId: string, shiny: boolean) => string[];
+  /** For signed-in users: dexes where a row is missing (shiny dexes only when it can be shiny, Shadow/Purified only when it is Shadow). */
+  missingIn?: (rowId: string, shiny: boolean, shadow: boolean) => string[];
   user?: { id: string; dexes: DexChoice[]; hidden: string[] };
 }) {
   const byEvent = new Map<string, EventMon[]>();
@@ -46,7 +46,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
         image: shown?.image_regular ?? null,
         species: shown?.species ?? null,
         shiny: m.shiny,
-        missingIn: row && missingIn ? missingIn(row.id, m.shiny) : null,
+        missingIn: row && missingIn ? missingIn(row.id, m.shiny, !!m.shadow) : null,
       }]);
     }
     return {

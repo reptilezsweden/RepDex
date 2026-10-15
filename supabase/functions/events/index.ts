@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
       if (f.pokemon.length) {
         await db.from("event_pokemon").delete().eq("event_id", e.id);
         const { error: e2 } = await db.from("event_pokemon").insert(f.pokemon.map((p) => ({
-          event_id: e.id, category: p.category, name: p.name, image: p.image, shiny: p.shiny,
+          event_id: e.id, category: p.category, name: p.name, image: p.image, shiny: p.shiny, shadow: p.shadow,
           species: p.species, pokemon_id: p.pokemon_id, sort: p.sort,
         })));
         if (e2) throw new Error(e2.message);

@@ -41,7 +41,7 @@ export default async function EventsPage() {
     : { data: [] as EventMon[] };
 
   let user: { id: string; dexes: { key: string; name: string; icon: ReturnType<typeof columnIcon> }[]; hidden: string[] } | undefined;
-  let missingIn: ((rowId: string, shiny: boolean) => string[]) | undefined;
+  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean) => string[]) | undefined;
   if (profile) {
     const ticksBy = byDex(await getTicks());
     const day = today();
@@ -51,9 +51,12 @@ export default async function EventsPage() {
       d,
       ids: new Set(dexRows(all, d).filter((p) => collectible(p) && statusOf(p, d, day) === "available").map((p) => p.id)),
     }));
-    missingIn = (rowId, shiny) =>
+    // Shadow and Purified (and their shinies) only count for Pokémon the event explicitly calls Shadow.
+    const shadowDex = (key: string) => /^(shadow|purified)/.test(key);
+    missingIn = (rowId, shiny, shadow) =>
       members
-        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && !ticksBy.get(d.key)?.get(rowId)?.collected)
+        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow)
+          && !ticksBy.get(d.key)?.get(rowId)?.collected)
         .map(({ d }) => d.key);
     user = {
       id: profile.id,

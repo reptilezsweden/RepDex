@@ -17,6 +17,8 @@ export interface EventPokemon {
   name: string;
   image: string | null;
   shiny: boolean;
+  /** Explicitly Shadow: "Shadow" in its name or its section/sub-section heading. */
+  shadow: boolean;
   sort: number;
 }
 
@@ -84,7 +86,8 @@ export function parseEvent(html: string): EventPokemon[] {
     const key = `${category}|${name}`;
     const prev = out.get(key);
     if (prev) { prev.shiny ||= shiny; continue; }
-    out.set(key, { category, name, image: img, shiny, sort: out.size });
+    const shadow = /\bshadow\b/i.test(name) || /\bshadow\b/i.test(section) || /\bshadow\b/i.test(sub);
+    out.set(key, { category, name, image: img, shiny, shadow, sort: out.size });
   }
   return [...out.values()];
 }
