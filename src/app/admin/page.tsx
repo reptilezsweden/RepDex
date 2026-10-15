@@ -7,6 +7,7 @@ const SECTIONS = [
   { href: "/admin/pokemon", title: "Pokémon", text: "Search, edit, add and delete entries in the availability list." },
   { href: "/admin/gens", title: "Generations", text: "Edit region names and add new generations." },
   { href: "/admin/users", title: "Users", text: "Make other users admin, or remove admin rights." },
+  { href: "/admin/crawler", title: "Release-date crawler", text: "Dates found on the Pokémon GO Wiki. Review changed dates and unknown entries." },
   { href: "/admin/log", title: "Change log", text: "Every change to the list, with who made it. Revert single edits." },
 ];
 

@@ -82,20 +82,20 @@ Admins maintain the availability list in the app; normal users only read it.
 
 Scheduled crawlers read pages on the [Pokémon GO Wiki](https://pokemongo.fandom.com/wiki/) and compare the dates they find with the list.
 
-1. Crawler runs on a schedule, e.g. once a day.
-2. It reads each configured page and matches Pokémon by name and form to an ID.
-3. A date found for an empty field is written automatically and logged as a crawler edit.
-4. A date that differs from an existing value, or a Pokémon not found in the list, goes to a review queue.
-5. An admin approves or rejects each queued item; approved ones are written and logged like a manual edit.
+1. The crawler runs once a day (Supabase Edge Function `crawler`, started by pg_cron at 04:17 UTC; admins can also press "Run now").
+2. It reads each enabled page and matches Pokémon by name and form to an ID (form words are compared with the ID code and the display name).
+3. A date found for an empty field is written automatically and logged with source "crawler".
+4. A date that differs from an existing value, or an entry it can't place, goes to a review queue. The earliest date per row and field counts.
+5. An admin approves or rejects each queued item at /admin/crawler; approved ones are logged as "crawler (approved)". The row picked for an unknown entry, or "ignore", is remembered for later runs. A rejected finding is never queued again.
 
-Admins manage the crawler sources in the app: page URL, which date field it fills (released, shiny, shadow, Dynamax…), on/off, and last run status.
+Admins switch sources on and off and see the last run status at /admin/crawler.
 
 | Source page | Feeds field | Dexes affected | Notes |
 | --- | --- | --- | --- |
-| [List of Pokémon with different forms](https://pokemongo.fandom.com/wiki/List_of_Pok%C3%A9mon_with_different_forms#Regular) | `released`, `released_shiny` on every row except Costume | Caught, Lucky, XXL, XXS, 100%, Shiny, Shiny ⭐⭐⭐, Mega, Gigantamax and their shiny dexes | Covers Regular, Form, Regional, Mega, Gigantamax, Battle-Only Form and Gender rows; lists both release and shiny dates for plain Regular Pokémon |
-| [List of Event Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Event_Pok%C3%A9mon_by_release_date) | `released`, `released_shiny`, `release_event` on rows where `form_type` = Costume | Costumes, Costumes shiny | Only updates Costume rows; layout still to be checked when the crawler is built |
-| [List of Shadow Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Shadow_Pok%C3%A9mon_by_release_date) | `release_shadow`, `release_shadow_shiny` | Shadow, Purified, Shadow shiny, Purified shiny | Dates written as "July 22nd, 2019"; Pokémon listed under each date; Shadow shiny dates are on a separate tab of the same page |
-| [List of Dynamax Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Dynamax_Pok%C3%A9mon_by_release_date) | `release_dynamax`, `release_dynamax_shiny` | Dynamax, Dynamax shiny | Grouped under date headings; shiny releases appear as entries named "Shiny Dynamax \<name>"; upcoming dates are marked |
+| [List of Pokémon forms by release date](https://pokemongo.fandom.com/wiki/List_of_Pok%C3%A9mon_forms_by_release_date) (one page per year, /2016 onwards) | `released`, `release_shiny` on every row except Costume | Caught, Lucky, XXL, XXS, 100%, Shiny, Shiny ⭐⭐⭐, Mega, Gigantamax and their shiny dexes | Headings like "January 4" without the year; `{{P}}`/`{{PS}}` entries with `form=`, `mega=t`, `gigantamax=t` |
+| [List of Event Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Event_Pok%C3%A9mon_by_release_date) | `released`, `release_shiny` on rows where `form_type` = Costume | Costumes, Costumes shiny | `{{PC|Name|code}}` entries; the wiki's costume codes rarely match ours, so most entries are placed once by hand |
+| [List of Shadow Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Shadow_Pok%C3%A9mon_by_release_date) | `release_shadow`, `release_shadow_shiny` | Shadow, Purified, Shadow shiny, Purified shiny | Dates written as "July 22nd, 2019"; shiny on a separate tab |
+| [List of Dynamax Pokémon by release date](https://pokemongo.fandom.com/wiki/List_of_Dynamax_Pok%C3%A9mon_by_release_date) | `release_dynamax`, `release_dynamax_shiny` | Dynamax, Dynamax shiny | Gigantamax entries on this page are skipped (they come from the forms pages) |
 
 ## 2. Dexes
 
@@ -221,7 +221,7 @@ Users share missing lists, not their whole collection.
 | App | Next.js, built as a PWA | One codebase for phone and desktop |
 | Database and sign-in | Supabase (Postgres), free plan | Email/password, reset emails and roles built in; upgrade to Pro if needed |
 | Hosting | Vercel | Deploys from the RepDex repo |
-| Crawlers | GitHub Actions, daily schedule | Same setup as the existing image sync |
+| Crawlers | Supabase Edge Function + pg_cron, daily | Code in supabase/functions/crawler |
 | Images | RepDex Images folder via the jsDelivr CDN | Cached delivery of the 256x256 assets |
 | Languages | English and Swedish translation files | English default |
 
