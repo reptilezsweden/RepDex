@@ -52,6 +52,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
     return {
       id: e.id,
       name: e.name,
+      url: e.url,
       start: e.starts_at,
       end: e.ends_at,
       endsLabel: t.eventEnds.replace("{date}", d(e.ends_at, true)),
@@ -72,7 +73,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
           current: t.currentEvents, upcoming: t.upcomingEvents, noCurrent: t.noCurrentEvents, noUpcoming: t.noUpcomingEvents,
           noPokemon: t.eventNoPokemon, count: t.eventPokemonCount, missingCount: t.eventMissingCount, canBeShiny: t.canBeShiny,
           all: t.showAll, missing: t.showMissing, show: t.show, dexes: t.dexes, dexesHint: t.eventDexesHint,
-          nothingMissing: t.eventNothingMissing, notSaved: t.eventDexesNotSaved,
+          nothingMissing: t.eventNothingMissing, openOnSource: t.openOnLeekDuck, notSaved: t.eventDexesNotSaved,
         }}
       />
       <p className="hint event-source">

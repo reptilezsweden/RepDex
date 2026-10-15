@@ -20,6 +20,8 @@ export interface EventItem {
 export interface EventData {
   id: string;
   name: string;
+  /** The event's page on Leek Duck. */
+  url: string;
   start: string | null;
   end: string | null;
   endsLabel: string;
@@ -31,7 +33,7 @@ export interface DexChoice { key: string; name: string; icon: Icon }
 
 type Labels = Record<
   "current" | "upcoming" | "noCurrent" | "noUpcoming" | "noPokemon" | "count" | "missingCount" | "canBeShiny" |
-  "all" | "missing" | "show" | "dexes" | "dexesHint" | "nothingMissing" | "notSaved",
+  "all" | "missing" | "show" | "dexes" | "dexesHint" | "nothingMissing" | "notSaved" | "openOnSource",
   string
 >;
 
@@ -161,7 +163,7 @@ export function EventsClient({ events, serverNow, labels, user }: {
       {current.map((e) => (
         <article key={e.id} className="event-card">
           <header>
-            <h3 className="event-name">{e.name}</h3>
+            <h3 className="event-name">{e.name} <SourceLink url={e.url} label={labels.openOnSource} /></h3>
             <span className="event-when">{e.endsLabel}</span>
           </header>
           {list(e)}
@@ -175,7 +177,7 @@ export function EventsClient({ events, serverNow, labels, user }: {
           <details key={e.id} className="event-row">
             <summary>
               <span className="event-dates">{e.datesLabel}</span>
-              <span className="event-name">{e.name}</span>
+              <span className="event-name">{e.name} <SourceLink url={e.url} label={labels.openOnSource} /></span>
               <span className="event-count">{count(e)}</span>
             </summary>
             <div className="event-body">{list(e)}</div>
@@ -183,5 +185,17 @@ export function EventsClient({ events, serverNow, labels, user }: {
         ))}
       </div>
     </>
+  );
+}
+
+/** Small ↗ link to the event's own page on Leek Duck, in a new tab (doesn't fold the row open). */
+function SourceLink({ url, label }: { url: string; label: string }) {
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="source-link" title={label} aria-label={label}
+      onClick={(e) => e.stopPropagation()}>
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+        <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </a>
   );
 }
