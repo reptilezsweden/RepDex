@@ -72,7 +72,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
           current: t.currentEvents, upcoming: t.upcomingEvents, noCurrent: t.noCurrentEvents, noUpcoming: t.noUpcomingEvents,
           noPokemon: t.eventNoPokemon, count: t.eventPokemonCount, missingCount: t.eventMissingCount, canBeShiny: t.canBeShiny,
           all: t.showAll, missing: t.showMissing, show: t.show, dexes: t.dexes, dexesHint: t.eventDexesHint,
-          nothingMissing: t.eventNothingMissing, notSaved: t.fullColumnsNotSaved,
+          nothingMissing: t.eventNothingMissing, notSaved: t.eventDexesNotSaved,
         }}
       />
       <p className="hint event-source">

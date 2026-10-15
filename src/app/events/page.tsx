@@ -58,7 +58,7 @@ export default async function EventsPage() {
     user = {
       id: profile.id,
       dexes: dexes.map((d) => ({ key: d.key, name: d.name[lang], icon: columnIcon(d) })),
-      hidden: profile.full_hidden ?? [],
+      hidden: profile.events_hidden ?? [],
     };
   }
 

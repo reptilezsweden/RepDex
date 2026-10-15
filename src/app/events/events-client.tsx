@@ -45,7 +45,7 @@ function browserNow(): string {
 /**
  * Events running now (in full) and upcoming events (folded). Running/upcoming follows the viewer's clock,
  * since Leek Duck lists most event times as local time. Signed-in users can show only the Pokémon they're
- * missing, in the dexes picked in the Dexes menu (the same choice as on the Full collection page).
+ * missing, in the dexes picked in the Dexes menu (saved separately from the Full collection page).
  */
 export function EventsClient({ events, serverNow, labels, user }: {
   events: EventData[];
@@ -69,9 +69,9 @@ export function EventsClient({ events, serverNow, labels, user }: {
     if (next.has(key)) next.delete(key);
     else next.add(key);
     setHidden(next);
-    // Shared with the Full collection page's Dexes menu. Supabase only sends the request once awaited, hence .then().
+    // Saved on its own, apart from the Full collection page's choice. Supabase only sends the request once awaited, hence .then().
     if (user) {
-      void createClient().from("profiles").update({ full_hidden: [...next] }).eq("id", user.id)
+      void createClient().from("profiles").update({ events_hidden: [...next] }).eq("id", user.id)
         .then(({ error }: { error: unknown }) => setSaveFailed(!!error));
     }
   }
