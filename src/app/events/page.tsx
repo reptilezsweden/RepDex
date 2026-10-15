@@ -13,13 +13,18 @@ function localNow(): string {
   }).format(new Date()).replace(" ", "T");
 }
 
+function dayBefore(local: string): string {
+  return new Date(Date.parse(`${local}Z`) - 86400_000).toISOString().slice(0, 19);
+}
+
 /** Public events page (no sign-in needed): events running now with their Pokémon, then upcoming events by date. */
 export default async function EventsPage() {
   const { lang, t } = await getDict();
   const supabase = createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
   const now = localNow();
   const [{ data: events }, all] = await Promise.all([
-    supabase.from("events").select("id, name, url, starts_at, ends_at").gte("ends_at", now).order("starts_at").order("name"),
+    // A day of slack: viewers west of Sweden still see events that have ended here; the browser filters them.
+    supabase.from("events").select("id, name, url, starts_at, ends_at").gte("ends_at", dayBefore(now)).order("starts_at").order("name"),
     getPokemon(),
   ]);
   const list = (events ?? []) as EventRow[];

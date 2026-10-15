@@ -2,11 +2,15 @@ import Link from "next/link";
 import { MonImage } from "@/components/mon-ui";
 import { displayName, type Pokemon } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
+import { EventSplit } from "./event-split";
 
 export type EventRow = { id: string; name: string; url: string; starts_at: string | null; ends_at: string | null };
 export type EventMon = { event_id: string; category: string; name: string; shiny: boolean; species: number | null; pokemon_id: string | null; sort: number };
 
-/** The events page body: events running now with their Pokémon, then upcoming events by date (Pokémon folded away). */
+/**
+ * The events page body: events running now with their Pokémon, then upcoming events by date (Pokémon folded away).
+ * Which events are running is decided in the browser, by the viewer's own clock (EventSplit).
+ */
 export function EventsView({ events: list, pokemon, all, now, lang, t }: {
   events: EventRow[]; pokemon: EventMon[]; all: Pokemon[]; now: string; lang: string; t: Dict;
 }) {
@@ -16,8 +20,6 @@ export function EventsView({ events: list, pokemon, all, now, lang, t }: {
   const regular = new Map<number, Pokemon>();
   for (const p of all) if (p.form_type === "Regular" && !regular.has(p.species)) regular.set(p.species, p);
 
-  const current = list.filter((e) => !e.starts_at || e.starts_at <= now);
-  const upcoming = list.filter((e) => e.starts_at && e.starts_at > now);
 
   const locale = lang === "sv" ? "sv-SE" : "en-GB";
   const date = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
@@ -73,35 +75,37 @@ export function EventsView({ events: list, pokemon, all, now, lang, t }: {
       <h1>{t.events}</h1>
       <p className="hint">{t.eventsIntro}</p>
 
-      <h2 className="section-title">{t.currentEvents}</h2>
-      {current.length === 0 && <p className="empty">{t.noCurrentEvents}</p>}
-      {current.map((e) => (
-        <article key={e.id} className="event-card">
-          <header>
-            <h3 className="event-name">{e.name}</h3>
-            <span className="event-when">{t.eventEnds.replace("{date}", d(e.ends_at, true))}</span>
-          </header>
-          {pokemonList(e)}
-        </article>
-      ))}
-
-      <h2 className="section-title">{t.upcomingEvents}</h2>
-      {upcoming.length === 0 && <p className="empty">{t.noUpcomingEvents}</p>}
-      <div className="event-upcoming">
-        {upcoming.map((e) => {
+      <EventSplit
+        serverNow={now}
+        labels={{ current: t.currentEvents, upcoming: t.upcomingEvents, noCurrent: t.noCurrentEvents, noUpcoming: t.noUpcomingEvents }}
+        events={list.map((e) => {
           const n = (byEvent.get(e.id) ?? []).length;
-          return (
-            <details key={e.id} className="event-row">
-              <summary>
-                <span className="event-dates">{d(e.starts_at)}{e.ends_at && e.ends_at.slice(0, 10) !== e.starts_at?.slice(0, 10) ? ` – ${d(e.ends_at)}` : ""}</span>
-                <span className="event-name">{e.name}</span>
-                <span className="event-count">{n ? t.eventPokemonCount.replace("{n}", String(n)) : ""}</span>
-              </summary>
-              <div className="event-body">{pokemonList(e)}</div>
-            </details>
-          );
+          return {
+            id: e.id,
+            start: e.starts_at,
+            end: e.ends_at,
+            card: (
+              <article className="event-card">
+                <header>
+                  <h3 className="event-name">{e.name}</h3>
+                  <span className="event-when">{t.eventEnds.replace("{date}", d(e.ends_at, true))}</span>
+                </header>
+                {pokemonList(e)}
+              </article>
+            ),
+            row: (
+              <details className="event-row">
+                <summary>
+                  <span className="event-dates">{d(e.starts_at)}{e.ends_at && e.ends_at.slice(0, 10) !== e.starts_at?.slice(0, 10) ? ` – ${d(e.ends_at)}` : ""}</span>
+                  <span className="event-name">{e.name}</span>
+                  <span className="event-count">{n ? t.eventPokemonCount.replace("{n}", String(n)) : ""}</span>
+                </summary>
+                <div className="event-body">{pokemonList(e)}</div>
+              </details>
+            ),
+          };
         })}
-      </div>
+      />
 
       <p className="hint event-source">
         {t.eventsSource.split("{source}")[0]}
