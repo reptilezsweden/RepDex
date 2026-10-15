@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { adminPending, requireAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,7 @@ const SECTIONS = [
 
 export default async function AdminHome() {
   await requireAdmin();
+  const pending = await adminPending();
   return (
     <>
       <h1>Admin</h1>
@@ -21,7 +22,10 @@ export default async function AdminHome() {
         {SECTIONS.map((s) => (
           <div key={s.href} className="dex-tile">
             <Link href={s.href}>
-              <div className="name">{s.title}</div>
+              <div className="name">
+                {s.title}
+                {!!pending[s.href] && <span className="pending-badge" title="Waiting for a decision">{pending[s.href]}</span>}
+              </div>
               <div className="count">{s.text}</div>
             </Link>
           </div>

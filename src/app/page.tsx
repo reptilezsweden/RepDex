@@ -2,13 +2,15 @@ import Link from "next/link";
 import { MonImage } from "@/components/mon-ui";
 import { displayName, recentReleases, today, upcomingReleases, type Upcoming } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
-import { getDict } from "@/lib/session";
+import { adminPending } from "@/lib/admin";
+import { getDict, getProfile } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 /** Start page: links to the app's sections, then the upcoming releases. */
 export default async function Home() {
-  const [{ lang, t }, all] = await Promise.all([getDict(), getPokemon()]);
+  const [{ lang, t }, all, profile] = await Promise.all([getDict(), getPokemon(), getProfile()]);
+  const pending = profile?.role === "admin" ? Object.values(await adminPending()).reduce((a, b) => a + b, 0) : 0;
   const day = today();
   const upcoming = upcomingReleases(all, day);
   const recent = recentReleases(all, day, 7);
@@ -17,9 +19,24 @@ export default async function Home() {
   return (
     <>
       <nav className="start-links" aria-label={t.appName}>
-        <Link href="/dexes" className="start-link">{t.dexes}</Link>
-        <Link href="/wishlists" className="start-link">{t.wishlists}</Link>
+        {profile ? (
+          <>
+            <Link href="/dexes" className="start-link">{t.dexes}</Link>
+            <Link href="/wishlists" className="start-link">{t.wishlists}</Link>
+          </>
+        ) : (
+          // Signed-out visitors see what's there, locked.
+          <>
+            <span className="start-link disabled" title={t.signInToUse} aria-disabled="true">{t.dexes} <Padlock /></span>
+            <span className="start-link disabled" title={t.signInToUse} aria-disabled="true">{t.wishlists} <Padlock /></span>
+          </>
+        )}
         <Link href="/events" className="start-link">{t.events}</Link>
+        {profile?.role === "admin" && (
+          <Link href="/admin" className="start-link">
+            <span>{t.admin}{pending > 0 && <span className="pending-badge" title={t.adminPending}>{pending}</span>}</span>
+          </Link>
+        )}
       </nav>
 
       <h1 className="section-title">{t.recentReleases}</h1>
@@ -64,4 +81,13 @@ function ReleaseList({ groups, fmt, t }: { groups: Upcoming[]; fmt: Intl.DateTim
       </ul>
     </section>
   ));
+}
+
+function Padlock() {
+  return (
+    <svg className="padlock" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2.2" />
+    </svg>
+  );
 }

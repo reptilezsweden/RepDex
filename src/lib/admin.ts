@@ -95,3 +95,10 @@ export async function getAllPokemonFull(): Promise<Record<string, unknown>[]> {
   }
   return out;
 }
+
+/** Things waiting for an admin's decision, per admin section (only sections with something to decide). */
+export async function adminPending(): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const { count } = await supabase.from("crawler_queue").select("id", { count: "exact", head: true }).eq("status", "pending");
+  return { "/admin/crawler": count ?? 0 };
+}
