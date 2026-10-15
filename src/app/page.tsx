@@ -14,7 +14,7 @@ export default async function Home() {
   const [{ lang, t }, all] = await Promise.all([getDict(), getPokemon()]);
   const day = today();
   const upcoming = upcomingReleases(all, day);
-  const recent = recentReleases(all, day);
+  const recent = recentReleases(all, day, 7);
   const fmt = new Intl.DateTimeFormat(lang === "sv" ? "sv-SE" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
