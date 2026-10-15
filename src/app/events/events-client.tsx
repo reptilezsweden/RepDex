@@ -77,6 +77,7 @@ export function EventsClient({ events, serverNow, labels, user }: {
   }
 
   const missingOnly = !!user && show === "missing";
+  const dexByKey = new Map((user?.dexes ?? []).map((x) => [x.key, x]));
   const keep = (it: EventItem) => !missingOnly || (it.missingIn ?? []).some((k) => !hidden.has(k));
   const filtered = (e: EventData) =>
     e.groups.map((g) => ({ ...g, items: g.items.filter(keep) })).filter((g) => g.items.length > 0);
@@ -96,7 +97,17 @@ export function EventsClient({ events, serverNow, labels, user }: {
             const inner = (
               <>
                 <span className="imgs"><MonImage file={it.image} size={48} /></span>
-                <span className="nm">{it.name}</span>
+                <span className="nm">
+                  {it.name}
+                  {missingOnly && (
+                    <span className="missing-in">
+                      {(it.missingIn ?? []).filter((k) => !hidden.has(k)).map((k) => {
+                        const dex = dexByKey.get(k);
+                        return dex ? <span key={k} title={dex.name} aria-label={dex.name}><ColumnIcon icon={dex.icon} /></span> : null;
+                      })}
+                    </span>
+                  )}
+                </span>
                 {it.shiny && <span className="type" title={labels.canBeShiny} aria-label={labels.canBeShiny}>✨</span>}
               </>
             );

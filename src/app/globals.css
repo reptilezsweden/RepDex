@@ -614,3 +614,24 @@ a.start-link:hover { border-color: var(--accent); }
 .pending-badge.zero { background: var(--line); color: var(--muted); }
 /* Tiles in a row share the tallest one's height: the last link stretches so its hover area fills the box. */
 .dex-tile > a:last-child { flex: 1; }
+/* Top menu: a row of links on wide screens, a ☰ fold-out on narrow ones. */
+.topbar .nav-menu { display: none; margin-left: auto; position: relative; }
+.topbar .nav-menu summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: 40px; height: 36px; color: var(--text); border-radius: 8px; }
+.topbar .nav-menu summary::-webkit-details-marker { display: none; }
+.topbar .nav-menu[open] summary { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.topbar .nav-menu nav {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; min-width: 190px; margin: 0;
+  display: flex; flex-direction: column; gap: 0; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.topbar .nav-menu nav a, .topbar .nav-menu nav .link-button { display: block; width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; color: var(--text); font-size: 1rem; }
+.topbar .nav-menu nav a:hover, .topbar .nav-menu nav .link-button:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+@media (max-width: 640px) {
+  .topbar .nav-wide { display: none; }
+  .topbar .nav-menu { display: block; }
+}
+/* Events, Missing view: icons of the chosen dexes still missing the Pokémon. */
+.events-page .missing-in { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.events-page .missing-in > span { display: inline-grid; place-items: center; }
+.events-page .missing-in svg { width: 16px; height: 16px; }
+.events-page .missing-in .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
