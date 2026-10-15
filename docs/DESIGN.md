@@ -83,7 +83,7 @@ Admins maintain the availability list in the app; normal users only read it.
 Scheduled crawlers read pages on the [Pokémon GO Wiki](https://pokemongo.fandom.com/wiki/) and compare the dates they find with the list.
 
 1. The crawler runs once a day (Supabase Edge Function `crawler`, started by pg_cron at 04:17 UTC; admins can also press "Run now").
-2. It reads each enabled page and matches Pokémon by name and form to an ID (form words are compared with the ID code and the display name).
+2. Only wiki dates from 14 days ago onwards are used; older dates are settled by hand. It reads each enabled page and matches Pokémon by name and form to an ID (form words are compared with the ID code and the display name).
 3. A date found for an empty field is written automatically and logged with source "crawler".
 4. A date that differs from an existing value, or an entry it can't place, goes to a review queue. The earliest date per row and field counts.
 5. An admin approves or rejects each queued item at /admin/crawler; approved ones are logged as "crawler (approved)". The row picked for an unknown entry, or "ignore", is remembered for later runs. A rejected finding is never queued again.

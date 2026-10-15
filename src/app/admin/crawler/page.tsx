@@ -57,7 +57,7 @@ export default async function AdminCrawler({
         <form action={runCrawler}><button className="btn">Run now</button></form>
       </div>
       <p className="hint">
-        Reads the Pokémon GO Wiki every night (04:17 UTC). Empty date fields are filled straight away (shown as
+        Reads the Pokémon GO Wiki every night (04:17 UTC) and only looks at release dates from the last 14 days onwards. Empty date fields are filled straight away (shown as
         “crawler” in the change log). Dates that differ from ours, and wiki entries it can’t place, wait here
         for you to decide.
       </p>

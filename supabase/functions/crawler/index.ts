@@ -1,7 +1,9 @@
 // Release-date crawler. Called daily by pg_cron (and by admins via crawler_run_now) with the
 // x-crawler-secret header. Reads the Pokémon GO Wiki "…by release date" lists, fills empty date
 // fields straight away and queues changed dates and unknown entries for review.
-// POST body {"dry": true} returns what it would do without writing anything.
+// Only wiki dates from the last 14 days onwards are used (older dates are settled by hand).
+// POST body {"dry": true} returns what it would do without writing anything;
+// {"since": "YYYY-MM-DD"} looks further back for a one-off check.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { parsePage, type Entry } from "./parse.ts";
@@ -26,11 +28,11 @@ async function wikitext(title: string): Promise<string | null> {
 }
 
 /** Wiki pages for a source, with the year to use for headings that leave it out. */
-function pagesFor(key: string, page: string): { title: string; year?: number }[] {
+function pagesFor(key: string, page: string, since: string): { title: string; year?: number }[] {
   if (key !== "forms") return [{ title: page }];
   const now = new Date().getUTCFullYear();
   const out = [];
-  for (let y = 2016; y <= now; y++) out.push({ title: `${page}/${y}`, year: y });
+  for (let y = Math.max(2016, Number(since.slice(0, 4))); y <= now; y++) out.push({ title: `${page}/${y}`, year: y });
   return out;
 }
 
@@ -42,9 +44,12 @@ Deno.serve(async (req) => {
   const { data: settings } = await db.from("crawler_settings").select("secret").eq("id", 1).single();
   if (!settings || req.headers.get("x-crawler-secret") !== settings.secret) return json({ error: "forbidden" }, 403);
 
-  let body: { dry?: boolean; sources?: string[] } = {};
+  let body: { dry?: boolean; sources?: string[]; since?: string } = {};
   try { body = await req.json(); } catch { /* empty body */ }
   const dry = body.dry === true;
+  const since = /^\d{4}-\d{2}-\d{2}$/.test(body.since ?? "")
+    ? body.since!
+    : new Date(Date.now() - 14 * 86400_000).toISOString().slice(0, 10);
 
   // Everything the matcher needs.
   const rows: Row[] = [];
@@ -80,7 +85,7 @@ Deno.serve(async (req) => {
     let entries: Entry[] = [];
     const missing: string[] = [];
     try {
-      for (const p of pagesFor(key, src.page)) {
+      for (const p of pagesFor(key, src.page, since)) {
         const wt = await wikitext(p.title);
         if (wt == null) { missing.push(p.title); continue; }
         entries = entries.concat(parsePage(wt, p.year));
@@ -98,6 +103,7 @@ Deno.serve(async (req) => {
     }
 
     for (const e of entries) {
+      if (e.date < since) continue;
       const field = fieldFor(key, e);
       if (!field) continue;
       const m = match(key, e, field);
@@ -135,7 +141,7 @@ Deno.serve(async (req) => {
 
   if (dry) {
     return json({
-      dry: true, report, rows: rows.length,
+      dry: true, since, report, rows: rows.length,
       fill: fill.length, changed: queue.filter((q) => q.reason === "changed").length, unmatched: unmatched.size,
       fillList: fill, queue,
     });
@@ -163,5 +169,5 @@ Deno.serve(async (req) => {
     await db.from("crawler_sources").update({ last_run_at: now, last_status: r.status, last_message: msg }).eq("key", key);
   }
 
-  return json({ report, filled, queued });
+  return json({ since, report, filled, queued });
 });
