@@ -114,8 +114,8 @@ export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string } 
 export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | null; all_forms?: boolean }): boolean {
   const d = dexByKey(key);
   if (!d || d.everyRow) return false;
-  // Shiny follows Caught's All forms choice.
-  if (key === "shiny") key = "caught";
+  // Shiny and Shiny ⭐⭐⭐ follow Caught's All forms choice.
+  if (key === "shiny" || key === "shiny3") key = "caught";
   // Before migration 0007 there was one switch for every dex.
   if (!profile.all_forms_dexes) return !!profile.all_forms;
   return profile.all_forms_dexes.includes(key);
