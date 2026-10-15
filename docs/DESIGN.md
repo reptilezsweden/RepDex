@@ -90,6 +90,8 @@ Scheduled crawlers read pages on the [Pokémon GO Wiki](https://pokemongo.fandom
 
 Admins switch sources on and off and see the last run status at /admin/crawler.
 
+New costume/event Pokémon on the event list (within the 14-day window) that RepDex doesn't have are added as Costume rows (logged as "(added)" by "crawler"). Species details are copied from the regular row; the image is the unused `pm<nr>.<CODE>.icon.png` in the asset folder that shares words or the year with the wiki entry, and the row ID follows it (`0025_fHALLOWEEN_2026`). Without an image the ID is made from the wiki name. An entry is not added when a costume of that species already has the same date; it goes to the review queue instead. Entries naming a group ("Minior (color core)") apply to every matching form.
+
 | Source page | Feeds field | Dexes affected | Notes |
 | --- | --- | --- | --- |
 | [List of Pokémon forms by release date](https://pokemongo.fandom.com/wiki/List_of_Pok%C3%A9mon_forms_by_release_date) (one page per year, /2016 onwards) | `released`, `release_shiny` on every row except Costume | Caught, Lucky, XXL, XXS, 100%, Shiny, Shiny ⭐⭐⭐, Mega, Gigantamax and their shiny dexes | Headings like "January 4" without the year; `{{P}}`/`{{PS}}` entries with `form=`, `mega=t`, `gigantamax=t` |

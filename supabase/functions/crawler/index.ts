@@ -4,13 +4,14 @@
 // Only wiki dates from the last 14 days onwards are used (older dates are settled by hand).
 // POST body {"dry": true} returns what it would do without writing anything;
 // {"since": "YYYY-MM-DD"} looks further back for a one-off check.
+// New costume/event Pokémon are added as rows, with their image when the asset folder has one.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { parsePage, type Entry } from "./parse.ts";
-import { fieldFor, makeMatcher, type Row, type SourceKey } from "./match.ts";
+import { fieldFor, makeMatcher, norm, type Row, type SourceKey } from "./match.ts";
+import { imageFiles, newCostumeRow, pickCode, unusedCodes } from "./costume.ts";
 
 const UA = "RepDex release-date crawler (https://github.com/reptilezsweden/RepDex)";
-const FIELDS = ["released", "release_shiny", "release_shadow", "release_shadow_shiny", "release_dynamax", "release_dynamax_shiny"];
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body, null, 1), { status, headers: { "Content-Type": "application/json" } });
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
   const rows: Row[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db.from("pokemon")
-      .select(`id, species, name, alt_name, form_type, dex_caught, ${FIELDS.join(", ")}`)
+      .select("*")
       .order("id").range(from, from + 999);
     if (error) return json({ error: error.message }, 500);
     rows.push(...(data as unknown as Row[]));
@@ -68,6 +69,8 @@ Deno.serve(async (req) => {
     for (const a of data ?? []) aliases.set(a.key, a.pokemon_id);
   }
   const match = makeMatcher(rows);
+  const speciesOf = new Map<string, number>();
+  for (const r of rows) if (r.form_type === "Regular" || !speciesOf.has(norm(r.name))) speciesOf.set(norm(r.name), r.species);
 
   let srcQuery = db.from("crawler_sources").select("key, page, enabled").order("key");
   if (body.sources?.length) srcQuery = srcQuery.in("key", body.sources);
@@ -79,6 +82,8 @@ Deno.serve(async (req) => {
   const matched = new Map<string, Found & { id: string; field: string }>();
   const unmatched = new Map<string, Found & { field: string; candidates: string[] }>();
   const report: Record<string, { status: string; message: string; entries: number }> = {};
+  // Costume entries RepDex doesn't have: wiki key → entry, dates per field, possible rows.
+  const fresh = new Map<string, { e: Entry; label: string; dates: Record<string, string>; candidates: string[] }>();
 
   for (const src of sources ?? []) {
     const key = src.key as SourceKey;
@@ -107,16 +112,28 @@ Deno.serve(async (req) => {
       const field = fieldFor(key, e);
       if (!field) continue;
       const m = match(key, e, field);
-      let row = m.row;
-      if (aliases.has(m.key)) {
+      let targets = m.rows ?? (m.row ? [m.row] : []);
+      const known = aliases.has(m.key);
+      if (known) {
         const id = aliases.get(m.key);
         if (id == null) continue; // ignored entry
-        row = byId.get(id) ?? null;
+        targets = byId.has(id) ? [byId.get(id)!] : [];
       }
-      if (row) {
+      // A recent costume that only resembles an old one (released before the window) is a new costume.
+      if (key === "costumes" && !known && targets.length === 1) {
+        const have = targets[0][field] as string | null;
+        if (have && have < since) targets = [];
+      }
+      for (const row of targets) {
         const k = `${row.id}|${field}`;
         const prev = matched.get(k);
         if (!prev || e.date < prev.date) matched.set(k, { id: row.id, field, date: e.date, key: m.key, label: m.label, source: key });
+      }
+      if (targets.length) continue;
+      if (key === "costumes" && !known) {
+        const f = fresh.get(m.key) ?? { e, label: m.label, dates: {}, candidates: m.candidates.map((r) => r.id) };
+        if (!f.dates[field] || e.date < f.dates[field]) f.dates[field] = e.date;
+        fresh.set(m.key, f);
       } else {
         const k = `${m.key}|${field}`;
         const prev = unmatched.get(k);
@@ -124,6 +141,35 @@ Deno.serve(async (req) => {
       }
     }
     report[key] ??= { status: "ok", message: "", entries: entries.length };
+  }
+
+  // New costumes: added as rows unless RepDex may already have them (a costume of that species with the same date).
+  const added: Record<string, unknown>[] = [];
+  const newAliases: { key: string; pokemon_id: string }[] = [];
+  if (fresh.size) {
+    const files = await imageFiles(UA);
+    const fileSet = new Set(files);
+    const unused = unusedCodes(files, rows);
+    const taken = new Set(rows.map((r) => r.id));
+    for (const [k, f] of fresh) {
+      const nr = speciesOf.get(norm(f.e.name));
+      const speciesRows = rows.filter((r) => r.species === nr);
+      const base = speciesRows.find((r) => r.form_type === "Regular") ?? speciesRows[0];
+      const maybeHave = speciesRows.some((r) => r.form_type === "Costume" && Object.entries(f.dates).some(([fl, d]) => r[fl] === d));
+      if (!base || maybeHave) {
+        for (const [field, date] of Object.entries(f.dates)) {
+          unmatched.set(`${k}|${field}`, { field, date, key: k, label: f.label, source: "costumes", candidates: f.candidates });
+        }
+        continue;
+      }
+      const codes = unused.get(base.species) ?? [];
+      const code = pickCode(f.e, codes);
+      if (code) unused.set(base.species, codes.filter((c) => c !== code));
+      const row = newCostumeRow(f.e, base, speciesRows, code, fileSet, taken);
+      Object.assign(row, f.dates);
+      added.push(row);
+      newAliases.push({ key: k, pokemon_id: row.id as string });
+    }
   }
 
   const fill: { id: string; field: string; date: string }[] = [];
@@ -141,10 +187,16 @@ Deno.serve(async (req) => {
 
   if (dry) {
     return json({
-      dry: true, since, report, rows: rows.length,
+      dry: true, since, report, rows: rows.length, added,
       fill: fill.length, changed: queue.filter((q) => q.reason === "changed").length, unmatched: unmatched.size,
       fillList: fill, queue,
     });
+  }
+
+  if (added.length) {
+    const { error } = await db.rpc("crawler_add", { p_rows: added });
+    if (error) return json({ error: error.message }, 500);
+    await db.from("crawler_aliases").upsert(newAliases, { onConflict: "key" });
   }
 
   let filled = 0;
@@ -165,9 +217,10 @@ Deno.serve(async (req) => {
   const now = new Date().toISOString();
   for (const [key, r] of Object.entries(report)) {
     const bySource = (s: string) => fill.filter((f) => matched.get(`${f.id}|${f.field}`)?.source === s).length;
-    const msg = r.status === "ok" ? `${r.entries} entries read, ${bySource(key)} dates filled` : r.message;
+    const extra = key === "costumes" && added.length ? `, ${added.length} new costume${added.length === 1 ? "" : "s"} added` : "";
+    const msg = r.status === "ok" ? `${r.entries} entries read, ${bySource(key)} dates filled${extra}` : r.message;
     await db.from("crawler_sources").update({ last_run_at: now, last_status: r.status, last_message: msg }).eq("key", key);
   }
 
-  return json({ since, report, filled, queued });
+  return json({ since, report, added: added.map((a) => a.id), filled, queued });
 });

@@ -71,6 +71,8 @@ export interface Match {
   label: string;
   /** Matched row, or null when it couldn't be decided. */
   row: Row | null;
+  /** Several rows at once, for entries that stand for a group ("Minior (color core)" = every core). */
+  rows?: Row[];
   candidates: Row[];
 }
 
@@ -94,6 +96,13 @@ export function makeMatcher(rows: Row[]) {
     const candidates = candidatesFor(source, e, bySpecies.get(speciesByName.get(norm(e.name)) ?? -1) ?? []);
     if (candidates.length === 0) return { key, label, row: null, candidates };
     if (candidates.length === 1 && (hint.length === 0 || source !== "costumes")) return { key, label, row: candidates[0], candidates };
+
+    // "Color core" and the like: every form matching the remaining words.
+    const group = hint.filter((h) => h !== "color" && h !== "colour");
+    if (group.length < hint.length && group.length > 0) {
+      const all = candidates.filter((r) => group.every((h) => rowTokens(r).some((t) => close(h, t))));
+      if (all.length > 1) return { key, label, row: null, rows: all, candidates };
+    }
 
     if (hint.length > 0) {
       const scored = candidates.map((r) => {
