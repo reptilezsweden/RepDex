@@ -13,18 +13,20 @@ export interface WishlistDef {
   shiny: boolean;
   /** "Show only lowest evolution" applies (forms that come from evolving keep the dex's trait). */
   evolves: boolean;
+  /** Leave out rows that can't be traded (dex_lucky = false, e.g. mythicals). */
+  tradeableOnly: boolean;
 }
 
 /** In display order. The keys are what profiles.public_wishlists stores. */
 export const WISHLISTS: WishlistDef[] = [
-  { key: "caught", name: { en: "Caught + Lucky", sv: "Fångade + Lucky" }, dexes: ["caught", "lucky"], prefix: "!traded&", shiny: false, evolves: true },
-  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, dexes: ["shiny"], prefix: "shiny&!traded&", shiny: true, evolves: true },
-  { key: "xxs", name: { en: "XXS", sv: "XXS" }, dexes: ["xxs"], prefix: "xxs&!traded&", shiny: false, evolves: true },
-  { key: "xxl", name: { en: "XXL", sv: "XXL" }, dexes: ["xxl"], prefix: "xxl&!traded&", shiny: false, evolves: true },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", shiny: false, evolves: false },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, dexes: ["dynamax"], prefix: "dynamax&!traded&", shiny: false, evolves: true },
-  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, dexes: ["costumes"], prefix: "costume&!traded&", shiny: false, evolves: false },
-  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", shiny: true, evolves: false },
+  { key: "caught", name: { en: "Caught + Lucky", sv: "Fångade + Lucky" }, dexes: ["caught", "lucky"], prefix: "!traded&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, dexes: ["shiny"], prefix: "shiny&!traded&", shiny: true, evolves: true, tradeableOnly: true },
+  { key: "xxs", name: { en: "XXS", sv: "XXS" }, dexes: ["xxs"], prefix: "xxs&!traded&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "xxl", name: { en: "XXL", sv: "XXL" }, dexes: ["xxl"], prefix: "xxl&!traded&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", shiny: false, evolves: false, tradeableOnly: false },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, dexes: ["dynamax"], prefix: "dynamax&!traded&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, dexes: ["costumes"], prefix: "costume&!traded&", shiny: false, evolves: false, tradeableOnly: false },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", shiny: true, evolves: false, tradeableOnly: false },
 ];
 
 export const WISHLIST_KEYS = WISHLISTS.map((w) => w.key);
@@ -71,7 +73,7 @@ export function buildWishlist(
     const dex = dexByKey(key)!;
     const perForm = !!dex.everyRow || allFormsFor(key);
     for (const e of missing(dexEntries(all, dex, perForm, day), dex, ticks.get(key) ?? new Map(), day)) {
-      const p = e.rows.find(collectible);
+      const p = e.rows.find((r) => collectible(r) && (!def.tradeableOnly || r.dex_lucky));
       if (!p) continue;
       // Keyed by row, so Caught (per form) and Lucky (per species) don't list the same Pokémon twice.
       const id = p.id;
