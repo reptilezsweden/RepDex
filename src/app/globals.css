@@ -57,8 +57,8 @@ button, input, select { font: inherit; color: inherit; }
 }
 .topbar .brand { font-weight: 700; text-decoration: none; letter-spacing: 0.2px; }
 .topbar .brand span { color: var(--accent); }
-.topbar nav { margin-left: auto; display: flex; gap: 16px; }
-.topbar nav a { text-decoration: none; color: var(--muted); }
+.topbar nav { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.topbar nav a, .topbar nav .link-button { text-decoration: none; color: var(--muted); white-space: nowrap; }
 .topbar nav a:hover { color: var(--text); }
 
 main { max-width: 1200px; margin: 0 auto; padding: 16px; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
