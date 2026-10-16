@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, isOn, speciesName, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
+import { CAUGHT_LINKED, allFormsOn, genderOn, twinsOf, collectible, dexByKey, dexEntries, displayName, isOn, speciesName, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
 import { DEX_ICON } from "@/lib/dex-icons";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
@@ -69,9 +69,15 @@ export default async function DexPage({
     familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}|${p.name_ja ?? ""}|${p.alt_name_ja ?? ""}`.toLowerCase();
   }
 
+  // Gender on: each card also gets a ♀ side, made of the female twins of its rows.
+  const gendered = genderOn(dex.key, profile);
+  const twins = gendered ? twinsOf(all) : null;
+  const femaleOf = (ids: string[]) => (twins ? ids.map((id) => twins.get(id)?.id).filter((x): x is string => !!x) : []);
+  const parentGendered = !!parent && genderOn(parent.key, profile);
+
   const cards: Card[] = dexEntries(all, dex, allForms, day).map((e) => {
     const p = e.pokemon;
-    return {
+    const card: Card = {
       id: p.id,
       no: p.species,
       family: String(p.family ?? `s${p.species}`),
@@ -96,6 +102,16 @@ export default async function DexPage({
         }))
         .filter((s) => s.rows.length > 0),
     };
+    const fRows = femaleOf(card.rows);
+    if (fRows.length > 0) {
+      card.female = {
+        id: twins!.get(card.rows.includes(p.id) ? p.id : card.rows[0])?.id ?? fRows[0],
+        rows: fRows,
+        parentRows: parentGendered ? femaleOf(card.parentRows) : [],
+        slots: card.slots.map((sl) => ({ ...sl, rows: femaleOf(sl.rows) })).filter((sl) => sl.rows.length > 0),
+      };
+    }
+    return card;
   });
   cards.sort((a, b) => a.no - b.no);
 
@@ -119,6 +135,7 @@ export default async function DexPage({
       childDexes={childDexes}
       canSwitchForms={allFormsOn(dex.key, profile)}
       allForms={allForms}
+      gendered={gendered}
       t={t}
     />
   );

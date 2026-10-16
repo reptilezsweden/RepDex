@@ -82,6 +82,8 @@ export function makeMatcher(rows: Row[]) {
   const bySpecies = new Map<number, Row[]>();
   const speciesByName = new Map<string, number>();
   for (const r of rows) {
+    // Female twins (<id>_g2) follow their original row: the database copies its dates to them.
+    if (r.gender_of) continue;
     const list = bySpecies.get(r.species) ?? [];
     list.push(r);
     bySpecies.set(r.species, list);

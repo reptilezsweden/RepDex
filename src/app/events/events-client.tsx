@@ -86,7 +86,9 @@ export function EventsClient({ events, serverNow, labels, user }: {
 
   const missingOnly = !!user && show === "missing";
   const dexByKey = new Map((user?.dexes ?? []).map((x) => [x.key, x]));
-  const keep = (it: EventItem) => !missingOnly || (it.missingIn ?? []).some((k) => !hidden.has(k));
+  // Entries are dex keys, or "key:♀" / "key:♂" when only that gender is missing.
+  const dexOf = (k: string) => k.split(":")[0];
+  const keep = (it: EventItem) => !missingOnly || (it.missingIn ?? []).some((k) => !hidden.has(dexOf(k)));
   const filtered = (e: EventData) =>
     e.groups.map((g) => ({ ...g, items: g.items.filter(keep) })).filter((g) => g.items.length > 0);
 
@@ -116,9 +118,16 @@ export function EventsClient({ events, serverNow, labels, user }: {
                   )}
                   {missingOnly && (
                     <span className="missing-in">
-                      {(it.missingIn ?? []).filter((k) => !hidden.has(k)).map((k) => {
+                      {(it.missingIn ?? []).filter((k) => !hidden.has(dexOf(k))).map((entry) => {
+                        const [k, sign] = entry.split(":");
                         const dex = dexByKey.get(k);
-                        return dex ? <span key={k} title={dex.name} aria-label={dex.name}><ColumnIcon icon={dex.icon} /></span> : null;
+                        const label = sign ? `${dex?.name} ${sign}` : dex?.name;
+                        return dex ? (
+                          <span key={k} title={label} aria-label={label}>
+                            <ColumnIcon icon={dex.icon} />
+                            {sign && <span className={`g-sign ${sign === "♂" ? "m" : "f"}`}>{sign}</span>}
+                          </span>
+                        ) : null;
                       })}
                     </span>
                   )}

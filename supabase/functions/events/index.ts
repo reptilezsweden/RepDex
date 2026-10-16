@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   try {
     const rows: Row[] = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await db.from("pokemon").select("id, species, name, alt_name, form_type, image_regular")
+      const { data, error } = await db.from("pokemon").select("id, species, name, alt_name, form_type, image_regular, gender_of")
         .order("id").range(from, from + 999);
       if (error) throw new Error(error.message);
       rows.push(...(data as Row[]));

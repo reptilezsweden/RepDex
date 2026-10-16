@@ -1,7 +1,7 @@
 import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { WishlistTabs } from "@/app/wishlists/wishlist-tabs";
 import { getPokemon } from "@/lib/data";
-import { allFormsOn, today, type Tick } from "@/lib/dexes";
+import { allFormsOn, genderOn, today, twinsOf, type Tick } from "@/lib/dexes";
 import { getDict } from "@/lib/session";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { byDex } from "@/lib/ticks";
@@ -41,16 +41,22 @@ export default async function PublicUserPage({ params }: { params: Promise<{ nic
   const ticks: Tick[] = rows
     .filter((r) => r.dex && r.pokemon_id)
     .map((r) => ({ dex: r.dex!, pokemon_id: r.pokemon_id!, collected: !!r.collected, wanted: !!r.wanted }));
-  const [all, lowestRes, formsRes] = await Promise.all([
+  const [all, lowestRes, formsRes, genderRes] = await Promise.all([
     getPokemon(),
     supabase.rpc("public_wish_lowest", { p_nickname: decodeURIComponent(nickname) }),
     supabase.rpc("public_wish_all_forms", { p_nickname: decodeURIComponent(nickname) }),
+    supabase.rpc("public_wish_gender", { p_nickname: decodeURIComponent(nickname) }),
   ]);
   const lowest = lowestRes.data === true;
   const ownerForms = { all_forms_dexes: (formsRes.data as string[] | null) ?? [] };
   const ticksBy = byDex(ticks);
   // Follows the owner's "lowest evolution" choice; lists with nothing missing are left out.
-  const lists = defs.map((w) => buildWishlist(w, all, ticksBy, today(), lang, lowest, (k) => allFormsOn(k, ownerForms))).filter((l) => l.items.length > 0);
+  // Follows the owner's gender choice too: each missing gender is listed.
+  const ownerGender = { gender_dexes: (genderRes.data as string[] | null) ?? [] };
+  const twins = twinsOf(all);
+  const lists = defs
+    .map((w) => buildWishlist(w, all, ticksBy, today(), lang, lowest, (k) => allFormsOn(k, ownerForms), (k) => (genderOn(k, ownerGender) ? twins : null)))
+    .filter((l) => l.items.length > 0);
   if (lists.length === 0) {
     return (
       <div className="panel no-user">

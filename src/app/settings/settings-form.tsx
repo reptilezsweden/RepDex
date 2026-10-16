@@ -5,7 +5,7 @@ import type { Dict, Lang } from "@/lib/i18n";
 import { saveSettings, type SettingsState } from "./actions";
 
 export function SettingsForm({
-  t, lang, allForms, shiny, shiny3, dexes,
+  t, lang, allForms, shiny, shiny3, dexes, genders,
 }: {
   t: Dict;
   lang: Lang;
@@ -14,6 +14,8 @@ export function SettingsForm({
   shiny: boolean;
   shiny3: boolean;
   dexes: { key: string; name: string; on: boolean; locked: boolean; notInGame: boolean }[];
+  /** One switch per dex group for ticking male and female separately; value is the group's first key. */
+  genders: { value: string; name: string; on: boolean }[];
 }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, undefined);
   // Shiny ⭐⭐⭐ needs Show shiny: switching it on switches Show shiny on, and switching Show shiny off switches it off.
@@ -86,6 +88,19 @@ export function SettingsForm({
           ))}
         </div>
         <p className="help">{t.allFormsHelp}</p>
+      </section>
+
+      <section className="panel">
+        <h2>{t.genderSetting}</h2>
+        <p className="help" style={{ marginTop: 0 }}>{t.genderSettingHelp}</p>
+        <div className="checks">
+          {genders.map((g) => (
+            <label key={g.value} className="check">
+              <input type="checkbox" name="gender_dex" value={g.value} defaultChecked={g.on} /> {g.name}
+            </label>
+          ))}
+        </div>
+        <p className="help">{t.genderSettingNote}</p>
       </section>
 
       {state?.error && <p className="msg error" role="alert">{state.error}</p>}

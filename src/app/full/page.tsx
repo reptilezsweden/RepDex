@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { columnIcon, columnOrder } from "@/lib/dex-columns";
-import { canWant, collectible, dexRows, isOn, speciesName, statusOf, today } from "@/lib/dexes";
+import { canWant, collectible, dexRows, genderOn, isOn, speciesName, statusOf, today, twinsOf } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
@@ -21,7 +21,10 @@ export default async function FullCollectionPage() {
   const ticksBy = byDex(ticks);
 
   const dexes = columnOrder().filter((d) => isOn(d.key, profile.visible_dexes));
-  const columns: Column[] = dexes.map((d) => ({ key: d.key, name: d.name[lang], icon: columnIcon(d), counts: !!d.everyRow }));
+  // Gender tracked: a species counts ♂ and ♀ (shown as 1/2, 2/2).
+  const twins = twinsOf(all);
+  const gendered = dexes.map((d) => genderOn(d.key, profile));
+  const columns: Column[] = dexes.map((d, i) => ({ key: d.key, name: d.name[lang], icon: columnIcon(d), counts: !!d.everyRow || gendered[i] }));
 
   // Released, collectible rows of each dex, by species.
   const bySpecies = dexes.map((d) => {
@@ -50,9 +53,15 @@ export default async function FullCollectionPage() {
       const ids = bySpecies[i].get(no);
       if (!ids) return null;
       const dt = ticksBy.get(d.key);
-      const done = ids.filter((id) => dt?.get(id)?.collected).length;
-      const wanted = canWant(d.key) && ids.some((id) => dt?.get(id)?.wanted);
-      return d.everyRow ? [done, ids.length, wanted ? 1 : 0] : [done > 0 ? 1 : 0, 1, wanted ? 1 : 0];
+      const fIds = gendered[i] ? ids.map((id) => twins.get(id)?.id).filter((x): x is string => !!x) : [];
+      const on = (id: string) => !!dt?.get(id)?.collected;
+      const wanted = canWant(d.key) && [...ids, ...fIds].some((id) => dt?.get(id)?.wanted);
+      if (d.everyRow) {
+        const every = [...ids, ...fIds];
+        return [every.filter(on).length, every.length, wanted ? 1 : 0];
+      }
+      const done = (ids.some(on) ? 1 : 0) + (fIds.some(on) ? 1 : 0);
+      return [done, fIds.length ? 2 : 1, wanted ? 1 : 0];
     });
     if (cells.every((c) => c === null)) continue;
     const p = rep.get(no)!;

@@ -143,7 +143,10 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
                 <li key={i.id}>
                   <MonImage file={i.image} size={48} />
                   <span className="no">#{String(i.no).padStart(4, "0")}</span>
-                  <span className="nm">{i.name}</span>
+                  <span className="nm">
+                    {i.name}
+                    {i.gender && <span className={`g-sign ${i.gender === "♂" ? "m" : "f"}`} aria-label={i.gender === "♂" ? t.male : t.female}> {i.gender}</span>}
+                  </span>
                 </li>
               ))}
             </ul>

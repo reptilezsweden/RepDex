@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
 import { BadgeButton, BadgeIcon, DEX_ICON, DexTick, HoverShiny, PuzzleIcon, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
-import { CAUGHT_LINKED, canWant, type Status } from "@/lib/dexes";
+import { CAUGHT_LINKED, canWant, countText, type Status } from "@/lib/dexes";
 import type { Dict } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -43,6 +43,8 @@ export interface Card {
   showOnly: boolean;
   /** Extra ticks on this card (released ones only), with the rows each can tick. */
   slots: (SlotDef & { rows: string[] })[];
+  /** With gender tracked: the ♀ side, made of the female twins of the card's rows (same ticks, own rows). */
+  female?: { id: string; rows: string[]; parentRows: string[]; slots: (SlotDef & { rows: string[] })[] };
 }
 
 type Slot = Card["slots"][number];
@@ -60,7 +62,7 @@ type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
   dexKey, title, ownName, notInGame, cards, familyNames, gens, slotDefs, parentDex, childDexes, initialTicks, userId,
-  initialShowUpcoming, initialShowUnreleased, initialShow, initialSearchFamily, canSwitchForms, allForms, t,
+  initialShowUpcoming, initialShowUnreleased, initialShow, initialSearchFamily, canSwitchForms, allForms, gendered = false, t,
 }: {
   dexKey: string;
   title: string;
@@ -85,6 +87,8 @@ export function DexGrid({
   initialSearchFamily: boolean;
   canSwitchForms: boolean;
   allForms: boolean;
+  /** Male and female are ticked separately on this page (cards with a female side show two rows). */
+  gendered?: boolean;
   t: Dict;
 }) {
   const { get, save, toggle, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
@@ -120,8 +124,16 @@ export function DexGrid({
   const anyCollected = (c: Card) => stateOf(c).collected || c.slots.some((sl) => sl.parent === null && slotOn(sl));
   const linksCaught = (dex: string) => !!parentDex && CAUGHT_LINKED.includes(dex);
 
+  // Gender: a card with a female side is two "sides" (♂ = the card itself, ♀ = its twins). Every
+  // tick rule below works on a side, so ticking, wanted marks and Check all work the same for both.
+  const femaleSide = (c: Card): Card => ({ ...c, id: c.female!.id, rows: c.female!.rows, parentRows: c.female!.parentRows, slots: c.female!.slots, female: undefined });
+  const sides = (c: Card): Card[] => (c.female ? [c, femaleSide(c)] : [c]);
+  const allSides = (c: Card, on: (sd: Card) => boolean) => sides(c).every(on);
+  const anySide = (c: Card, on: (sd: Card) => boolean) => sides(c).some(on);
+  const collectedSide = (sd: Card) => stateOf(sd).collected;
+
   const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
-  const done = available.filter((c) => stateOf(c).collected).length;
+  const done = available.filter((c) => allSides(c, collectedSide)).length;
   const hasPeers = slotDefs.some((d) => d.parent === null);
 
   const visible = useMemo(() => {
@@ -139,12 +151,14 @@ export function DexGrid({
         // Missing: not collected yet or wanted, plus everything about to be released.
         if (c.status === "upcoming") return true;
         if (c.status !== "available" || c.rows.length === 0) return false;
-        const s = stateOf(c);
-        if (!s.collected || s.wanted) return true;
-        // The extra ticks count too: one not yet ticked, or one marked wanted.
-        return c.slots.some((sl) => !slotOn(sl) || slotWanted(sl));
+        return anySide(c, (sd) => {
+          const s = stateOf(sd);
+          if (!s.collected || s.wanted) return true;
+          // The extra ticks count too: one not yet ticked, or one marked wanted.
+          return sd.slots.some((sl) => !slotOn(sl) || slotWanted(sl));
+        });
       }
-      if (show === "collected") return c.status === "available" && anyCollected(c);
+      if (show === "collected") return c.status === "available" && anySide(c, anyCollected);
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,7 +176,8 @@ export function DexGrid({
 
   /** Cards a bulk action would change, within the current view. */
   function bulkCards(action: "check" | "uncheck", target: Target): Card[] {
-    const live = visible.filter((c) => c.status === "available");
+    // Each gender side counts on its own: Check all ticks ♂ and ♀.
+    const live = visible.filter((c) => c.status === "available").flatMap(sides);
     if (target === "regular") {
       return action === "check"
         ? live.filter((c) => c.rows.length > 0 && !stateOf(c).collected)
@@ -366,26 +381,69 @@ export function DexGrid({
     targets.some((tg) => bulkCards(action, tg).length > 0);
 
   /** Counters for a set of cards: this dex's own tick, then each extra tick (shiny, XXS, Purified…). */
+  // With gender: "[both genders] or [either gender] / total · %", else "done / total".
   const counters = (list: Card[]) => {
     const own = list.filter((c) => c.status === "available" && c.rows.length > 0);
+    const text = (all: number, any: number, total: number) => countText(all, any, total, gendered, t.countOr);
     return (
       <>
         <span className="count star-count">
           {hasPeers && DEX_ICON[dexKey] && <SlotIconView icon={DEX_ICON[dexKey]!} size={16} />}
-          {own.filter((c) => stateOf(c).collected).length} / {own.length}
+          {text(own.filter((c) => allSides(c, collectedSide)).length, own.filter((c) => anySide(c, collectedSide)).length, own.length)}
         </span>
         {slotDefs.map((d) => {
           const withSlot = list.filter((c) => c.status === "available" && slotOf(c, d.dex));
           if (withSlot.length === 0 && list !== cards) return null;
+          const slotSides = (c: Card) => sides(c).map((sd) => slotOf(sd, d.dex)).filter((x): x is Slot => !!x);
           return (
             <span key={d.dex} className="count star-count" title={d.label}>
-              <SlotIconView icon={d.icon} size={16} />{withSlot.filter((c) => slotOn(slotOf(c, d.dex)!)).length} / {withSlot.length}
+              <SlotIconView icon={d.icon} size={16} />
+              {text(
+                withSlot.filter((c) => slotSides(c).every(slotOn)).length,
+                withSlot.filter((c) => slotSides(c).some(slotOn)).length,
+                withSlot.length,
+              )}
             </span>
           );
         })}
       </>
     );
   };
+
+  /** One row of ticks for a card or one of its gender sides. */
+  function tickRow(c: Card, sign: "♂" | "♀" | null) {
+    const s = stateOf(c);
+    return (
+      <span key={c.id} className={`extras${sign ? " g-row" : ""}`}>
+        {sign && <span className={`g-sign ${sign === "♂" ? "m" : "f"}`} title={sign === "♂" ? t.male : t.female}>{sign}</span>}
+        <DexTick
+          dex={dexKey} on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
+          wanted={s.wanted} dim={wantedMode && !s.collected}
+        />
+        {s.collected && !mainOn(c) && (
+          <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.5" />
+              <path d="M7.5 12.5l3 3 6-6.5" />
+            </svg>
+          </span>
+        )}
+        {c.slots.map((sl) => {
+          const props = {
+            label: sl.label, on: slotOn(sl), onClick: () => tapSlot(c, sl),
+            wanted: slotWanted(sl), dim: wantedMode && (!slotOn(sl) || !canWant(sl.dex)),
+          };
+          return (
+            <span key={sl.dex} className="star-pair">
+              {sl.icon === "star" || sl.icon === "star3"
+                ? <StarButton kind={sl.icon} {...props} />
+                : <BadgeButton kind={sl.icon} {...props} />}
+            </span>
+          );
+        })}
+      </span>
+    );
+  }
 
   return (
     <>
@@ -484,8 +542,10 @@ export function DexGrid({
             </h2>
             <div className="grid">
               {g.cards.map((c) => {
-                const s = stateOf(c);
-                const cls = ["mon", c.status !== "available" ? c.status : anyCollected(c) ? "collected" : ""].join(" ");
+                // Green when every gender side is collected; a faint outline when only one is.
+                const full = allSides(c, anyCollected);
+                const half = !full && anySide(c, anyCollected);
+                const cls = ["mon", c.status !== "available" ? c.status : full ? "collected" : half ? "half" : ""].join(" ");
                 return (
                   <div key={c.id} className={cls}>
                     <Link href={`/pokemon/${c.no}?dex=${dexKey}`} className="mon-link">
@@ -498,37 +558,11 @@ export function DexGrid({
                       {c.status === "upcoming" && <span className="tag">{t.upcoming} {c.date}</span>}
                       {c.status === "unreleased" && <span className="tag">{t.unreleased}</span>}
                     </Link>
-                    {/* Tick icons at the bottom of every card, so cards line up. */}
-                    <div className="icon-tray one">
-                      {c.status === "available" && c.rows.length > 0 && (
-                        <span className="extras">
-                          <DexTick
-                            dex={dexKey} on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
-                            wanted={s.wanted} dim={wantedMode && !s.collected}
-                          />
-                          {s.collected && !mainOn(c) && (
-                            <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
-                              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                                <circle cx="12" cy="12" r="9.5" />
-                                <path d="M7.5 12.5l3 3 6-6.5" />
-                              </svg>
-                            </span>
-                          )}
-                          {c.slots.map((sl) => {
-                            const props = {
-                              label: sl.label, on: slotOn(sl), onClick: () => tapSlot(c, sl),
-                              wanted: slotWanted(sl), dim: wantedMode && (!slotOn(sl) || !canWant(sl.dex)),
-                            };
-                            return (
-                              <span key={sl.dex} className="star-pair">
-                                {sl.icon === "star" || sl.icon === "star3"
-                                  ? <StarButton kind={sl.icon} {...props} />
-                                  : <BadgeButton kind={sl.icon} {...props} />}
-                              </span>
-                            );
-                          })}
-                        </span>
-                      )}
+                    {/* Tick icons at the bottom of every card, so cards line up; one row per gender when tracked. */}
+                    <div className={`icon-tray one${c.female ? " gendered" : ""}`}>
+                      {c.status === "available" && c.rows.length > 0 && sides(c).map((sd, i) => (
+                        tickRow(sd, c.female ? (i === 0 ? "♂" : "♀") : null)
+                      ))}
                     </div>
                   </div>
                 );

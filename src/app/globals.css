@@ -685,3 +685,18 @@ a.start-link:hover { border-color: var(--accent); }
 .upcoming h3 .release-event:hover { color: var(--text); text-decoration: underline; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Gender: a ♂ row and a ♀ row of ticks in the same tray height. */
+.icon-tray.gendered { display: grid; grid-template-rows: auto auto; align-content: center; gap: 2px; }
+.icon-tray.gendered .g-row { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 1px; }
+.icon-tray.gendered .g-row .badge, .icon-tray.gendered .g-row .star, .icon-tray.gendered .g-row .tick { width: 26px; height: 26px; min-width: 0; padding: 0; flex: none; }
+.icon-tray.gendered .g-row svg { width: 19px; height: 19px; }
+.g-sign { font-size: 0.85rem; font-weight: 700; width: 14px; text-align: center; flex: none; cursor: default; }
+.g-sign.m { color: #3b82f6; }
+.g-sign.f { color: #ec4899; }
+/* Only one gender side collected. */
+.mon.half { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--done) 45%, transparent); }
+/* Gender: the bar shows both genders (solid) over either gender (faint). */
+.bar { position: relative; }
+.bar > i.any { position: absolute; inset: 0 auto 0 0; opacity: 0.35; }
+.bar > i:not(.any) { position: relative; }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPokemon } from "@/lib/data";
-import { allFormsOn, isOn, today } from "@/lib/dexes";
+import { allFormsOn, genderOn, isOn, today, twinsOf } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
 import { buildWishlist, wishlistDefs } from "@/lib/wishlists";
@@ -19,7 +19,10 @@ export default async function WishlistsPage() {
   const ticksBy = byDex(ticks);
   // Your own page always lists everything; "lowest evolution" only applies to the public page.
   // Dexes with All forms on list each missing form.
-  const lists = defs.map((w) => buildWishlist(w, all, ticksBy, today(), lang, false, (k) => allFormsOn(k, profile)));
+  const twins = twinsOf(all);
+  const lists = defs.map((w) => buildWishlist(
+    w, all, ticksBy, today(), lang, false, (k) => allFormsOn(k, profile), (k) => (genderOn(k, profile) ? twins : null),
+  ));
   const publicHref = profile.nickname ? `/user/${encodeURIComponent(profile.nickname)}` : null;
 
   return (

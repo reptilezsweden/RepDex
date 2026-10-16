@@ -13,27 +13,31 @@ export const SHEET_DEXES = [...new Set(["caught", "shiny", "shiny3", ...CAUGHT_L
 const caughtDex = () => dexByKey("caught")!;
 const shinyDex = () => dexByKey("shiny")!;
 
-/** Rows in the spreadsheet: everything that can be ticked in the Caught dex today. */
-export function sheetRows(all: Pokemon[], day: string): Pokemon[] {
+/**
+ * Rows in the spreadsheet: everything that can be ticked in the Caught dex today. With gender
+ * tracked in Caught, each female twin follows its original row.
+ */
+export function sheetRows(all: Pokemon[], day: string, twins: Map<string, Pokemon> | null = null): Pokemon[] {
   const caught = caughtDex();
-  return dexRows(all, caught).filter((p) => collectible(p) && statusOf(p, caught, day) === "available");
+  const rows = dexRows(all, caught).filter((p) => collectible(p) && statusOf(p, caught, day) === "available");
+  return twins ? rows.flatMap((p) => (twins.has(p.id) ? [p, twins.get(p.id)!] : [p])) : rows;
 }
 
 type TickMap = Map<string, Map<string, Tick>>;
 const ticked = (ticks: TickMap, dex: string, id: string) => !!ticks.get(dex)?.get(id)?.collected;
 
 /** The spreadsheet's cells. caught_shiny is left empty where the shiny isn't released yet. */
-export function buildSheet(all: Pokemon[], ticks: TickMap, day: string): Cell[][] {
+export function buildSheet(all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null): Cell[][] {
   const shiny = shinyDex();
   return [
     SHEET_HEADER,
-    ...sheetRows(all, day).map((p) => [
+    ...sheetRows(all, day, twins).map((p) => [
       ticked(ticks, "caught", p.id),
       statusOf(p, shiny, day) === "available" ? ticked(ticks, "shiny", p.id) : null,
       p.id,
       p.form_type,
       p.species,
-      displayName(p),
+      p.gender_of ? `${displayName(p)} ♀` : twins?.has(p.id) ? `${displayName(p)} ♂` : displayName(p),
     ]),
   ];
 }
@@ -64,7 +68,7 @@ function bool(v: Cell): boolean | "bad" {
 }
 
 /** Turns uploaded rows into tick changes, skipping faulty rows. Rows are matched by ID. */
-export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: string): SheetResult {
+export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null): SheetResult {
   const result: SheetResult = { unchanged: 0, updated: 0, faulty: [], changes: new Map() };
   const headerAt = rows.findIndex((r) => r.some((c) => c !== null && String(c).trim() !== ""));
   const header = (rows[headerAt] ?? []).map((c) => String(c ?? "").trim().toLowerCase());
@@ -75,7 +79,7 @@ export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: 
   }
 
   const byId = new Map(all.map((p) => [p.id, p]));
-  const allowed = new Set(sheetRows(all, day).map((p) => p.id));
+  const allowed = new Set(sheetRows(all, day, twins).map((p) => p.id));
   const caught = caughtDex();
   const shiny = shinyDex();
   const seen = new Set<string>();
@@ -96,7 +100,7 @@ export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: 
     const p = byId.get(id);
     if (!p) { fail("unknownId"); continue; }
     if (!allowed.has(id)) {
-      fail(!caught.includes(p) ? "notInCaught" : !collectible(p) ? "battleOnly" : "notReleased");
+      fail(!caught.includes(byId.get(p.gender_of ?? "") ?? p) || (p.gender_of && !twins) ? "notInCaught" : !collectible(p) ? "battleOnly" : "notReleased");
       continue;
     }
     if (seen.has(id)) { fail("duplicate"); continue; }

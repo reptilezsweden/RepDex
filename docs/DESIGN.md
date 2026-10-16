@@ -109,6 +109,16 @@ A second crawler (Edge Function `events`, daily at 04:47 UTC, "Run now" at /admi
 - Raid bosses: the same function reads the current regular and Shadow raid bosses from [Leek Duck's raid page](https://leekduck.com/raid-bosses/) into the event `raid-bosses` (no start or end), at 06:01 and 10:01 Swedish time (pg_cron job `repdex-raids`, body `{"raids": true, "hours": [6, 10]}`) and on every events run. Each boss keeps its level (`event_pokemon.level`: "1", "3", "5", "Mega" …), Shadow and shiny marks (the shiny icon on its card). The events page shows it as the first card under "Happening now", one list with the level in each box. For Missing, raid bosses match like other event Pokémon: a Shadow boss counts for Shadow/Purified as well as the other dexes, shiny dexes only when it can be shiny; forms match their own row. Raid bosses never count for Dynamax or Gigantamax.
 - Planned: a page showing users which Pokémon in current events they are missing.
 
+### Gender
+
+Users can tick male and female separately, per dex group (Settings → Gender ♂ / ♀; shiny dexes follow their dex, XXS follows XXL, Purified follows Shadow). Stored in `profiles.gender_dexes`.
+
+- Every row whose `gender` is `Both` has a female twin `<id>_g2` with `form_type = Gender`, `row_gender = Female` and `gender_of` = the original row. The original (`row_gender = Male`) keeps its ID, so existing ticks count as ♂. Indeedee, Basculegion and Oinkologne already have a row per gender and get no twins.
+- `gender_diff`: `no_change` (same image), `image_change` (a `.g2` image exists: `pm3.g2.icon.png`, `pm3.g2.s.icon.png`) or `dex_form_change` (the three above).
+- Twins evolve from the female twin of the previous Pokémon; female-only evolutions (Froslass, Vespiquen …) come from the female twin too.
+- No dex includes twins by itself. Where gender is on, each card gets a ♀ side made of the twins of its rows: a second row of ticks, counted on its own. Counters then read "[both genders] or [either gender] / total · % or %".
+- A trigger copies every shared field (dates, names, types, candy …) from the original to its twin, so the crawlers and admin edits keep both in step; new two-gender rows get their twin automatically. The crawlers ignore twins.
+
 ## 2. Dexes
 
 The app has 19 dexes, each a filtered view of the availability list. A dex is defined by three settings. Dex names, order and rules are maintained in code only; there is no admin screen for them.

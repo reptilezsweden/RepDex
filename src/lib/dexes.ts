@@ -33,6 +33,12 @@ export interface Pokemon {
   alt_name_ja?: string | null;
   /** Genders it comes in (migration 0025). */
   gender?: Gender | null;
+  /** Which gender this row is (migration 0026): Male for the original of a two-gender row, Female for its twin. */
+  row_gender?: "Male" | "Female" | null;
+  /** How the genders differ: no_change, image_change or dex_form_change. */
+  gender_diff?: "no_change" | "image_change" | "dex_form_change" | null;
+  /** On female twins (<id>_g2, form type Gender): the original row. */
+  gender_of?: string | null;
   type1: string | null;
   type2: string | null;
   released: string | null;
@@ -74,8 +80,11 @@ export interface Dex {
   groupName?: { en: string; sv: string; ja: string };
 }
 
-const caught = (p: Pokemon) => p.dex_caught;
-const formType = (...types: FormType[]) => (p: Pokemon) => types.includes(p.form_type);
+/** Female twin of a two-gender row: only shown where the user tracks gender (see genderOn, twinsOf). */
+export const isTwin = (p: Pokemon) => !!p.gender_of;
+// No dex includes twins by itself; a dex with gender on shows them next to their original.
+const caught = (p: Pokemon) => !isTwin(p) && p.dex_caught;
+const formType = (...types: FormType[]) => (p: Pokemon) => !isTwin(p) && types.includes(p.form_type);
 const dynamaxForms = formType("Regular", "Regional", "Gender", "Form");
 
 export const DEXES: Dex[] = [
@@ -83,7 +92,7 @@ export const DEXES: Dex[] = [
   // Shiny has a page of its own, with Shiny ⭐⭐⭐ as its triple star; both follow Caught.
   { key: "shiny", name: { en: "Shiny", sv: "Shiny", ja: "色違い" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shiny3Key: "shiny3" },
   { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐", ja: "色違い ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "shiny", notInGame: true },
-  { key: "lucky", name: { en: "Lucky", sv: "Lucky", ja: "キラ" }, includes: (p) => p.dex_lucky && p.dex_caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "lucky", name: { en: "Lucky", sv: "Lucky", ja: "キラ" }, includes: (p) => !isTwin(p) && p.dex_lucky && p.dex_caught, dateField: "released", defaultOn: true, shiny: false },
   { key: "xxl", name: { en: "XXL", sv: "XXL", ja: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS", ja: "XXL/XXS" } },
   { key: "xxs", name: { en: "XXS", sv: "XXS", ja: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
   { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax", ja: "キョダイマックス" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
@@ -133,6 +142,37 @@ export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | 
   // Before migration 0007 there was one switch for every dex.
   if (!profile.all_forms_dexes) return !!profile.all_forms;
   return profile.all_forms_dexes.includes(key);
+}
+
+/**
+ * The settings group a dex's gender choice belongs to (its first key): shiny dexes follow their
+ * regular dex (Shiny and Shiny ⭐⭐⭐ follow Caught), XXS follows XXL, Purified follows Shadow.
+ */
+export function genderGroup(key: string): string {
+  let d = dexByKey(key);
+  if (key === "shiny" || key === "shiny3") return "caught";
+  if (d?.shinyOf) d = dexByKey(d.shinyOf);
+  if (d?.mergedInto) d = dexByKey(d.mergedInto);
+  return d?.key ?? key;
+}
+
+/** Whether the user tracks male and female separately in a dex. */
+export function genderOn(key: string, profile: { gender_dexes?: string[] | null } | null | undefined): boolean {
+  return !!profile?.gender_dexes?.includes(genderGroup(key));
+}
+
+/** Female twins by their original row's ID. */
+export function twinsOf(all: Pokemon[]): Map<string, Pokemon> {
+  const out = new Map<string, Pokemon>();
+  for (const p of all) if (p.gender_of) out.set(p.gender_of, p);
+  return out;
+}
+
+/** "120 or 150 / 300 · 40% or 50%" when gender is tracked (both genders / either gender), else "120 / 300". */
+export function countText(all: number, any: number, total: number, gendered: boolean, or: string): string {
+  if (!gendered) return `${all} / ${total}`;
+  const pct = (n: number) => (total ? Math.floor((n / total) * 100) : 0);
+  return `${all} ${or} ${any} / ${total} · ${pct(all)}% ${or} ${pct(any)}%`;
 }
 
 /** Dexes without the wanted (puzzle piece) feature. */
@@ -209,17 +249,23 @@ export interface Tick { pokemon_id: string; dex: string; collected: boolean; wan
 /** Battle-only forms are shown for completeness but can't be ticked or counted. */
 export const collectible = (p: Pokemon) => p.form_type !== "Battle-Only Form";
 
-export function progress(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, day: string) {
+export function progress(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, day: string, twins?: Map<string, Pokemon> | null) {
   let total = 0;
   let done = 0;
+  /** With gender tracked: entries where either gender is collected (done = both genders). */
+  let any = 0;
   for (const e of entries) {
     if (e.status !== "available") continue;
     const rows = e.rows.filter((r) => collectible(r) && statusOf(r, dex, day) === "available");
     if (rows.length === 0) continue;
     total++;
-    if (rows.some((r) => ticks.get(r.id)?.collected)) done++;
+    const male = rows.some((r) => ticks.get(r.id)?.collected);
+    const females = twins ? rows.map((r) => twins.get(r.id)).filter((x): x is Pokemon => !!x) : [];
+    const female = females.some((r) => ticks.get(r.id)?.collected);
+    if (male && (females.length === 0 || female)) done++;
+    if (male || female) any++;
   }
-  return { done, total };
+  return { done, total, any };
 }
 
 /** Missing list: available entries not collected, plus collected entries marked wanted. */
@@ -231,6 +277,17 @@ export function missing(entries: Entry[], dex: Dex, ticks: Map<string, Tick>, da
     const wanted = canWant(dex.key) && avail.some((r) => ticks.get(r.id)?.wanted);
     return !collected || wanted;
   });
+}
+
+/** The female side of entries: each entry's rows swapped for their twins (entries without twins left out). */
+export function femaleEntries(entries: Entry[], twins: Map<string, Pokemon>): Entry[] {
+  const out: Entry[] = [];
+  for (const e of entries) {
+    const rows = e.rows.map((r) => twins.get(r.id)).filter((x): x is Pokemon => !!x);
+    if (rows.length === 0) continue;
+    out.push({ pokemon: twins.get(e.pokemon.id) ?? rows[0], rows, status: e.status });
+  }
+  return out;
 }
 
 export const DATE_FIELDS: DateField[] = [
@@ -270,6 +327,7 @@ export function recentReleases(all: Pokemon[], day: string, days = 14): Upcoming
 function releasesWhere(all: Pokemon[], keep: (date: string) => boolean): Upcoming[] {
   const byDate = new Map<string, Upcoming["items"]>();
   for (const p of all) {
+    if (isTwin(p)) continue; // Released along with their original.
     for (const f of DATE_FIELDS) {
       const d = p[f];
       if (!d || !keep(d)) continue;

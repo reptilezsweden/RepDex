@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ALWAYS_ON, SETTING_GROUPS, SHINY_KEYS, allFormsOn, dexByKey, isOn } from "@/lib/dexes";
+import { ALWAYS_ON, SETTING_GROUPS, SHINY_KEYS, allFormsOn, dexByKey, genderOn, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "../auth-actions";
 import { CollectionForm } from "./collection-form";
@@ -27,6 +27,7 @@ export default async function SettingsPage() {
           .map((g) => ({ value: g.keys.join(","), name: g.name[lang], on: allFormsOn(g.keys[0], profile) }))}
         shiny={SHINY_KEYS.some((k) => isOn(k, profile.visible_dexes))}
         shiny3={isOn("shiny3", profile.visible_dexes)}
+        genders={SETTING_GROUPS.map((g) => ({ value: g.keys[0], name: g.name[lang], on: genderOn(g.keys[0], profile) }))}
         dexes={SETTING_GROUPS.map((g) => ({
           key: g.keys.join(","), name: g.name[lang], on: isOn(g.keys[0], profile.visible_dexes),
           locked: g.keys.includes(ALWAYS_ON), notInGame: !!dexByKey(g.keys[0])!.notInGame,

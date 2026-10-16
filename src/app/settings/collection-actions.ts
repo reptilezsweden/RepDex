@@ -2,7 +2,8 @@
 
 import { applySheet, SHEET_DEXES, type Faulty } from "@/lib/collection-sheet";
 import { getPokemon } from "@/lib/data";
-import { today } from "@/lib/dexes";
+import { genderOn, today, twinsOf } from "@/lib/dexes";
+import { getProfile } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { byDex, getTicks } from "@/lib/ticks";
 import { readCsv, readXlsx, type Cell } from "@/lib/xlsx";
@@ -37,7 +38,8 @@ export async function uploadCollection(_: UploadState, form: FormData): Promise<
   }
 
   const [all, ticks] = await Promise.all([getPokemon(), getTicks(SHEET_DEXES)]);
-  const result = applySheet(rows, all, byDex(ticks), today());
+  const profile = await getProfile();
+  const result = applySheet(rows, all, byDex(ticks), today(), genderOn("caught", profile) ? twinsOf(all) : null);
   if (result.error) return { error: `sheetErrors.${result.error}` };
 
   const userId = auth.user.id;

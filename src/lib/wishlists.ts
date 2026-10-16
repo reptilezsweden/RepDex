@@ -1,6 +1,6 @@
 // Wishlists: what the user is missing in a few dexes, with a Pokémon GO search phrase that a
 // trading partner can paste to find matching Pokémon in their own storage.
-import { collectible, dexByKey, dexEntries, displayName, missing, speciesName, type Pokemon, type Tick } from "./dexes";
+import { collectible, dexByKey, dexEntries, displayName, femaleEntries, missing, speciesName, type Pokemon, type Tick } from "./dexes";
 import type { Lang } from "./i18n";
 
 export interface WishlistDef {
@@ -46,7 +46,7 @@ export function wishlistDefs(shiny3: boolean): WishlistDef[] {
       : w);
 }
 
-export interface WishItem { id: string; no: number; name: string; image: string | null }
+export interface WishItem { id: string; no: number; name: string; image: string | null; gender?: "♂" | "♀" }
 /** search: the phrase for an English game; searchJa: the same for a Japanese game. */
 export interface Wishlist { key: string; name: string; search: string; searchJa: string; items: WishItem[] }
 
@@ -72,27 +72,41 @@ export function buildWishlist(
   lowestOnly = false,
   /** Dexes with All forms on: each missing form is listed instead of each species. */
   allFormsFor: (dexKey: string) => boolean = () => false,
+  /** Dexes with gender tracked: female twins by original ID (each gender is listed when missing), else null. */
+  twinsFor: (dexKey: string) => Map<string, Pokemon> | null = () => null,
 ): Wishlist {
   const items = new Map<string, WishItem>();
-  // Evolution family and stage of each item, for "lowest evolution" below.
-  const evo = new Map<string, { family: number; stage: number }>();
+  // Evolution family (per gender) and stage of each item, for "lowest evolution" below.
+  const evo = new Map<string, { family: string; stage: number }>();
   for (const key of def.dexes) {
     const dex = dexByKey(key)!;
     const perForm = !!dex.everyRow || allFormsFor(key);
-    for (const e of missing(dexEntries(all, dex, perForm, day), dex, ticks.get(key) ?? new Map(), day)) {
+    const twins = twinsFor(key);
+    const entries = dexEntries(all, dex, perForm, day);
+    const dt = ticks.get(key) ?? new Map();
+    // With gender tracked, the ♂ side (the original rows) and the ♀ side (their twins) are listed on their own.
+    const sides: { list: typeof entries; gender?: "♂" | "♀" }[] = twins
+      ? [{ list: entries, gender: "♂" }, { list: femaleEntries(entries, twins), gender: "♀" }]
+      : [{ list: entries }];
+    for (const side of sides)
+    for (const e of missing(side.list, dex, dt, day)) {
       const p = e.rows.find((r) => collectible(r) && (!def.tradeableOnly || r.dex_lucky));
       if (!p) continue;
       // Keyed by row, so Caught (per form) and Lucky (per species) don't list the same Pokémon twice.
       const id = p.id;
       if (items.has(id)) continue;
+      // Only Pokémon that come in both genders get a ♂/♀ mark.
+      const gender = side.gender === "♀" || (side.gender === "♂" && twins?.has(p.id)) ? side.gender : undefined;
       items.set(id, {
         id,
         no: p.species,
         name: perForm ? displayName(p, lang) : speciesName(e.pokemon, lang),
         image: (def.shiny ? p.image_shiny : null) ?? p.image_regular,
+        ...(gender ? { gender } : {}),
       });
-      if (def.evolves && p.family != null && (p.form_type === "Regular" || p.form_type === "Form")) {
-        evo.set(id, { family: p.family, stage: p.stage ?? 9 });
+      const evolving = p.form_type === "Regular" || p.form_type === "Form" || (p.form_type === "Gender" && !!p.gender_of);
+      if (def.evolves && p.family != null && evolving) {
+        evo.set(id, { family: `${p.family}${gender === "♀" ? "f" : ""}`, stage: p.stage ?? 9 });
       }
     }
   }
@@ -101,11 +115,11 @@ export function buildWishlist(
   // shiny, size, Dynamax…). Missing only Venusaur still shows Venusaur; missing Ivysaur and
   // Venusaur shows just Ivysaur; split evolutions at the same stage (Flapple, Appletun) all stay.
   if (lowestOnly && def.evolves) {
-    const minStage = new Map<number, number>();
+    const minStage = new Map<string, number>();
     for (const x of evo.values()) minStage.set(x.family, Math.min(minStage.get(x.family) ?? Infinity, x.stage));
     for (const [id, x] of evo) if (x.stage > minStage.get(x.family)!) items.delete(id);
   }
-  const list = [...items.values()].sort((a, b) => a.no - b.no || a.name.localeCompare(b.name));
+  const list = [...items.values()].sort((a, b) => a.no - b.no || a.name.localeCompare(b.name) || (a.gender ?? "").localeCompare(b.gender ?? ""));
   return {
     key: def.key,
     name: def.name[lang],

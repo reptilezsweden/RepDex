@@ -18,6 +18,9 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   const chosen = new Set(form.getAll("dex").flatMap((v) => String(v).split(",")));
   const allFormsChosen = new Set(form.getAll("all_forms_dex").flatMap((v) => String(v).split(",")));
   const allFormsDexes = SETTING_GROUPS.flatMap((g) => g.keys).filter((k) => allFormsChosen.has(k));
+  // Gender: one entry per settings group (its first dex key); shiny dexes and XXS/Purified follow it.
+  const genderChosen = new Set(form.getAll("gender_dex").map(String));
+  const genderDexes = SETTING_GROUPS.map((g) => g.keys[0]).filter((k) => genderChosen.has(k));
   // Caught is always on; "Show shiny" switches every shiny star except Shiny ⭐⭐⭐, which has its own choice.
   const visible = [
     ...BASE_DEXES.filter((d) => d.key === ALWAYS_ON || chosen.has(d.key)).map((d) => d.key),
@@ -31,6 +34,7 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
       all_forms: allFormsDexes.length > 0,
       all_forms_dexes: allFormsDexes,
       visible_dexes: visible,
+      gender_dexes: genderDexes,
     })
     .eq("id", auth.user.id);
   if (error) {

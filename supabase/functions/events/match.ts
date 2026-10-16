@@ -16,7 +16,9 @@ const norm = (s: string) =>
 
 const REGIONAL: Record<string, string> = { alolan: "ALOLA", galarian: "GALARIAN", hisuian: "HISUIAN", paldean: "PALDEA" };
 
-export function makeMatcher(rows: Row[]) {
+export function makeMatcher(allRows: (Row & { gender_of?: string | null })[]) {
+  // Female twins (<id>_g2) share their original's image and names; events match the original.
+  const rows = allRows.filter((r) => !r.gender_of);
   const byImage = new Map(rows.filter((r) => r.image_regular).map((r) => [r.image_regular!, r]));
   const byId = new Map(rows.map((r) => [r.id, r]));
   const bySpecies = new Map<number, Row[]>();

@@ -1,7 +1,7 @@
 import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { getPokemon } from "@/lib/data";
 import { columnIcon, columnOrder } from "@/lib/dex-columns";
-import { collectible, dexRows, isOn, statusOf, today } from "@/lib/dexes";
+import { collectible, dexRows, genderOn, isOn, statusOf, today, twinsOf } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { byDex, getTicks } from "@/lib/ticks";
@@ -58,11 +58,21 @@ export default async function EventsPage() {
     const shadowDex = (key: string) => /^(shadow|purified)/.test(key);
     // Raid bosses aren't Max battles: they never count for Dynamax or Gigantamax.
     const maxDex = (key: string) => /^(dynamax|gigantamax)/.test(key);
+    // Gender tracked for a dex: missing when either gender is; "shadow:♀" means only that gender is missing.
+    const twins = twinsOf(all);
     missingIn = (rowId, shiny, shadow, raid = false) =>
       members
-        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow) && !(raid && maxDex(d.key))
-          && !ticksBy.get(d.key)?.get(rowId)?.collected)
-        .map(({ d }) => d.key);
+        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow) && !(raid && maxDex(d.key)))
+        .flatMap(({ d }) => {
+          const has = (id: string) => !!ticksBy.get(d.key)?.get(id)?.collected;
+          const twin = genderOn(d.key, profile) ? twins.get(rowId) : undefined;
+          const male = !has(rowId);
+          const female = !!twin && !has(twin.id);
+          if (male && female) return [d.key];
+          if (male) return [twin ? `${d.key}:♂` : d.key];
+          if (female) return [`${d.key}:♀`];
+          return [];
+        });
     user = {
       id: profile.id,
       dexes: dexes.map((d) => ({ key: d.key, name: d.name[lang], icon: columnIcon(d) })),
