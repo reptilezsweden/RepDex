@@ -95,7 +95,7 @@ const Dna = () => (
         <stop offset="0.8" stopColor="#3e8bff" /><stop offset="1" stopColor="#9b5cff" />
       </linearGradient>
     </defs>
-    <g transform="translate(12 12) rotate(28) scale(1.05) translate(-12 -12)">
+    <g transform="translate(12 12) rotate(-28) scale(1.05) translate(-12 -12)">
       <path className="rung" d="M8.2 4.2H15.8M7.4 12H16.6M8.2 19.8H15.8" />
       <path className="strand" d="M7 1.5C7 6 17 7.5 17 12S7 18 7 22.5" />
       <path className="strand" d="M17 1.5C17 6 7 7.5 7 12S17 18 17 22.5" />
@@ -160,7 +160,7 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
     );
   }
   if (kind === "mega") {
-    // A rainbow DNA strand: two twisting strands joined by rungs.
+    // A rainbow DNA strand: two twisting strands joined by rungs, leaning left (clear of the shiny star).
     return (
       <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dna">
         <Dna />
