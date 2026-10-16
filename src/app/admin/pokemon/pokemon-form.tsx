@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { MonImage } from "@/components/mon-ui";
 import type { FieldDef } from "@/lib/admin";
+import { GENDERS } from "@/lib/dexes";
 import { savePokemon, type AdminState } from "../actions";
 
 const NO_SHADOW_DYNAMAX = ["Mega", "Gigantamax", "Battle-Only Form"];
@@ -58,6 +59,11 @@ export function PokemonForm({
                     {f.type === "formType" ? (
                       <select id={`f-${f.name}`} name={f.name} value={formType} onChange={(e) => setFormType(e.target.value)}>
                         {formTypes.map((x) => <option key={x}>{x}</option>)}
+                      </select>
+                    ) : f.type === "gender" ? (
+                      <select id={`f-${f.name}`} name={f.name} defaultValue={val(f.name)}>
+                        <option value="">Not set</option>
+                        {GENDERS.map((x) => <option key={x} value={x}>{x === "None" ? "None (genderless)" : x}</option>)}
                       </select>
                     ) : f.name === "gen_nr" ? (
                       <select id={`f-${f.name}`} name={f.name} defaultValue={val(f.name)}>

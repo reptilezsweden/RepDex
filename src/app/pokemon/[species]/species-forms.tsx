@@ -31,7 +31,11 @@ export interface FormCard {
   dexName: string | null;
   tickable: boolean;
   badges: Badge[];
+  gender: string | null;
 }
+
+/** Gender as shown on a form card: symbols, then the word. */
+const GENDER_SYMBOL: Record<string, string> = { Both: "♂️♀️", Male: "♂️", Female: "♀️", None: "⬜" };
 
 /** Link to the previous or next species. */
 export interface SpeciesLink { no: number; name: string; image: string | null; href: string }
@@ -196,6 +200,11 @@ export function SpeciesForms({
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>
                     <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
+                    {f.gender && (
+                      <span className="tag gender" title={t.gender}>
+                        <span aria-hidden="true">{GENDER_SYMBOL[f.gender]}</span>{t.genders[f.gender] ?? f.gender}
+                      </span>
+                    )}
                     {f.status === "upcoming" && <span className="tag up">{f.date}</span>}
                     {f.tickable && (
                       <div className="icon-tray">

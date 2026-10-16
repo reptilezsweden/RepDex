@@ -6,7 +6,7 @@ import { SUPABASE_KEY, SUPABASE_URL } from "./supabase/env";
 const COLUMNS =
   "id,sort_order,dex_caught,dex_lucky,gen_nr,form_type,image_regular,image_shiny,species,family,stage,name,alt_name,type1,type2," +
   "released,release_shiny,release_shadow,release_shadow_shiny,release_dynamax,release_dynamax_shiny," +
-  "evolves_from,evolve_candy,evolution_requirement,name_ja,alt_name_ja";
+  "evolves_from,evolve_candy,evolution_requirement,name_ja,alt_name_ja,gender";
 
 const PAGE = 1000; // Supabase returns at most 1,000 rows per request.
 
@@ -27,7 +27,7 @@ export const getPokemon = unstable_cache(
     }
     return all.map((p) => ({ ...p, gen_nr: Number(p.gen_nr) }));
   },
-  ["pokemon-list-ja"],
+  ["pokemon-list-gender"],
   { revalidate: 60, tags: ["pokemon"] },
 );
 

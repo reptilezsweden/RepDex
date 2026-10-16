@@ -90,6 +90,7 @@ export default async function SpeciesPage({
     return {
       id: p.id,
       name: displayName(p, lang),
+      gender: p.gender ?? null,
       formType: p.form_type,
       regular: p.image_regular,
       shiny: p.image_shiny,
@@ -153,8 +154,6 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
     .filter((p) => p.evolves_from && ownIds.has(p.evolves_from) && p.species !== no && !NO_EVOLUTION.includes(p.form_type))
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((p) => ({ from: byId.get(p.evolves_from!)!, to: p }));
-  if (from.length === 0 && into.length === 0) return null;
-
   // Name the form on this page only when more than one of its forms is involved.
   const manyOwn = (list: { from: Pokemon; to: Pokemon }[], side: "from" | "to") => new Set(list.map((e) => e[side].id)).size > 1;
   const cost = (p: Pokemon) => [
@@ -179,18 +178,19 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
   const ownInto = manyOwn(into, "from");
   return (
     <section className="evolution">
-      {from.length > 0 && (
-        <div>
-          <h2>{t.evolvesFrom}</h2>
-          <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to, lang) : null))}</ul>
-        </div>
-      )}
-      {into.length > 0 && (
-        <div>
-          <h2>{t.evolvesInto}</h2>
-          <ul>{into.map((e) => line(e.to, e.to, ownInto ? t.evolvesFromForm.replace("{name}", displayName(e.from, lang)) : null))}</ul>
-        </div>
-      )}
+      {/* Both boxes always show; an empty one says so. */}
+      <div>
+        <h2>{t.evolvesFrom}</h2>
+        {from.length > 0
+          ? <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to, lang) : null))}</ul>
+          : <p className="evo-none">{t.evolvesFromNone}</p>}
+      </div>
+      <div>
+        <h2>{t.evolvesInto}</h2>
+        {into.length > 0
+          ? <ul>{into.map((e) => line(e.to, e.to, ownInto ? t.evolvesFromForm.replace("{name}", displayName(e.from, lang)) : null))}</ul>
+          : <p className="evo-none">{t.evolvesIntoNone}</p>}
+      </div>
     </section>
   );
 }

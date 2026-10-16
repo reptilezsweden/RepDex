@@ -1,6 +1,10 @@
 // Dex definitions and selection rules. Names, order and rules live here only (docs/DESIGN.md §2).
 import type { Lang } from "./i18n";
 
+export type Gender = "Both" | "Male" | "Female" | "None";
+/** Values of pokemon.gender. */
+export const GENDERS: string[] = ["Both", "Male", "Female", "None"];
+
 export type FormType =
   | "Regular" | "Costume" | "Form" | "Mega" | "Regional"
   | "Gigantamax" | "Battle-Only Form" | "Gender";
@@ -27,6 +31,8 @@ export interface Pokemon {
   /** Japanese species name (フシギダネ) and full Japanese name of a form (ロコン（アローラのすがた）); see migration 0023. */
   name_ja?: string | null;
   alt_name_ja?: string | null;
+  /** Genders it comes in (migration 0025). */
+  gender?: Gender | null;
   type1: string | null;
   type2: string | null;
   released: string | null;

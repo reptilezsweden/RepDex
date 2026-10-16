@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProfile } from "./session";
 import { createClient } from "./supabase/server";
+import { GENDERS } from "./dexes";
 
 /** Stops non-admins: admin pages simply don't exist for them. Database rules enforce the same. */
 export async function requireAdmin() {
@@ -9,7 +10,7 @@ export async function requireAdmin() {
   return profile;
 }
 
-export type FieldType = "text" | "int" | "number" | "bool" | "date" | "formType";
+export type FieldType = "text" | "int" | "number" | "bool" | "date" | "formType" | "gender";
 
 export interface FieldDef {
   name: string;
@@ -27,6 +28,9 @@ export const POKEMON_FIELDS: FieldDef[] = [
   { name: "species", label: "Species no.", type: "int", group: "Identity", required: true },
   { name: "name", label: "Name", type: "text", group: "Identity", required: true },
   { name: "alt_name", label: "Alt name (display name for forms)", type: "text", group: "Identity" },
+  { name: "name_ja", label: "Name in Japanese (species)", type: "text", group: "Identity" },
+  { name: "alt_name_ja", label: "Alt name in Japanese (with form)", type: "text", group: "Identity" },
+  { name: "gender", label: "Gender", type: "gender", group: "Identity" },
   { name: "gen_nr", label: "Generation", type: "number", group: "Identity", required: true },
   { name: "sort_order", label: "Sort order", type: "int", group: "Identity", required: true },
   { name: "dex_caught", label: "In Caught dex", type: "bool", group: "Dex membership" },
@@ -73,6 +77,9 @@ export function rowFromForm(form: FormData): { row: Record<string, unknown>; err
       const n = Number(raw);
       if (!Number.isFinite(n) || (f.type === "int" && !Number.isInteger(n))) return { row, error: `${f.label} must be a number` };
       row[f.name] = n;
+    } else if (f.type === "gender") {
+      if (!GENDERS.includes(raw)) return { row, error: `${f.label} must be Both, Male, Female or None` };
+      row[f.name] = raw;
     } else if (f.type === "date") {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return { row, error: `${f.label} must be a date (YYYY-MM-DD)` };
       row[f.name] = raw;

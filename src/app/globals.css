@@ -204,6 +204,8 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .mon.upcoming { border-color: var(--upcoming); }
 .mon .tag { font-size: 0.7rem; color: var(--muted); }
 .mon .tag.form { margin-top: 1px; }
+.mon .tag.gender { display: inline-flex; gap: 3px; align-items: center; }
+.evolution .evo-none { margin: 0; padding: 14px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 0.9rem; }
 .mon .tag.show-only { font-style: italic; }
 .mon.upcoming .tag.up, .mon.upcoming .mon-link .tag { color: var(--upcoming); }
 
