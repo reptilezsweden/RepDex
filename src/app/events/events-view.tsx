@@ -59,7 +59,8 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
         image: shown?.image_regular ?? null,
         species: shown?.species ?? null,
         shiny: m.shiny,
-        level: raid ? m.level ?? null : null,
+        // Shown in the box: "5★", or the level's own name ("Mega") in the site language.
+        level: raid && m.level ? (/^\d+$/.test(m.level) ? `${m.level}★` : t.formTypes[m.level] ?? m.level) : null,
         shadow: raid && !!m.shadow,
         missingIn: row && missingIn ? missingIn(row.id, m.shiny, !!m.shadow, raid) : null,
       }]);

@@ -13,7 +13,7 @@ export interface EventItem {
   image: string | null;
   species: number | null;
   shiny: boolean;
-  /** Raid level ("1", "3", "5", "Mega" …), for raid bosses only. */
+  /** Raid level as shown ("5★", "Mega"/"メガ" …), for raid bosses only. */
   level?: string | null;
   /** A Shadow raid boss. */
   shadow?: boolean;
@@ -110,7 +110,7 @@ export function EventsClient({ events, serverNow, labels, user }: {
                   {it.name}
                   {(it.level || it.shadow) && (
                     <span className="raid-tags">
-                      {it.level && <span className="raid-level">{/^\d+$/.test(it.level) ? `${it.level}★` : it.level}</span>}
+                      {it.level && <span className="raid-level">{it.level}</span>}
                       {it.shadow && <span className="raid-shadow">{labels.shadow}</span>}
                     </span>
                   )}
