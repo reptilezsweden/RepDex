@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { ALWAYS_ON, BASE_DEXES, SETTING_GROUPS, SHINY_KEYS } from "@/lib/dexes";
+import { ALWAYS_ON, BASE_DEXES, GENDER_GROUPS, SETTING_GROUPS, SHINY_KEYS } from "@/lib/dexes";
 import { LANG_COOKIE, asLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,9 +18,9 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   const chosen = new Set(form.getAll("dex").flatMap((v) => String(v).split(",")));
   const allFormsChosen = new Set(form.getAll("all_forms_dex").flatMap((v) => String(v).split(",")));
   const allFormsDexes = SETTING_GROUPS.flatMap((g) => g.keys).filter((k) => allFormsChosen.has(k));
-  // Gender: one entry per settings group (its first dex key); shiny dexes and XXS/Purified follow it.
+  // Gender: one entry per gender group (its first dex key); see genderGroup for who follows whom.
   const genderChosen = new Set(form.getAll("gender_dex").map(String));
-  const genderDexes = SETTING_GROUPS.map((g) => g.keys[0]).filter((k) => genderChosen.has(k));
+  const genderDexes = GENDER_GROUPS.map((g) => g.keys[0]).filter((k) => genderChosen.has(k));
   // Caught is always on; "Show shiny" switches every shiny star except Shiny ⭐⭐⭐, which has its own choice.
   const visible = [
     ...BASE_DEXES.filter((d) => d.key === ALWAYS_ON || chosen.has(d.key)).map((d) => d.key),

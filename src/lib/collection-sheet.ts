@@ -26,14 +26,17 @@ export function sheetRows(all: Pokemon[], day: string, twins: Map<string, Pokemo
 type TickMap = Map<string, Map<string, Tick>>;
 const ticked = (ticks: TickMap, dex: string, id: string) => !!ticks.get(dex)?.get(id)?.collected;
 
-/** The spreadsheet's cells. caught_shiny is left empty where the shiny isn't released yet. */
-export function buildSheet(all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null): Cell[][] {
+/**
+ * The spreadsheet's cells. caught_shiny is left empty where the shiny isn't released yet, and on
+ * ♀ rows when Shiny doesn't track gender (femaleShiny false).
+ */
+export function buildSheet(all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null, femaleShiny = true): Cell[][] {
   const shiny = shinyDex();
   return [
     SHEET_HEADER,
     ...sheetRows(all, day, twins).map((p) => [
       ticked(ticks, "caught", p.id),
-      statusOf(p, shiny, day) === "available" ? ticked(ticks, "shiny", p.id) : null,
+      statusOf(p, shiny, day) === "available" && (!p.gender_of || femaleShiny) ? ticked(ticks, "shiny", p.id) : null,
       p.id,
       p.form_type,
       p.species,
@@ -68,7 +71,7 @@ function bool(v: Cell): boolean | "bad" {
 }
 
 /** Turns uploaded rows into tick changes, skipping faulty rows. Rows are matched by ID. */
-export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null): SheetResult {
+export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: string, twins: Map<string, Pokemon> | null = null, femaleShiny = true): SheetResult {
   const result: SheetResult = { unchanged: 0, updated: 0, faulty: [], changes: new Map() };
   const headerAt = rows.findIndex((r) => r.some((c) => c !== null && String(c).trim() !== ""));
   const header = (rows[headerAt] ?? []).map((c) => String(c ?? "").trim().toLowerCase());
@@ -110,7 +113,8 @@ export function applySheet(rows: Cell[][], all: Pokemon[], ticks: TickMap, day: 
     if (wantCaught === "bad") { fail("badCaught"); continue; }
     const shinyReleased = statusOf(p, shiny, day) === "available";
     let wantShiny: boolean | "bad" | undefined;
-    if (cShiny >= 0) {
+    // A ♀ row's shiny cell is ignored when Shiny doesn't track gender.
+    if (cShiny >= 0 && (!p.gender_of || femaleShiny)) {
       wantShiny = bool(r[cShiny] ?? null);
       if (wantShiny === "bad") { fail("badShiny"); continue; }
       if (wantShiny && !shinyReleased) { fail("shinyNotReleased"); continue; }

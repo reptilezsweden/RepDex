@@ -69,9 +69,12 @@ export default async function DexPage({
     familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}|${p.name_ja ?? ""}|${p.alt_name_ja ?? ""}`.toLowerCase();
   }
 
-  // Gender on: each card also gets a ♀ side, made of the female twins of its rows.
+  // Gender on: each card also gets a ♀ side, made of the female twins of its rows. Each tick on the
+  // page follows its own gender switch (Shiny has its own; XXS follows XXL…), so the ♀ side may hold
+  // only some of the ticks, e.g. just the shiny stars.
   const gendered = genderOn(dex.key, profile);
-  const twins = gendered ? twinsOf(all) : null;
+  const genderedDexes = [dex.key, ...slotDexes.map((s) => s.dex.key)].filter((k) => genderOn(k, profile));
+  const twins = genderedDexes.length > 0 ? twinsOf(all) : null;
   const femaleOf = (ids: string[]) => (twins ? ids.map((id) => twins.get(id)?.id).filter((x): x is string => !!x) : []);
   const parentGendered = !!parent && genderOn(parent.key, profile);
 
@@ -103,12 +106,18 @@ export default async function DexPage({
         .filter((s) => s.rows.length > 0),
     };
     const fRows = femaleOf(card.rows);
-    if (fRows.length > 0) {
+    const fSlots = card.slots
+      .filter((sl) => genderedDexes.includes(sl.dex))
+      .map((sl) => ({ ...sl, rows: femaleOf(sl.rows) }))
+      .filter((sl) => sl.rows.length > 0);
+    if (fRows.length > 0 && (gendered || fSlots.length > 0)) {
       card.female = {
         id: twins!.get(card.rows.includes(p.id) ? p.id : card.rows[0])?.id ?? fRows[0],
+        // Kept even when this dex's own tick isn't split: a ♀ shiny still ticks the ♀ row below it.
         rows: fRows,
+        own: gendered,
         parentRows: parentGendered ? femaleOf(card.parentRows) : [],
-        slots: card.slots.map((sl) => ({ ...sl, rows: femaleOf(sl.rows) })).filter((sl) => sl.rows.length > 0),
+        slots: fSlots,
       };
     }
     return card;
@@ -135,7 +144,7 @@ export default async function DexPage({
       childDexes={childDexes}
       canSwitchForms={allFormsOn(dex.key, profile)}
       allForms={allForms}
-      gendered={gendered}
+      genderedDexes={genderedDexes}
       t={t}
     />
   );

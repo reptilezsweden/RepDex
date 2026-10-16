@@ -145,12 +145,22 @@ export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | 
 }
 
 /**
- * The settings group a dex's gender choice belongs to (its first key): shiny dexes follow their
- * regular dex (Shiny and Shiny ⭐⭐⭐ follow Caught), XXS follows XXL, Purified follows Shadow.
+ * Gender switches in the settings: one per settings group, plus Shiny (with Shiny ⭐⭐⭐) on its own
+ * right after Caught. Each is saved in profiles.gender_dexes by its first key.
+ */
+export const GENDER_GROUPS: { keys: string[]; name: { en: string; sv: string; ja: string } }[] = [
+  SETTING_GROUPS[0],
+  { keys: ["shiny", "shiny3"], name: { en: "Shiny / Shiny ⭐⭐⭐", sv: "Shiny / Shiny ⭐⭐⭐", ja: "色違い / 色違い ⭐⭐⭐" } },
+  ...SETTING_GROUPS.slice(1),
+];
+
+/**
+ * The gender switch a dex follows (its group's first key): Shiny and Shiny ⭐⭐⭐ have their own,
+ * other shiny dexes follow their regular dex, XXS follows XXL, Purified follows Shadow.
  */
 export function genderGroup(key: string): string {
   let d = dexByKey(key);
-  if (key === "shiny" || key === "shiny3") return "caught";
+  if (key === "shiny" || key === "shiny3") return "shiny";
   if (d?.shinyOf) d = dexByKey(d.shinyOf);
   if (d?.mergedInto) d = dexByKey(d.mergedInto);
   return d?.key ?? key;

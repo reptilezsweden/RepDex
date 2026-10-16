@@ -44,7 +44,9 @@ export interface Card {
   /** Extra ticks on this card (released ones only), with the rows each can tick. */
   slots: (SlotDef & { rows: string[] })[];
   /** With gender tracked: the ♀ side, made of the female twins of the card's rows (same ticks, own rows). */
-  female?: { id: string; rows: string[]; parentRows: string[]; slots: (SlotDef & { rows: string[] })[] };
+  female?: { id: string; rows: string[]; own: boolean; parentRows: string[]; slots: (SlotDef & { rows: string[] })[] };
+  /** On a ♀ side whose dex doesn't split its own tick by gender: only the slots show. */
+  noOwn?: boolean;
 }
 
 type Slot = Card["slots"][number];
@@ -62,7 +64,7 @@ type Bulk = { action: "check" | "uncheck"; targets: Set<Target> } | null;
 
 export function DexGrid({
   dexKey, title, ownName, notInGame, cards, familyNames, gens, slotDefs, parentDex, childDexes, initialTicks, userId,
-  initialShowUpcoming, initialShowUnreleased, initialShow, initialSearchFamily, canSwitchForms, allForms, gendered = false, t,
+  initialShowUpcoming, initialShowUnreleased, initialShow, initialSearchFamily, canSwitchForms, allForms, genderedDexes = [], t,
 }: {
   dexKey: string;
   title: string;
@@ -88,7 +90,7 @@ export function DexGrid({
   canSwitchForms: boolean;
   allForms: boolean;
   /** Male and female are ticked separately on this page (cards with a female side show two rows). */
-  gendered?: boolean;
+  genderedDexes?: string[];
   t: Dict;
 }) {
   const { get, save, toggle, toggleWanted: toggleStarWanted, error } = useTicks(userId, initialTicks);
@@ -121,15 +123,22 @@ export function DexGrid({
   const slotOn = (sl: Slot) => sl.rows.some((r) => get(sl.dex, r)?.collected);
   const slotWanted = (sl: Slot) => canWant(sl.dex) && sl.rows.some((r) => get(sl.dex, r)?.wanted);
   // A card counts as collected (green) when its own tick or a dex of its own on the card is ticked.
-  const anyCollected = (c: Card) => stateOf(c).collected || c.slots.some((sl) => sl.parent === null && slotOn(sl));
+  const anyCollected = (c: Card) => (!c.noOwn && stateOf(c).collected) || c.slots.some((sl) => sl.parent === null && slotOn(sl));
   const linksCaught = (dex: string) => !!parentDex && CAUGHT_LINKED.includes(dex);
 
   // Gender: a card with a female side is two "sides" (♂ = the card itself, ♀ = its twins). Every
   // tick rule below works on a side, so ticking, wanted marks and Check all work the same for both.
-  const femaleSide = (c: Card): Card => ({ ...c, id: c.female!.id, rows: c.female!.rows, parentRows: c.female!.parentRows, slots: c.female!.slots, female: undefined });
+  // A ♀ side may hold only some ticks (noOwn: this dex's own tick isn't split, only e.g. Shiny is).
+  const femaleSide = (c: Card): Card => ({
+    ...c, id: c.female!.id, rows: c.female!.rows, parentRows: c.female!.parentRows, slots: c.female!.slots,
+    noOwn: !c.female!.own, female: undefined,
+  });
   const sides = (c: Card): Card[] => (c.female ? [c, femaleSide(c)] : [c]);
-  const allSides = (c: Card, on: (sd: Card) => boolean) => sides(c).every(on);
+  /** Sides that carry this dex's own tick. */
+  const ownSides = (c: Card): Card[] => sides(c).filter((sd) => !sd.noOwn);
+  const allSides = (c: Card, on: (sd: Card) => boolean) => ownSides(c).every(on);
   const anySide = (c: Card, on: (sd: Card) => boolean) => sides(c).some(on);
+  const gendered = genderedDexes.includes(dexKey);
   const collectedSide = (sd: Card) => stateOf(sd).collected;
 
   const available = cards.filter((c) => c.status === "available" && c.rows.length > 0);
@@ -153,7 +162,7 @@ export function DexGrid({
         if (c.status !== "available" || c.rows.length === 0) return false;
         return anySide(c, (sd) => {
           const s = stateOf(sd);
-          if (!s.collected || s.wanted) return true;
+          if (!sd.noOwn && (!s.collected || s.wanted)) return true;
           // The extra ticks count too: one not yet ticked, or one marked wanted.
           return sd.slots.some((sl) => !slotOn(sl) || slotWanted(sl));
         });
@@ -179,8 +188,9 @@ export function DexGrid({
     // Each gender side counts on its own: Check all ticks ♂ and ♀.
     const live = visible.filter((c) => c.status === "available").flatMap(sides);
     if (target === "regular") {
+      // A ♀ side without its own tick is only checked through its stars, but Uncheck all clears it too.
       return action === "check"
-        ? live.filter((c) => c.rows.length > 0 && !stateOf(c).collected)
+        ? live.filter((c) => !c.noOwn && c.rows.length > 0 && !stateOf(c).collected)
         : live.filter((c) => c.rows.some(has));
     }
     return live.filter((c) => {
@@ -389,7 +399,7 @@ export function DexGrid({
       <>
         <span className="count star-count">
           {hasPeers && DEX_ICON[dexKey] && <SlotIconView icon={DEX_ICON[dexKey]!} size={16} />}
-          {text(own.filter((c) => allSides(c, collectedSide)).length, own.filter((c) => anySide(c, collectedSide)).length, own.length)}
+          {text(own.filter((c) => allSides(c, collectedSide)).length, own.filter((c) => ownSides(c).some(collectedSide)).length, own.length)}
         </span>
         {slotDefs.map((d) => {
           const withSlot = list.filter((c) => c.status === "available" && slotOf(c, d.dex));
@@ -398,10 +408,12 @@ export function DexGrid({
           return (
             <span key={d.dex} className="count star-count" title={d.label}>
               <SlotIconView icon={d.icon} size={16} />
-              {text(
+              {countText(
                 withSlot.filter((c) => slotSides(c).every(slotOn)).length,
                 withSlot.filter((c) => slotSides(c).some(slotOn)).length,
                 withSlot.length,
+                genderedDexes.includes(d.dex),
+                t.countOr,
               )}
             </span>
           );
@@ -416,11 +428,18 @@ export function DexGrid({
     return (
       <span key={c.id} className={`extras${sign ? " g-row" : ""}`}>
         {sign && <span className={`g-sign ${sign === "♂" ? "m" : "f"}`} title={sign === "♂" ? t.male : t.female}>{sign}</span>}
-        <DexTick
-          dex={dexKey} on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
-          wanted={s.wanted} dim={wantedMode && !s.collected}
-        />
-        {s.collected && !mainOn(c) && (
+        {c.noOwn ? (
+          // Keeps the stars in line with the ♂ row; this dex's own tick isn't split by gender.
+          <span className="tick-gap" aria-hidden="true" style={{ visibility: "hidden" }}>
+            <DexTick dex={dexKey} on={false} label="" onClick={() => {}} wanted={false} dim={false} />
+          </span>
+        ) : (
+          <DexTick
+            dex={dexKey} on={mainOn(c)} label={t.collect} onClick={() => tapCheck(c)}
+            wanted={s.wanted} dim={wantedMode && !s.collected}
+          />
+        )}
+        {!c.noOwn && s.collected && !mainOn(c) && (
           <span className="other-form" title={t.otherFormCollected} aria-label={t.otherFormCollected} role="img">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <circle cx="12" cy="12" r="9.5" />

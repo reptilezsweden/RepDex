@@ -111,7 +111,7 @@ A second crawler (Edge Function `events`, daily at 04:47 UTC, "Run now" at /admi
 
 ### Gender
 
-Users can tick male and female separately, per dex group (Settings → Gender ♂ / ♀; shiny dexes follow their dex, XXS follows XXL, Purified follows Shadow). Stored in `profiles.gender_dexes`.
+Users can tick male and female separately, per dex group (Settings → Gender ♂ / ♀; Shiny and Shiny ⭐⭐⭐ have their own switch, other shiny dexes follow their dex, XXS follows XXL, Purified follows Shadow). Stored in `profiles.gender_dexes`. On a dex page whose own tick isn't split, the ♀ row shows only the split ticks (e.g. Caught off, Shiny on: the ♀ row holds just the stars).
 
 - Every row whose `gender` is `Both` has a female twin `<id>_g2` with `form_type = Gender`, `row_gender = Female` and `gender_of` = the original row. The original (`row_gender = Male`) keeps its ID, so existing ticks count as ♂. Indeedee, Basculegion and Oinkologne already have a row per gender and get no twins.
 - `gender_diff`: `no_change` (same image), `image_change` (a `.g2` image exists: `pm3.g2.icon.png`, `pm3.g2.s.icon.png`) or `dex_form_change` (the three above).

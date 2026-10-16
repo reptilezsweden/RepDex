@@ -39,7 +39,7 @@ export async function uploadCollection(_: UploadState, form: FormData): Promise<
 
   const [all, ticks] = await Promise.all([getPokemon(), getTicks(SHEET_DEXES)]);
   const profile = await getProfile();
-  const result = applySheet(rows, all, byDex(ticks), today(), genderOn("caught", profile) ? twinsOf(all) : null);
+  const result = applySheet(rows, all, byDex(ticks), today(), genderOn("caught", profile) ? twinsOf(all) : null, genderOn("shiny", profile));
   if (result.error) return { error: `sheetErrors.${result.error}` };
 
   const userId = auth.user.id;
