@@ -1,5 +1,5 @@
 import { displayName, type Pokemon } from "@/lib/dexes";
-import type { Dict } from "@/lib/i18n";
+import { LOCALE, type Dict, type Lang } from "@/lib/i18n";
 import { EventsClient, type EventData, type DexChoice } from "./events-client";
 
 export type EventRow = { id: string; name: string; url: string; starts_at: string | null; ends_at: string | null; event_type?: string; last_seen_at?: string | null };
@@ -36,7 +36,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
   const regular = new Map<number, Pokemon>();
   for (const p of all) if (p.form_type === "Regular" && !regular.has(p.species)) regular.set(p.species, p);
 
-  const locale = lang === "sv" ? "sv-SE" : "en-GB";
+  const locale = LOCALE[lang as Lang] ?? "en-GB";
   const date = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
   const dateTime = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
   const d = (s: string | null, withTime = false) => (s ? (withTime ? dateTime : date).format(new Date(`${s}Z`)) : "?");
@@ -55,7 +55,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
       const shown = row ?? (m.species ? regular.get(m.species) : undefined);
       groups.set(m.category, [...(groups.get(m.category) ?? []), {
         key: `${m.category}|${m.name}`,
-        name: row ? displayName(row) : m.name,
+        name: row ? displayName(row, lang as Lang) : m.name,
         image: shown?.image_regular ?? null,
         species: shown?.species ?? null,
         shiny: m.shiny,

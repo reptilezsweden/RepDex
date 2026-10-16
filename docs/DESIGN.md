@@ -183,7 +183,7 @@ In game progress is calculated, not stored: a species counts as collected when a
 
 | Setting | Options | Default |
 | --- | --- | --- |
-| Language | English, Swedish | English |
+| Language | English, Swedish, Japanese | English |
 | Visible dexes | On/off per dex | The Default column in the dex list |
 | All forms dex | On / Off | Off |
 | Dex order | Fixed in code | — |
@@ -225,6 +225,11 @@ Users share missing lists, not their whole collection.
 
 - A missing list exists per dex and holds every released entry the user hasn't collected, plus collected entries ticked as wanted.
 - The user can share a missing list with others, e.g. to find trades, as a read-only link anyone can open and as a text list to paste into chats. The rest of the collection stays private.
+- Search phrases come in English and Japanese, since a trading partner pastes them into their own game. Japanese keywords are from Niantic's Japanese help page on searching: 色違い (shiny), こうかん (traded), xxs, xxl, だいまっくす, きょだいまっくす, とくべつ (event/costume). The phrase's game language is chosen next to it (default: Japanese on the Japanese site, else English) and remembered per browser.
+
+### Japanese
+
+With the site in Japanese, Pokémon show their Japanese names: species and main-series forms from PokeAPI, Mega/Gigantamax/regional forms by rule (メガリザードンX, ロコン（アローラのすがた）), and costumes with the labels Japanese players use (みんポケ's costume Pokédex, e.g. ピカチュウ（魔女帽子）), since the game itself doesn't name costumes. How they were filled, with sources: scripts/japanese_names.sql. Rows added later show English until filled. Event names, evolution requirements and admin pages stay English.
 
 ## 4. Tech stack
 
@@ -235,6 +240,6 @@ Users share missing lists, not their whole collection.
 | Hosting | Vercel | Deploys from the RepDex repo |
 | Crawlers | Supabase Edge Function + pg_cron, daily | Code in supabase/functions/crawler |
 | Images | RepDex Images folder via the jsDelivr CDN | Cached delivery of the 256x256 assets |
-| Languages | English and Swedish translation files | English default |
+| Languages | English, Swedish and Japanese translation files; Japanese Pokémon names in `pokemon.name_ja` / `alt_name_ja` | English default |
 
 Supabase free plan: 500 MB database, 50,000 monthly active users, and the project pauses after a week without activity ([pricing](https://supabase.com/pricing)).

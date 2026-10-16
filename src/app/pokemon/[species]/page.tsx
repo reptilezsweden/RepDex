@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { MonImage } from "@/components/mon-ui";
-import type { Dict } from "@/lib/i18n";
+import type { Dict, Lang } from "@/lib/i18n";
 import { notFound, redirect } from "next/navigation";
 import {
-  BASE_DEXES, collectible, dexByKey, displayName, isOn, shinyToggles, statusOf, today, type Dex, type Pokemon,
+  BASE_DEXES, collectible, dexByKey, displayName, isOn, shinyToggles, speciesName, statusOf, today, type Dex, type Pokemon,
 } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { DEX_ICON } from "@/lib/dex-icons";
@@ -89,7 +89,7 @@ export default async function SpeciesPage({
 
     return {
       id: p.id,
-      name: displayName(p),
+      name: displayName(p, lang),
       formType: p.form_type,
       regular: p.image_regular,
       shiny: p.image_shiny,
@@ -116,12 +116,12 @@ export default async function SpeciesPage({
     if (n === undefined) return null;
     const list = all.filter((p) => p.species === n).sort((a, b) => a.sort_order - b.sort_order);
     const rep = list.find((p) => p.form_type === "Regular") ?? list[0];
-    return { no: n, name: rep.name, image: rep.image_regular, href: `/pokemon/${n}${dexParam ? `?dex=${encodeURIComponent(dexParam)}` : ""}` };
+    return { no: n, name: speciesName(rep, lang), image: rep.image_regular, href: `/pokemon/${n}${dexParam ? `?dex=${encodeURIComponent(dexParam)}` : ""}` };
   };
 
   return (
     <SpeciesForms
-      title={rows.find((r) => r.form_type === "Regular")?.name ?? rows[0].name}
+      title={speciesName(rows.find((r) => r.form_type === "Regular") ?? rows[0], lang)}
       no={no}
       dexName={dex.name[lang]}
       backHref={dexParam === "full" ? "/full" : dexParam ? `/dex/${dex.key}` : "/"}
@@ -131,8 +131,9 @@ export default async function SpeciesPage({
       initialTicks={ticks}
       userId={profile.id}
       isAdmin={profile.role === "admin"}
-      evolution={<Evolution rows={rows} all={all} no={no} t={t} />}
+      evolution={<Evolution rows={rows} all={all} no={no} t={t} lang={lang} />}
       t={t}
+      lang={lang}
     />
   );
 }
@@ -141,7 +142,7 @@ export default async function SpeciesPage({
 const NO_EVOLUTION = ["Costume", "Mega", "Gigantamax"];
 
 /** Evolves from / evolves into, with candy cost and any extra requirement. */
-function Evolution({ rows, all, no, t }: { rows: Pokemon[]; all: Pokemon[]; no: number; t: Dict }) {
+function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]; no: number; t: Dict; lang: Lang }) {
   const byId = new Map(all.map((p) => [p.id, p]));
   const own = rows.filter((r) => !NO_EVOLUTION.includes(r.form_type));
   const ownIds = new Set(own.map((r) => r.id));
@@ -165,7 +166,7 @@ function Evolution({ rows, all, no, t }: { rows: Pokemon[]; all: Pokemon[]; no: 
     <li key={`${via.id}-${shown.id}`}>
       <Link href={`/pokemon/${shown.species}`} className="evo-link">
         <MonImage file={shown.image_regular} size={40} />
-        <span className="evo-name">{displayName(shown)}</span>
+        <span className="evo-name">{displayName(shown, lang)}</span>
       </Link>
       <span className="evo-cost">
         {ownName && <span className="evo-own">{ownName} · </span>}
@@ -181,13 +182,13 @@ function Evolution({ rows, all, no, t }: { rows: Pokemon[]; all: Pokemon[]; no: 
       {from.length > 0 && (
         <div>
           <h2>{t.evolvesFrom}</h2>
-          <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to) : null))}</ul>
+          <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to, lang) : null))}</ul>
         </div>
       )}
       {into.length > 0 && (
         <div>
           <h2>{t.evolvesInto}</h2>
-          <ul>{into.map((e) => line(e.to, e.to, ownInto ? t.evolvesFromForm.replace("{name}", displayName(e.from)) : null))}</ul>
+          <ul>{into.map((e) => line(e.to, e.to, ownInto ? t.evolvesFromForm.replace("{name}", displayName(e.from, lang)) : null))}</ul>
         </div>
       )}
     </section>

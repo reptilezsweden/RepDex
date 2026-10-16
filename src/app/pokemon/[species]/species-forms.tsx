@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
-import { canWant, type Status } from "@/lib/dexes";
-import type { Dict } from "@/lib/i18n";
+import { canWant, dexByKey, type Status } from "@/lib/dexes";
+import type { Dict, Lang } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
 
 /** One extra dex shown as an icon on a form: a shiny star or a Lucky/XXL/XXS/Perfect/Shadow/Purified icon. */
@@ -51,7 +51,7 @@ function NeighbourLink({ link, dir, label }: { link: SpeciesLink | null; dir: "p
 }
 
 export function SpeciesForms({
-  title, no, dexName, backHref, forms, prev, next, initialTicks, userId, isAdmin, evolution, t,
+  title, no, dexName, backHref, forms, prev, next, initialTicks, userId, isAdmin, evolution, t, lang = "en",
 }: {
   title: string;
   no: number;
@@ -66,7 +66,10 @@ export function SpeciesForms({
   /** What it evolves from and into (built on the server). */
   evolution?: ReactNode;
   t: Dict;
+  lang?: Lang;
 }) {
+  /** A dex's name in the site language, for the icon legend. */
+  const dn = (key: string) => dexByKey(key)?.name[lang] ?? key;
   const { get, save, toggleWanted, error } = useTicks(userId, initialTicks);
   const on = (dex: string, id: string) => !!get(dex, id)?.collected;
 
@@ -140,22 +143,22 @@ export function SpeciesForms({
           <summary>{t.legend}</summary>
           <ul>
             <li><span className="tick legend-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-6.5" /></svg></span>{t.legendCaught}</li>
-            <li><span className="star legend-icon on"><StarIcon kind="star" size={20} /></span>Shiny</li>
-            <li><span className="star legend-icon on"><StarIcon kind="star3" size={20} /></span>Shiny ⭐⭐⭐</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="lucky" size={20} /></span>Lucky</li>
+            <li><span className="star legend-icon on"><StarIcon kind="star" size={20} /></span>{dn("shiny")}</li>
+            <li><span className="star legend-icon on"><StarIcon kind="star3" size={20} /></span>{dn("shiny3")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="lucky" size={20} /></span>{dn("lucky")}</li>
             <li><span className="badge xxl legend-icon"><BadgeIcon kind="xxl" /></span>XXL</li>
             <li><span className="badge xxs legend-icon"><BadgeIcon kind="xxs" /></span>XXS</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="perfect" size={20} /></span>{t.legendPerfect}</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="shadow" size={20} /></span>Shadow</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="shadow_shiny" size={20} /></span>Shadow shiny</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="purified" size={20} /></span>Purified</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="purified_shiny" size={20} /></span>Purified shiny</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="mega" size={20} /></span>Mega</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="mega_shiny" size={20} /></span>Mega shiny</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax" size={20} /></span>Gigantamax</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax_shiny" size={20} /></span>Gigantamax shiny</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="dynamax" size={20} /></span>Dynamax</li>
-            <li><span className="badge legend-icon"><BadgeIcon kind="dynamax_shiny" size={20} /></span>Dynamax shiny</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="shadow" size={20} /></span>{dn("shadow")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="shadow_shiny" size={20} /></span>{dn("shadow_shiny")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="purified" size={20} /></span>{dn("purified")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="purified_shiny" size={20} /></span>{dn("purified_shiny")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="mega" size={20} /></span>{dn("mega")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="mega_shiny" size={20} /></span>{dn("mega_shiny")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax" size={20} /></span>{dn("gigantamax")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax_shiny" size={20} /></span>{dn("gigantamax_shiny")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="dynamax" size={20} /></span>{dn("dynamax")}</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="dynamax_shiny" size={20} /></span>{dn("dynamax_shiny")}</li>
             <li><span className="legend-icon want-legend"><PuzzleIcon /></span>{t.wanted}</li>
             <li><span className="legend-icon forbid" aria-hidden="true" />{t.legendUnavailable}</li>
             <li className="legend-help">{t.legendHelp}</li>

@@ -1,14 +1,20 @@
 // Wishlists: what the user is missing in a few dexes, with a Pokémon GO search phrase that a
 // trading partner can paste to find matching Pokémon in their own storage.
-import { collectible, dexByKey, dexEntries, displayName, missing, type Pokemon, type Tick } from "./dexes";
+import { collectible, dexByKey, dexEntries, displayName, missing, speciesName, type Pokemon, type Tick } from "./dexes";
+import type { Lang } from "./i18n";
 
 export interface WishlistDef {
   key: string;
-  name: { en: string; sv: string };
+  name: { en: string; sv: string; ja: string };
   /** Dexes whose missing entries make up the list (Caught + Lucky share one list). */
   dexes: string[];
-  /** Search phrase before the numbers. */
+  /** Search phrase before the numbers, for an English game. */
   prefix: string;
+  /**
+   * The same for a Japanese game. Keywords from Niantic's Japanese help page on searching
+   * (色違い shiny, こうかん traded, xxs/xxl, だいまっくす, きょだいまっくす, とくべつ event/costume).
+   */
+  prefixJa: string;
   /** Show shiny images. */
   shiny: boolean;
   /** "Show only lowest evolution" applies (forms that come from evolving keep the dex's trait). */
@@ -19,14 +25,14 @@ export interface WishlistDef {
 
 /** In display order. The keys are what profiles.public_wishlists stores. */
 export const WISHLISTS: WishlistDef[] = [
-  { key: "caught", name: { en: "Caught + Lucky", sv: "Fångade + Lucky" }, dexes: ["caught", "lucky"], prefix: "!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, dexes: ["shiny"], prefix: "shiny&!traded&", shiny: true, evolves: true, tradeableOnly: true },
-  { key: "xxs", name: { en: "XXS", sv: "XXS" }, dexes: ["xxs"], prefix: "xxs&!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "xxl", name: { en: "XXL", sv: "XXL" }, dexes: ["xxl"], prefix: "xxl&!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", shiny: false, evolves: false, tradeableOnly: true },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, dexes: ["dynamax"], prefix: "dynamax&!traded&", shiny: false, evolves: true, tradeableOnly: true },
-  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, dexes: ["costumes"], prefix: "costume&!traded&", shiny: false, evolves: false, tradeableOnly: true },
-  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", shiny: true, evolves: false, tradeableOnly: true },
+  { key: "caught", name: { en: "Caught + Lucky", sv: "Fångade + Lucky", ja: "捕獲 + キラ" }, dexes: ["caught", "lucky"], prefix: "!traded&", prefixJa: "!こうかん&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "shiny", name: { en: "Shiny", sv: "Shiny", ja: "色違い" }, dexes: ["shiny"], prefix: "shiny&!traded&", prefixJa: "色違い&!こうかん&", shiny: true, evolves: true, tradeableOnly: true },
+  { key: "xxs", name: { en: "XXS", sv: "XXS", ja: "XXS" }, dexes: ["xxs"], prefix: "xxs&!traded&", prefixJa: "xxs&!こうかん&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "xxl", name: { en: "XXL", sv: "XXL", ja: "XXL" }, dexes: ["xxl"], prefix: "xxl&!traded&", prefixJa: "xxl&!こうかん&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax", ja: "キョダイマックス" }, dexes: ["gigantamax"], prefix: "gigantamax&!traded&", prefixJa: "きょだいまっくす&!こうかん&", shiny: false, evolves: false, tradeableOnly: true },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax", ja: "ダイマックス" }, dexes: ["dynamax"], prefix: "dynamax&!traded&", prefixJa: "だいまっくす&!こうかん&", shiny: false, evolves: true, tradeableOnly: true },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event", ja: "コスチューム/イベント" }, dexes: ["costumes"], prefix: "costume&!traded&", prefixJa: "とくべつ&!こうかん&", shiny: false, evolves: false, tradeableOnly: true },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny", ja: "コスチューム/イベント色違い" }, dexes: ["costumes_shiny"], prefix: "costume&shiny&!traded&", prefixJa: "とくべつ&色違い&!こうかん&", shiny: true, evolves: false, tradeableOnly: true },
 ];
 
 export const WISHLIST_KEYS = WISHLISTS.map((w) => w.key);
@@ -36,12 +42,13 @@ export function wishlistDefs(shiny3: boolean): WishlistDef[] {
   if (!shiny3) return WISHLISTS;
   return WISHLISTS.map((w) =>
     w.key === "shiny"
-      ? { ...w, dexes: ["shiny", "shiny3"], name: { en: "Shiny + Shiny ⭐⭐⭐", sv: "Shiny + Shiny ⭐⭐⭐" } }
+      ? { ...w, dexes: ["shiny", "shiny3"], name: { en: "Shiny + Shiny ⭐⭐⭐", sv: "Shiny + Shiny ⭐⭐⭐", ja: "色違い + 色違い ⭐⭐⭐" } }
       : w);
 }
 
 export interface WishItem { id: string; no: number; name: string; image: string | null }
-export interface Wishlist { key: string; name: string; search: string; items: WishItem[] }
+/** search: the phrase for an English game; searchJa: the same for a Japanese game. */
+export interface Wishlist { key: string; name: string; search: string; searchJa: string; items: WishItem[] }
 
 /** Dex numbers as a Pokémon GO search list, with runs shortened to ranges: 1-3,7,9-11. */
 export function numberList(nos: number[]): string {
@@ -61,7 +68,7 @@ export function numberList(nos: number[]): string {
  * Costume/Event) list each missing form; the others list each missing species once.
  */
 export function buildWishlist(
-  def: WishlistDef, all: Pokemon[], ticks: Map<string, Map<string, Tick>>, day: string, lang: "en" | "sv",
+  def: WishlistDef, all: Pokemon[], ticks: Map<string, Map<string, Tick>>, day: string, lang: Lang,
   lowestOnly = false,
   /** Dexes with All forms on: each missing form is listed instead of each species. */
   allFormsFor: (dexKey: string) => boolean = () => false,
@@ -81,7 +88,7 @@ export function buildWishlist(
       items.set(id, {
         id,
         no: p.species,
-        name: perForm ? displayName(p) : e.pokemon.name,
+        name: perForm ? displayName(p, lang) : speciesName(e.pokemon, lang),
         image: (def.shiny ? p.image_shiny : null) ?? p.image_regular,
       });
       if (def.evolves && p.family != null && (p.form_type === "Regular" || p.form_type === "Form")) {
@@ -103,6 +110,7 @@ export function buildWishlist(
     key: def.key,
     name: def.name[lang],
     search: list.length ? `${def.prefix}${numberList(list.map((i) => i.no))}` : "",
+    searchJa: list.length ? `${def.prefixJa}${numberList(list.map((i) => i.no))}` : "",
     items: list,
   };
 }

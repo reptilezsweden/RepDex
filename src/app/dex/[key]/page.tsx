@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, isOn, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
+import { CAUGHT_LINKED, allFormsOn, collectible, dexByKey, dexEntries, displayName, isOn, speciesName, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
 import { DEX_ICON } from "@/lib/dex-icons";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
@@ -66,7 +66,7 @@ export default async function DexPage({
   const familyNames: Record<string, string> = {};
   for (const p of all) {
     const key = String(p.family ?? `s${p.species}`);
-    familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}`.toLowerCase();
+    familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}|${p.name_ja ?? ""}|${p.alt_name_ja ?? ""}`.toLowerCase();
   }
 
   const cards: Card[] = dexEntries(all, dex, allForms, day).map((e) => {
@@ -75,7 +75,7 @@ export default async function DexPage({
       id: p.id,
       no: p.species,
       family: String(p.family ?? `s${p.species}`),
-      name: allForms || dex.everyRow ? displayName(p) : p.name,
+      name: allForms || dex.everyRow ? displayName(p, lang) : speciesName(p, lang),
       gen: speciesGen.get(p.species) ?? p.gen_nr,
       image: p.image_regular,
       shinyImage: p.image_shiny,

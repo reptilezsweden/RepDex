@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MonImage } from "@/components/mon-ui";
-import type { Dict } from "@/lib/i18n";
+import type { Dict, Lang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import type { Wishlist } from "@/lib/wishlists";
 
@@ -39,9 +39,13 @@ function SearchPhrase({ text, t }: { text: string; t: Dict }) {
  * Wishlist tabs. On the user's own page each list has a "Show in public" box, saved in
  * profiles.public_wishlists; on the public page (no userId) the boxes are left out.
  */
-export function WishlistTabs({ lists, t, userId, initialPublic = [], initialLowest = false }: {
+/** Search phrases come in the trading partner's game language; this browser remembers the choice. */
+const GAME_LANG_KEY = "rd-search-lang";
+
+export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = [], initialLowest = false }: {
   lists: Wishlist[];
   t: Dict;
+  lang?: Lang;
   userId?: string;
   initialPublic?: string[];
   initialLowest?: boolean;
@@ -57,6 +61,17 @@ export function WishlistTabs({ lists, t, userId, initialPublic = [], initialLowe
       .then(({ error }: { error: unknown }) => setSaveFailed(!!error));
   }
   const [tab, setTab] = useState(lists[0]?.key ?? "");
+  const [gameLang, setGameLang] = useState<"en" | "ja">(lang === "ja" ? "ja" : "en");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(GAME_LANG_KEY);
+      if (saved === "en" || saved === "ja") setGameLang(saved);
+    } catch { /* no storage: keep the default */ }
+  }, []);
+  function chooseGameLang(v: "en" | "ja") {
+    setGameLang(v);
+    try { localStorage.setItem(GAME_LANG_KEY, v); } catch { /* not remembered */ }
+  }
   const [shown, setShown] = useState(() => new Set(initialPublic));
   const [saveFailed, setSaveFailed] = useState(false);
   const current = lists.find((l) => l.key === tab) ?? lists[0];
@@ -116,7 +131,13 @@ export function WishlistTabs({ lists, t, userId, initialPublic = [], initialLowe
           <p className="empty">{t.wishlistEmpty}</p>
         ) : (
           <>
-            <SearchPhrase text={current.search} t={t} />
+            <div className="search-row">
+              <SearchPhrase text={gameLang === "ja" ? current.searchJa : current.search} t={t} />
+              <span className="seg game-lang" role="group" aria-label={t.searchGameLanguage} title={t.searchGameLanguage}>
+                <button type="button" aria-pressed={gameLang === "en"} onClick={() => chooseGameLang("en")}>EN</button>
+                <button type="button" aria-pressed={gameLang === "ja"} onClick={() => chooseGameLang("ja")}>日本語</button>
+              </span>
+            </div>
             <ul className="wish-grid">
               {current.items.map((i) => (
                 <li key={i.id}>

@@ -1,4 +1,5 @@
 // Dex definitions and selection rules. Names, order and rules live here only (docs/DESIGN.md §2).
+import type { Lang } from "./i18n";
 
 export type FormType =
   | "Regular" | "Costume" | "Form" | "Mega" | "Regional"
@@ -23,6 +24,9 @@ export interface Pokemon {
   stage?: number | null;
   name: string;
   alt_name: string | null;
+  /** Japanese species name (フシギダネ) and full Japanese name of a form (ロコン（アローラのすがた）); see migration 0023. */
+  name_ja?: string | null;
+  alt_name_ja?: string | null;
   type1: string | null;
   type2: string | null;
   released: string | null;
@@ -39,7 +43,7 @@ export interface Pokemon {
 
 export interface Dex {
   key: string;
-  name: { en: string; sv: string };
+  name: { en: string; sv: string; ja: string };
   includes: (p: Pokemon) => boolean;
   dateField: DateField;
   defaultOn: boolean;
@@ -61,7 +65,7 @@ export interface Dex {
   /** Set on those dexes: the dex whose page they are shown on. */
   mergedInto?: string;
   /** Name of the combined page, when it has peers. */
-  groupName?: { en: string; sv: string };
+  groupName?: { en: string; sv: string; ja: string };
 }
 
 const caught = (p: Pokemon) => p.dex_caught;
@@ -69,28 +73,28 @@ const formType = (...types: FormType[]) => (p: Pokemon) => types.includes(p.form
 const dynamaxForms = formType("Regular", "Regional", "Gender", "Form");
 
 export const DEXES: Dex[] = [
-  { key: "caught", name: { en: "Caught", sv: "Fångade" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "caught", name: { en: "Caught", sv: "Fångade", ja: "捕獲" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
   // Shiny has a page of its own, with Shiny ⭐⭐⭐ as its triple star; both follow Caught.
-  { key: "shiny", name: { en: "Shiny", sv: "Shiny" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shiny3Key: "shiny3" },
-  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "shiny", notInGame: true },
-  { key: "lucky", name: { en: "Lucky", sv: "Lucky" }, includes: (p) => p.dex_lucky && p.dex_caught, dateField: "released", defaultOn: true, shiny: false },
-  { key: "xxl", name: { en: "XXL", sv: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS" } },
-  { key: "xxs", name: { en: "XXS", sv: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
-  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
-  { key: "mega", name: { en: "Mega", sv: "Mega" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
-  { key: "shadow", name: { en: "Shadow", sv: "Shadow" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny", peers: ["purified"], groupName: { en: "Shadow/Purified", sv: "Shadow/Purified" } },
-  { key: "purified", name: { en: "Purified", sv: "Purified" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny", mergedInto: "shadow" },
-  { key: "perfect", name: { en: "100%", sv: "100%" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
-  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, everyRow: true, shinyKey: "dynamax_shiny", notInGame: true },
-  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
+  { key: "shiny", name: { en: "Shiny", sv: "Shiny", ja: "色違い" }, includes: caught, dateField: "release_shiny", defaultOn: true, shiny: true, shiny3Key: "shiny3" },
+  { key: "shiny3", name: { en: "Shiny ⭐⭐⭐", sv: "Shiny ⭐⭐⭐", ja: "色違い ⭐⭐⭐" }, includes: caught, dateField: "release_shiny", defaultOn: false, shiny: true, shinyOf: "shiny", notInGame: true },
+  { key: "lucky", name: { en: "Lucky", sv: "Lucky", ja: "キラ" }, includes: (p) => p.dex_lucky && p.dex_caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "xxl", name: { en: "XXL", sv: "XXL", ja: "XXL" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, peers: ["xxs"], groupName: { en: "XXL/XXS", sv: "XXL/XXS", ja: "XXL/XXS" } },
+  { key: "xxs", name: { en: "XXS", sv: "XXS", ja: "XXS" }, includes: caught, dateField: "released", defaultOn: true, shiny: false, mergedInto: "xxl" },
+  { key: "gigantamax", name: { en: "Gigantamax", sv: "Gigantamax", ja: "キョダイマックス" }, includes: formType("Gigantamax"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "gigantamax_shiny" },
+  { key: "mega", name: { en: "Mega", sv: "Mega", ja: "メガ" }, includes: formType("Mega"), dateField: "released", defaultOn: true, shiny: false, everyRow: true, shinyKey: "mega_shiny" },
+  { key: "shadow", name: { en: "Shadow", sv: "Shadow", ja: "シャドウ" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "shadow_shiny", peers: ["purified"], groupName: { en: "Shadow/Purified", sv: "Shadow/Purified", ja: "シャドウ/リトレーン" } },
+  { key: "purified", name: { en: "Purified", sv: "Purified", ja: "リトレーン" }, includes: caught, dateField: "release_shadow", defaultOn: true, shiny: false, shinyKey: "purified_shiny", mergedInto: "shadow" },
+  { key: "perfect", name: { en: "100%", sv: "100%", ja: "個体値100%" }, includes: caught, dateField: "released", defaultOn: true, shiny: false },
+  { key: "dynamax", name: { en: "Dynamax", sv: "Dynamax", ja: "ダイマックス" }, includes: dynamaxForms, dateField: "release_dynamax", defaultOn: false, shiny: false, hideWithoutDate: true, everyRow: true, shinyKey: "dynamax_shiny", notInGame: true },
+  { key: "costumes", name: { en: "Costume/Event", sv: "Kostym/Event", ja: "コスチューム/イベント" }, includes: formType("Costume"), dateField: "released", defaultOn: false, shiny: false, everyRow: true, shinyKey: "costumes_shiny", notInGame: true },
 
   // Shiny dexes: ticked with a star on their regular dex's pages, not shown as dexes of their own.
-  { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
-  { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
-  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "mega" },
-  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "gigantamax" },
-  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, everyRow: true, shinyOf: "dynamax", notInGame: true },
-  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes", notInGame: true },
+  { key: "shadow_shiny", name: { en: "Shadow shiny", sv: "Shadow shiny", ja: "シャドウ色違い" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "shadow" },
+  { key: "purified_shiny", name: { en: "Purified shiny", sv: "Purified shiny", ja: "リトレーン色違い" }, includes: caught, dateField: "release_shadow_shiny", defaultOn: true, shiny: true, shinyOf: "purified" },
+  { key: "mega_shiny", name: { en: "Mega shiny", sv: "Mega shiny", ja: "メガ色違い" }, includes: formType("Mega"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "mega" },
+  { key: "gigantamax_shiny", name: { en: "Gigantamax shiny", sv: "Gigantamax shiny", ja: "キョダイマックス色違い" }, includes: formType("Gigantamax"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "gigantamax" },
+  { key: "dynamax_shiny", name: { en: "Dynamax shiny", sv: "Dynamax shiny", ja: "ダイマックス色違い" }, includes: dynamaxForms, dateField: "release_dynamax_shiny", defaultOn: true, shiny: true, hideWithoutDate: true, everyRow: true, shinyOf: "dynamax", notInGame: true },
+  { key: "costumes_shiny", name: { en: "Costume/Event shiny", sv: "Kostym/Event shiny", ja: "コスチューム/イベント色違い" }, includes: formType("Costume"), dateField: "release_shiny", defaultOn: true, shiny: true, everyRow: true, shinyOf: "costumes", notInGame: true },
 ];
 
 /** Regular dexes, i.e. the ones with their own page. */
@@ -102,16 +106,16 @@ export const ALWAYS_ON = "caught";
  * How dexes are grouped in the settings: one switch for each group's visibility and one for its
  * All forms version. Dexes that always show every row have no All forms switch.
  */
-export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string } }[] = [
-  { keys: ["caught"], name: { en: "Caught", sv: "Fångade" } },
-  { keys: ["lucky"], name: { en: "Lucky", sv: "Lucky" } },
-  { keys: ["xxl", "xxs"], name: { en: "XXL/XXS", sv: "XXL/XXS" } },
-  { keys: ["gigantamax"], name: { en: "Gigantamax", sv: "Gigantamax" } },
-  { keys: ["mega"], name: { en: "Mega", sv: "Mega" } },
-  { keys: ["shadow", "purified"], name: { en: "Shadow/Purified", sv: "Shadow/Purified" } },
-  { keys: ["perfect"], name: { en: "100%", sv: "100%" } },
-  { keys: ["dynamax"], name: { en: "Dynamax", sv: "Dynamax" } },
-  { keys: ["costumes"], name: { en: "Costume/Event", sv: "Kostym/Event" } },
+export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string; ja: string } }[] = [
+  { keys: ["caught"], name: { en: "Caught", sv: "Fångade", ja: "捕獲" } },
+  { keys: ["lucky"], name: { en: "Lucky", sv: "Lucky", ja: "キラ" } },
+  { keys: ["xxl", "xxs"], name: { en: "XXL/XXS", sv: "XXL/XXS", ja: "XXL/XXS" } },
+  { keys: ["gigantamax"], name: { en: "Gigantamax", sv: "Gigantamax", ja: "キョダイマックス" } },
+  { keys: ["mega"], name: { en: "Mega", sv: "Mega", ja: "メガ" } },
+  { keys: ["shadow", "purified"], name: { en: "Shadow/Purified", sv: "Shadow/Purified", ja: "シャドウ/リトレーン" } },
+  { keys: ["perfect"], name: { en: "100%", sv: "100%", ja: "個体値100%" } },
+  { keys: ["dynamax"], name: { en: "Dynamax", sv: "Dynamax", ja: "ダイマックス" } },
+  { keys: ["costumes"], name: { en: "Costume/Event", sv: "Kostym/Event", ja: "コスチューム/イベント" } },
 ];
 
 /** Whether the user has the All forms version of a dex switched on. */
@@ -286,8 +290,15 @@ function releasesWhere(all: Pokemon[], keep: (date: string) => boolean): Upcomin
     });
 }
 
-export function displayName(p: Pokemon): string {
+/** The row's name with its form, in the site language (Japanese falls back to English where it's missing). */
+export function displayName(p: Pokemon, lang: Lang = "en"): string {
+  if (lang === "ja") return p.alt_name_ja || (p.alt_name ? p.alt_name : p.name_ja) || p.name;
   return p.alt_name || p.name;
+}
+
+/** The species name alone, in the site language. */
+export function speciesName(p: Pokemon, lang: Lang = "en"): string {
+  return (lang === "ja" && p.name_ja) || p.name;
 }
 
 /** Whether a dex (regular or shiny) is switched on. Caught is always on. */

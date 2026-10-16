@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { columnIcon, columnOrder } from "@/lib/dex-columns";
-import { canWant, collectible, dexRows, isOn, statusOf, today } from "@/lib/dexes";
+import { canWant, collectible, dexRows, isOn, speciesName, statusOf, today } from "@/lib/dexes";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
 import { byDex, getTicks } from "@/lib/ticks";
@@ -56,7 +56,7 @@ export default async function FullCollectionPage() {
     });
     if (cells.every((c) => c === null)) continue;
     const p = rep.get(no)!;
-    rows.push({ no, name: p.name, image: p.image_regular, gen: speciesGen.get(no) ?? p.gen_nr, cells });
+    rows.push({ no, name: speciesName(p, lang), image: p.image_regular, gen: speciesGen.get(no) ?? p.gen_nr, cells });
   }
 
   return (

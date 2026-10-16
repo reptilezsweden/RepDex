@@ -26,6 +26,7 @@ export function SettingsForm({
         <select name="language" defaultValue={lang} aria-label={t.language} style={{ maxWidth: 240 }}>
           <option value="en">English</option>
           <option value="sv">Svenska</option>
+          <option value="ja">日本語</option>
         </select>
       </section>
 
@@ -51,7 +52,7 @@ export function SettingsForm({
       </section>
 
       <section className="panel">
-        <h2>Shiny</h2>
+        <h2>{t.checkShiny}</h2>
         <div className="shiny-cols">
           <div>
             <label className="check">

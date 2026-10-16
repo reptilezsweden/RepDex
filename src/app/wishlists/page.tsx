@@ -30,7 +30,7 @@ export default async function WishlistsPage() {
       </div>
       <p className="note">{t.wishlistsHelp}</p>
       <WishlistTabs
-        lists={lists} t={t} userId={profile.id}
+        lists={lists} t={t} lang={lang} userId={profile.id}
         initialPublic={profile.public_wishlists ?? []} initialLowest={profile.wish_lowest ?? false}
       />
     </>
