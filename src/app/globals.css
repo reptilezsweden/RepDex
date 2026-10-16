@@ -570,6 +570,15 @@ a.start-link:hover { border-color: var(--accent); }
 .wish-grid img, .wish-grid .noimg { width: 48px; height: 48px; object-fit: contain; }
 .wish-grid .no { font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .wish-grid .nm { font-size: 0.75rem; line-height: 1.2; overflow-wrap: anywhere; }
+/* Big picture: the image covers the whole box (hover on desktop, tap on touch screens); the box keeps its size. */
+.wish-grid li { position: relative; }
+.wish-grid li.big img, .wish-grid li.big .noimg { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); }
+.wish-grid li.big .no, .wish-grid li.big .nm { visibility: hidden; }
+@media (hover: hover) {
+  .wish-grid li:hover img, .wish-grid li:hover .noimg { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); }
+  .wish-grid li:hover .no, .wish-grid li:hover .nm { visibility: hidden; }
+}
+@media (hover: none) { .wish-grid li { cursor: pointer; -webkit-tap-highlight-color: transparent; } }
 .no-user { max-width: 420px; margin: 12vh auto 0; text-align: center; }
 .no-user h1 { margin: 0; }
 .wish-common { margin: 0 0 10px; }

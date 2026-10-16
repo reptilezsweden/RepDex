@@ -72,6 +72,17 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
     setGameLang(v);
     try { localStorage.setItem(GAME_LANG_KEY, v); } catch { /* not remembered */ }
   }
+  // Big pictures: the image fills its box while hovered (desktop) or after a tap (touch screens, tap again to go back).
+  const [big, setBig] = useState(() => new Set<string>());
+  function tapItem(id: string) {
+    try { if (window.matchMedia("(hover: hover)").matches) return; } catch { /* assume touch */ }
+    setBig((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   const [shown, setShown] = useState(() => new Set(initialPublic));
   const [saveFailed, setSaveFailed] = useState(false);
   const current = lists.find((l) => l.key === tab) ?? lists[0];
@@ -140,7 +151,7 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
             </div>
             <ul className="wish-grid">
               {current.items.map((i) => (
-                <li key={i.id}>
+                <li key={i.id} className={big.has(i.id) ? "big" : undefined} onClick={() => tapItem(i.id)}>
                   <MonImage file={i.image} size={48} />
                   <span className="no">#{String(i.no).padStart(4, "0")}</span>
                   <span className="nm">
