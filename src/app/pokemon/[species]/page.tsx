@@ -195,6 +195,15 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
   );
 
   const ownFrom = manyOwn(from, "to");
+  // Forms that evolve from the same Pokémon at the same cost share one line, their names joined.
+  const fromGroups: { from: Pokemon; to: Pokemon; names: string[] }[] = [];
+  for (const e of from) {
+    const g = fromGroups.find((x) => x.from.id === e.from.id
+      && (x.to.evolve_candy ?? null) === (e.to.evolve_candy ?? null)
+      && (x.to.evolution_requirement || null) === (e.to.evolution_requirement || null));
+    if (g) g.names.push(displayName(e.to, lang));
+    else fromGroups.push({ ...e, names: [displayName(e.to, lang)] });
+  }
   const ownInto = manyOwn(into, "from");
   return (
     <section className="evolution">
@@ -202,7 +211,7 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
       <div>
         <h2>{t.evolvesFrom}</h2>
         {from.length > 0
-          ? <ul>{from.map((e) => line(e.from, e.to, ownFrom ? displayName(e.to, lang) : null))}</ul>
+          ? <ul>{fromGroups.map((g) => line(g.from, g.to, ownFrom ? g.names.join(", ") : null))}</ul>
           : <p className="evo-none">{t.evolvesFromNone}</p>}
       </div>
       <div>
