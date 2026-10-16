@@ -86,6 +86,22 @@ const RAYS = Array.from({ length: 8 }, (_, i) => {
   return { x1: f(12 + r1 * Math.sin(a)), y1: f(12 - r1 * Math.cos(a)), x2: f(12 + r2 * Math.sin(a)), y2: f(12 - r2 * Math.cos(a)) };
 });
 
+const Dna = () => (
+  <>
+    <defs>
+      <linearGradient id="dna-rainbow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#ff4d4d" /><stop offset="0.2" stopColor="#ff9f2e" />
+        <stop offset="0.4" stopColor="#f4d03a" /><stop offset="0.6" stopColor="#3cc46b" />
+        <stop offset="0.8" stopColor="#3e8bff" /><stop offset="1" stopColor="#9b5cff" />
+      </linearGradient>
+    </defs>
+    <g transform="translate(12 12) rotate(28) scale(1.05) translate(-12 -12)">
+      <path className="rung" d="M8.2 4.2H15.8M7.4 12H16.6M8.2 19.8H15.8" />
+      <path className="strand" d="M7 1.5C7 6 17 7.5 17 12S7 18 7 22.5" />
+      <path className="strand" d="M17 1.5C17 6 7 7.5 7 12S17 18 17 22.5" />
+    </g>
+  </>
+);
 const Dai = () => (
   <>
     <path d="M3.6 9.4H20.4" />
@@ -100,7 +116,7 @@ const Burst = () => (
   <g className="burst">{RAYS.map((r, i) => <line key={i} {...r} />)}</g>
 );
 
-/** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified/Dynamax/Gigantamax combos. */
+/** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified/Mega/Dynamax/Gigantamax combos. */
 export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: number }) {
   if (kind === "perfect") {
     // A hand-drawn "100" with two underlines, as strokes so it can turn grey when not ticked.
@@ -147,18 +163,16 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
     // A rainbow DNA strand: two twisting strands joined by rungs.
     return (
       <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dna">
-        <defs>
-          <linearGradient id="dna-rainbow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#ff4d4d" /><stop offset="0.2" stopColor="#ff9f2e" />
-            <stop offset="0.4" stopColor="#f4d03a" /><stop offset="0.6" stopColor="#3cc46b" />
-            <stop offset="0.8" stopColor="#3e8bff" /><stop offset="1" stopColor="#9b5cff" />
-          </linearGradient>
-        </defs>
-        <g transform="translate(12 12) rotate(28) scale(1.05) translate(-12 -12)">
-          <path className="rung" d="M8.2 4.2H15.8M7.4 12H16.6M8.2 19.8H15.8" />
-          <path className="strand" d="M7 1.5C7 6 17 7.5 17 12S7 18 7 22.5" />
-          <path className="strand" d="M17 1.5C17 6 7 7.5 7 12S17 18 17 22.5" />
-        </g>
+        <Dna />
+      </svg>
+    );
+  }
+  if (kind === "mega_shiny") {
+    // Shiny Mega: the DNA strand with a small star in the corner, like shiny Shadow / Purified.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dex-art">
+        <g className="dna" transform="translate(0 3) scale(0.82)"><Dna /></g>
+        <g className="mini-star" transform="translate(13.2 0) scale(0.45)"><path d={STAR} /></g>
       </svg>
     );
   }

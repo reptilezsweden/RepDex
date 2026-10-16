@@ -151,6 +151,7 @@ export function SpeciesForms({
             <li><span className="badge legend-icon"><BadgeIcon kind="purified" size={20} /></span>Purified</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="purified_shiny" size={20} /></span>Purified shiny</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="mega" size={20} /></span>Mega</li>
+            <li><span className="badge legend-icon"><BadgeIcon kind="mega_shiny" size={20} /></span>Mega shiny</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax" size={20} /></span>Gigantamax</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="gigantamax_shiny" size={20} /></span>Gigantamax shiny</li>
             <li><span className="badge legend-icon"><BadgeIcon kind="dynamax" size={20} /></span>Dynamax</li>
