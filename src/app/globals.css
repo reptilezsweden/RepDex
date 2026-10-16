@@ -664,11 +664,13 @@ a.start-link:hover { border-color: var(--accent); }
 .evolution { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 24px; margin: 0 0 16px; }
 .evolution h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 6px; }
 .evolution ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-.evolution li { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
-.evolution .evo-link { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; min-width: 0; }
+.evolution li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.evolution .evo-link { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; min-width: 0; flex: 0 1 auto; }
+.evolution .evo-name { overflow-wrap: anywhere; }
 .evolution .evo-link img, .evolution .evo-link .noimg { width: 40px; height: 40px; object-fit: contain; flex: none; }
-.evolution .evo-cost { margin-left: auto; text-align: right; font-size: 0.85rem; color: var(--muted); }
-.evolution .evo-own { color: var(--text); }
+/* Takes the rest of the row and wraps below the name when both don't fit, so they never overlap. */
+.evolution .evo-cost { margin-left: auto; flex: 1 1 140px; min-width: 0; text-align: right; font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+.evolution .evo-own { display: block; color: var(--text); }
 /* Event cards: up to five boxes per row (fewer when narrow). */
 .events-page .upcoming ul { grid-template-columns: repeat(auto-fill, minmax(max(180px, calc((100% - 24px) / 5)), 1fr)); }
 /* Raid bosses: level (and Shadow) inside each boss's box. */

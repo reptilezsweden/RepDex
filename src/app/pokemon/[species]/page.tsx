@@ -188,7 +188,7 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
         <span className="evo-name">{displayName(shown, lang)}</span>
       </Link>
       <span className="evo-cost">
-        {ownName && <span className="evo-own">{ownName} · </span>}
+        {ownName && <span className="evo-own">{ownName}</span>}
         {cost(via) || t.noEvolutionCost}
       </span>
     </li>
