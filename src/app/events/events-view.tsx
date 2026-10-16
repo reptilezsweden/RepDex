@@ -27,7 +27,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
   lang: string;
   t: Dict;
   /** For signed-in users: dexes where a row is missing (shiny dexes only when it can be shiny, Shadow/Purified only when it is Shadow). */
-  missingIn?: (rowId: string, shiny: boolean, shadow: boolean, strict?: boolean) => string[];
+  missingIn?: (rowId: string, shiny: boolean, shadow: boolean) => string[];
   user?: { id: string; dexes: DexChoice[]; hidden: string[] };
 }) {
   const byEvent = new Map<string, EventMon[]>();
@@ -61,7 +61,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
         shiny: m.shiny,
         level: raid ? m.level ?? null : null,
         shadow: raid && !!m.shadow,
-        missingIn: row && missingIn ? missingIn(row.id, m.shiny, !!m.shadow, raid) : null,
+        missingIn: row && missingIn ? missingIn(row.id, m.shiny, !!m.shadow) : null,
       }]);
     }
     return {

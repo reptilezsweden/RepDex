@@ -645,6 +645,8 @@ a.start-link:hover { border-color: var(--accent); }
 .evolution .evo-link img, .evolution .evo-link .noimg { width: 40px; height: 40px; object-fit: contain; flex: none; }
 .evolution .evo-cost { margin-left: auto; text-align: right; font-size: 0.85rem; color: var(--muted); }
 .evolution .evo-own { color: var(--text); }
+/* Event cards: up to five boxes per row (fewer when narrow). */
+.events-page .upcoming ul { grid-template-columns: repeat(auto-fill, minmax(max(180px, calc((100% - 24px) / 5)), 1fr)); }
 /* Raid bosses: level (and Shadow) inside each boss's box. */
 .events-page .raid-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .events-page .raid-level, .events-page .raid-shadow {

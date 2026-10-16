@@ -44,7 +44,7 @@ export default async function EventsPage() {
     : { data: [] as EventMon[] };
 
   let user: { id: string; dexes: { key: string; name: string; icon: ReturnType<typeof columnIcon> }[]; hidden: string[] } | undefined;
-  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean, strict?: boolean) => string[]) | undefined;
+  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean) => string[]) | undefined;
   if (profile) {
     const ticksBy = byDex(await getTicks());
     const day = today();
@@ -55,12 +55,10 @@ export default async function EventsPage() {
       ids: new Set(dexRows(all, d).filter((p) => collectible(p) && statusOf(p, d, day) === "available").map((p) => p.id)),
     }));
     // Shadow and Purified (and their shinies) only count for Pokémon the event explicitly calls Shadow.
-    // Strict (raid bosses): a Shadow boss counts only for Shadow/Purified, a regular boss only for the other dexes.
     const shadowDex = (key: string) => /^(shadow|purified)/.test(key);
-    missingIn = (rowId, shiny, shadow, strict = false) =>
+    missingIn = (rowId, shiny, shadow) =>
       members
-        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny)
-          && (strict ? shadowDex(d.key) === shadow : !shadowDex(d.key) || shadow)
+        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow)
           && !ticksBy.get(d.key)?.get(rowId)?.collected)
         .map(({ d }) => d.key);
     user = {
