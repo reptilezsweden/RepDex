@@ -23,10 +23,16 @@ function Progress({ all, dex, allForms, ticks, day, icon }: {
   );
 }
 
-/** The dex's own icon (or star) shown in front of a counter. */
+/** The dex's own icon shown in front of a counter: its badge, a star for shiny dexes, else the checkmark. */
 const dexIcon = (dex: Dex, kind: "star" | "star3" = "star") => {
   const k = DEX_ICON[dex.key];
-  return k ? <span className="badge slot-icon"><BadgeIcon kind={k} size={16} /></span> : <StarIcon kind={kind} size={16} />;
+  if (k) return <span className="badge slot-icon"><BadgeIcon kind={k} size={16} /></span>;
+  if (dex.shiny) return <StarIcon kind={kind} size={16} />;
+  return (
+    <span className="count-check" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-6.5" /></svg>
+    </span>
+  );
 };
 
 /** Small counter for a shiny dex, or a second dex (XXS, Purified), shown inside a dex's box. */
@@ -88,7 +94,7 @@ export default async function DexesPage() {
               ...shinyLines(p, allForms),
             ]),
           ];
-          const ownIcon = peers.length > 0 ? dexIcon(d) : undefined;
+          const ownIcon = dexIcon(d);
           return (
             <div key={d.key} className="dex-tile">
               <Link href={`/dex/${d.key}`} className="tile-main">
