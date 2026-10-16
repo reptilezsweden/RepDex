@@ -9,3 +9,12 @@ export function imageUrls(file: string | null): string[] {
     `https://raw.githubusercontent.com/reptilezsweden/RepDex/main/${FOLDER}/${f}`,
   ];
 }
+
+/** Type icon (Images/Types/<type>.png, lowercase: grass.png), CDN first, then raw GitHub. */
+export function typeIconUrls(type: string): string[] {
+  const f = encodeURIComponent(`${type.toLowerCase()}.png`);
+  return [
+    `https://cdn.jsdelivr.net/gh/reptilezsweden/RepDex@main/Images/Types/${f}`,
+    `https://raw.githubusercontent.com/reptilezsweden/RepDex/main/Images/Types/${f}`,
+  ];
+}

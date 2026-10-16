@@ -91,6 +91,7 @@ export default async function SpeciesPage({
       id: p.id,
       name: displayName(p, lang),
       gender: p.gender ?? null,
+      types: [p.type1, p.type2].filter((x): x is string => !!x),
       formType: p.form_type,
       regular: p.image_regular,
       shiny: p.image_shiny,

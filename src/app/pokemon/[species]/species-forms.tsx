@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, type BadgeIconKind } from "@/components/mon-ui";
+import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, TypeBadge, type BadgeIconKind } from "@/components/mon-ui";
 import { canWant, dexByKey, type Status } from "@/lib/dexes";
 import type { Dict, Lang } from "@/lib/i18n";
 import { useTicks, type TickChanges, type TickRow } from "@/lib/use-ticks";
@@ -32,6 +32,8 @@ export interface FormCard {
   tickable: boolean;
   badges: Badge[];
   gender: string | null;
+  /** Type 1 and type 2 (when it has one). */
+  types: string[];
 }
 
 /** Gender as shown on a form card: symbols, then the word. */
@@ -199,6 +201,11 @@ export function SpeciesForms({
                   <div key={f.id} className={cls}>
                     <ShinySwap regular={f.regular} shiny={f.shiny} label={t.showShiny} />
                     <span className="nm">{f.name}</span>
+                    {f.types.length > 0 && (
+                      <span className="types" aria-label={t.typeLabel}>
+                        {f.types.map((x) => <TypeBadge key={x} type={x} label={t.types[x] ?? x} />)}
+                      </span>
+                    )}
                     <span className="tag">{t.formTypes[f.formType] ?? f.formType}</span>
                     {f.gender && (
                       <span className="tag gender" title={t.gender}>

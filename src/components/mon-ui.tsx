@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DEX_ICON, type BadgeIconKind } from "@/lib/dex-icons";
-import { imageUrls } from "@/lib/images";
+import { imageUrls, typeIconUrls } from "@/lib/images";
 
 export { DEX_ICON, type BadgeIconKind };
 
@@ -263,5 +263,20 @@ export function ShinySwap({ regular, shiny, size = 96, label }: { regular: strin
       <span className="reg"><Img file={regular} size={size} /></span>
       <span className="shy"><Img file={shiny} size={size} onMissing={() => setMissing(true)} /></span>
     </button>
+  );
+}
+
+/** A type: its icon from Images/Types (left out while the file is missing) and its name. */
+export function TypeBadge({ type, label }: { type: string; label: string }) {
+  const urls = typeIconUrls(type);
+  const [at, setAt] = useState(0);
+  return (
+    <span className={`type-badge type-${type.toLowerCase()}`}>
+      {at < urls.length && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={urls[at]} alt="" width={18} height={18} loading="lazy" onError={() => setAt(at + 1)} />
+      )}
+      {label}
+    </span>
   );
 }

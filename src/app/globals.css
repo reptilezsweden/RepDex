@@ -205,6 +205,10 @@ input[type="email"], input[type="password"], input[type="search"], select {
 .mon .tag { font-size: 0.7rem; color: var(--muted); }
 .mon .tag.form { margin-top: 1px; }
 .mon .tag.gender { display: inline-flex; gap: 3px; align-items: center; }
+/* Types on a form card: icon (from Images/Types) and name. */
+.mon .types { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 2px 0; }
+.type-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; padding: 1px 6px 1px 3px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); white-space: nowrap; }
+.type-badge img { width: 16px; height: 16px; object-fit: contain; }
 .evolution .evo-none { margin: 0; padding: 14px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 0.9rem; }
 .mon .tag.show-only { font-style: italic; }
 .mon.upcoming .tag.up, .mon.upcoming .mon-link .tag { color: var(--upcoming); }
