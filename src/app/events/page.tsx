@@ -44,7 +44,7 @@ export default async function EventsPage() {
     : { data: [] as EventMon[] };
 
   let user: { id: string; dexes: { key: string; name: string; icon: ReturnType<typeof columnIcon> }[]; hidden: string[] } | undefined;
-  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean) => string[]) | undefined;
+  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean, raid?: boolean) => string[]) | undefined;
   if (profile) {
     const ticksBy = byDex(await getTicks());
     const day = today();
@@ -56,9 +56,11 @@ export default async function EventsPage() {
     }));
     // Shadow and Purified (and their shinies) only count for Pokémon the event explicitly calls Shadow.
     const shadowDex = (key: string) => /^(shadow|purified)/.test(key);
-    missingIn = (rowId, shiny, shadow) =>
+    // Raid bosses aren't Max battles: they never count for Dynamax or Gigantamax.
+    const maxDex = (key: string) => /^(dynamax|gigantamax)/.test(key);
+    missingIn = (rowId, shiny, shadow, raid = false) =>
       members
-        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow)
+        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow) && !(raid && maxDex(d.key))
           && !ticksBy.get(d.key)?.get(rowId)?.collected)
         .map(({ d }) => d.key);
     user = {

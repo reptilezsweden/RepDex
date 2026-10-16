@@ -6,6 +6,7 @@ import {
   BASE_DEXES, collectible, dexByKey, displayName, isOn, shinyToggles, statusOf, today, type Dex, type Pokemon,
 } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
+import { DEX_ICON } from "@/lib/dex-icons";
 import { getDict, getProfile } from "@/lib/session";
 import { getTicks } from "@/lib/ticks";
 import { SpeciesForms, type Badge, type FormCard, type SpeciesLink } from "./species-forms";
@@ -78,7 +79,7 @@ export default async function SpeciesPage({
       badges = shinyToggles(home!, visible)
         .filter((s) => released(s.dex))
         .map((s) => ({
-          dex: s.dex.key, icon: s.kind, row: 1 as const, label: s.dex.name[lang],
+          dex: s.dex.key, icon: DEX_ICON[s.dex.key] ?? s.kind, row: 1 as const, label: s.dex.name[lang],
           parent: s.kind === "star3" ? (home!.shinyKey ?? home!.key) : home!.key,
         }));
     }

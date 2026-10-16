@@ -86,6 +86,13 @@ const RAYS = Array.from({ length: 8 }, (_, i) => {
   return { x1: f(12 + r1 * Math.sin(a)), y1: f(12 - r1 * Math.cos(a)), x2: f(12 + r2 * Math.sin(a)), y2: f(12 - r2 * Math.cos(a)) };
 });
 
+const Dai = () => (
+  <>
+    <path d="M3.6 9.4H20.4" />
+    <path d="M12 2.6V9.4C11.7 14.6 9 18.6 3.8 21.4" />
+    <path d="M12.6 10.8C14 15.2 16.6 18.7 20.6 21" />
+  </>
+);
 const Flame = () => (
   <g className="flame"><path className="body" d={FLAME} /><path className="flick" d={FLICKS} /></g>
 );
@@ -93,7 +100,7 @@ const Burst = () => (
   <g className="burst">{RAYS.map((r, i) => <line key={i} {...r} />)}</g>
 );
 
-/** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified combos. */
+/** Icons for the extra dexes: Lucky, XXL, XXS, 100%, Shadow, Purified, and the shiny Shadow/Purified/Dynamax/Gigantamax combos. */
 export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: number }) {
   if (kind === "perfect") {
     // A hand-drawn "100" with two underlines, as strokes so it can turn grey when not ticked.
@@ -123,9 +130,16 @@ export function BadgeIcon({ kind, size = 22 }: { kind: BadgeIconKind; size?: num
     // The kanji 大 ("big"), drawn as extra-bold strokes: black for Dynamax, pink for Gigantamax.
     return (
       <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={`dai ${kind}`}>
-        <path d="M3.6 9.4H20.4" />
-        <path d="M12 2.6V9.4C11.7 14.6 9 18.6 3.8 21.4" />
-        <path d="M12.6 10.8C14 15.2 16.6 18.7 20.6 21" />
+        <Dai />
+      </svg>
+    );
+  }
+  if (kind === "dynamax_shiny" || kind === "gigantamax_shiny") {
+    // Shiny Dynamax / Gigantamax: the 大 with a small star in the corner, like shiny Shadow / Purified.
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="dex-art">
+        <g className={`dai ${kind === "dynamax_shiny" ? "dynamax" : "gigantamax"}`} transform="translate(0 3) scale(0.82)"><Dai /></g>
+        <g className="mini-star" transform="translate(13.2 0) scale(0.45)"><path d={STAR} /></g>
       </svg>
     );
   }
