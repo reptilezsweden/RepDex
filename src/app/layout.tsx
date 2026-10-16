@@ -4,6 +4,7 @@ import "./globals.css";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "./auth-actions";
 import { MenuButton } from "./menu-button";
+import { LanguagePicker } from "./language-picker";
 import { ServiceWorker } from "./sw-register";
 
 export const metadata: Metadata = {
@@ -22,7 +23,8 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [{ lang, t }, profile] = await Promise.all([getDict(), getProfile()]);
-  const links = (
+  // Signed-out visitors pick a language here; signed-in users have it in Settings.
+  const links = (id: string) => (
     <>
       {profile && <Link href="/dexes">{t.dexes}</Link>}
       {profile && <Link href="/wishlists">{t.wishlists}</Link>}
@@ -35,6 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       ) : (
         <Link href="/login">{t.signIn}</Link>
       )}
+      {!profile && <LanguagePicker lang={lang} label={t.language} id={id} />}
     </>
   );
   return (
@@ -43,8 +46,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header className="topbar">
           <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion}</small></Link>
           {/* Wide screens: the links in a row. Narrow screens: the same links behind a ☰ button. */}
-          <nav className="nav-wide">{links}</nav>
-          <MenuButton label={t.menu}>{links}</MenuButton>
+          <nav className="nav-wide">{links("lang-wide")}</nav>
+          <MenuButton label={t.menu}>{links("lang-menu")}</MenuButton>
         </header>
         <main>{children}</main>
         <ServiceWorker />

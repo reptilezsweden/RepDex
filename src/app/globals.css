@@ -628,6 +628,11 @@ a.start-link:hover { border-color: var(--accent); }
 /* Tiles in a row share the tallest one's height. Its links split the box in equal rows (one link: the whole box,
    two: half each), so every hover area reaches the edges. */
 .dex-tile { display: grid; grid-auto-rows: 1fr; }
+/* Language choice in the top menu (signed-out visitors). */
+.lang-picker { display: inline-flex; margin: 0; }
+.lang-picker select { padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 0.9rem; cursor: pointer; }
+.topbar .nav-menu nav .lang-picker { display: flex; padding: 6px 12px; }
+.topbar .nav-menu nav .lang-picker select { width: 100%; font-size: 1rem; }
 /* Top menu: a row of links on wide screens, a ☰ fold-out on narrow ones. */
 .topbar .nav-menu { display: none; margin-left: auto; position: relative; }
 .topbar .nav-menu summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: 40px; height: 36px; color: var(--text); border-radius: 8px; }
@@ -672,3 +677,5 @@ a.start-link:hover { border-color: var(--accent); }
 /* Start page: the event starting on a release date, next to the date. */
 .upcoming h3 .release-event { margin-left: 10px; font-size: 0.8rem; font-weight: 400; color: var(--muted); text-decoration: none; }
 .upcoming h3 .release-event:hover { color: var(--text); text-decoration: underline; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
