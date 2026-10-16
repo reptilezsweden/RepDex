@@ -10,9 +10,9 @@ export function imageUrls(file: string | null): string[] {
   ];
 }
 
-/** Type icon (Images/Types/<type>.png, lowercase: grass.png), CDN first, then raw GitHub. */
+/** Type icon, the bordered version (Images/Types/POKEMON_TYPE_GRASS_BORDERED.png), CDN first, then raw GitHub. */
 export function typeIconUrls(type: string): string[] {
-  const f = encodeURIComponent(`${type.toLowerCase()}.png`);
+  const f = encodeURIComponent(`POKEMON_TYPE_${type.toUpperCase()}_BORDERED.png`);
   return [
     `https://cdn.jsdelivr.net/gh/reptilezsweden/RepDex@main/Images/Types/${f}`,
     `https://raw.githubusercontent.com/reptilezsweden/RepDex/main/Images/Types/${f}`,
