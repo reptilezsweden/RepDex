@@ -91,3 +91,41 @@ export function parseEvent(html: string): EventPokemon[] {
   }
   return [...out.values()];
 }
+
+export interface RaidBoss {
+  name: string;
+  image: string | null;
+  /** Raid level as Leek Duck labels it: "1", "3", "5", "Mega", … */
+  level: string;
+  shadow: boolean;
+  shiny: boolean;
+  sort: number;
+}
+
+/**
+ * Current raid bosses on https://leekduck.com/raid-bosses/: the ongoing regular and Shadow raid rotations.
+ * Each tier heading carries data-tier; Shadow bosses sit after the "shadow-raid-bosses" marker and their cards
+ * are "card -shadow". A shiny icon on a card means that boss (the Shadow one, for Shadow cards) can be shiny.
+ */
+export function parseRaids(html: string): RaidBoss[] {
+  const shadowAt = html.indexOf('class="shadow-raid-bosses"');
+  const out: RaidBoss[] = [];
+  let level = "";
+  const re = /<h2\b[^>]*\bdata-tier="([^"]+)"|<div class="card( -shadow)?">([\s\S]*?)(?=<div class="card|<\/div><\/div><div class="tier"|<h2\b|$)/g;
+  for (const m of html.matchAll(re)) {
+    if (m[1] !== undefined) { level = text(m[1]); continue; }
+    const card = m[3];
+    const name = text(card.match(/<p class="name[^"]*">([\s\S]*?)<\/p>/)?.[1] ?? "");
+    if (!name || !level) continue;
+    const shadow = !!m[2] || (shadowAt >= 0 && (m.index ?? 0) > shadowAt);
+    out.push({
+      name,
+      image: card.match(/<div class="boss-img[^"]*"[^>]*>\s*<img[^>]*src="([^"]+)"/)?.[1] ?? null,
+      level,
+      shadow,
+      shiny: /class="shiny-icon"/.test(card),
+      sort: out.length,
+    });
+  }
+  return out;
+}

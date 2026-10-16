@@ -2,15 +2,24 @@
 // keeps the types set in event_crawler.event_types (default: "event"), and stores each event's name,
 // start and end with the Pokémon its page lists, by category. "Pokémon Debut"/"Shiny Debut" sections
 // are skipped since those Pokémon are listed again further down.
+// Also reads the current raid bosses (https://leekduck.com/raid-bosses/) into the event "raid-bosses",
+// one list with each boss's raid level, Shadow and shiny marks.
 // Called daily by pg_cron and by admins via events_run_now(), with the x-crawler-secret header.
-// POST body {"dry": true} returns what it found without saving.
+// POST body {"dry": true} returns what it found without saving. {"raids": true} reads only the raid bosses;
+// with "hours": [6, 10] it only runs when it's one of those hours in Sweden (pg_cron runs in UTC).
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { parseEvent, parseList, type EventPokemon } from "./parse.ts";
+import { parseEvent, parseList, parseRaids, type EventPokemon } from "./parse.ts";
 import { makeMatcher, type Row } from "./match.ts";
 
 const UA = "RepDex event crawler (https://github.com/reptilezsweden/RepDex)";
 const LIST = "https://leekduck.com/events/";
+const RAIDS = "https://leekduck.com/raid-bosses/";
+const RAID_EVENT = "raid-bosses";
+
+/** The hour in Sweden, 0–23. */
+const swedishHour = () =>
+  Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Stockholm", hour: "2-digit", hourCycle: "h23" }).format(new Date()));
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body, null, 1), { status, headers: { "Content-Type": "application/json" } });
@@ -31,9 +40,10 @@ Deno.serve(async (req) => {
   const { data: secret } = await db.from("crawler_settings").select("secret").eq("id", 1).single();
   if (!secret || req.headers.get("x-crawler-secret") !== secret.secret) return json({ error: "forbidden" }, 403);
 
-  let body: { dry?: boolean } = {};
+  let body: { dry?: boolean; raids?: boolean; hours?: number[] } = {};
   try { body = await req.json(); } catch { /* empty body */ }
   const dry = body.dry === true;
+  if (body.hours && !body.hours.includes(swedishHour())) return json({ skipped: "not the hour" });
 
   const { data: settings } = await db.from("event_crawler").select("*").eq("id", 1).single();
   if (!dry && settings && !settings.enabled) return json({ skipped: "disabled" });
@@ -41,6 +51,10 @@ Deno.serve(async (req) => {
 
   const status = async (s: string, message: string) => {
     if (!dry) await db.from("event_crawler").update({ last_run_at: new Date().toISOString(), last_status: s, last_message: message }).eq("id", 1);
+  };
+
+  const raidStatus = async (s: string, message: string) => {
+    if (!dry) await db.from("event_crawler").update({ raids_last_run_at: new Date().toISOString(), raids_last_status: s, raids_last_message: message }).eq("id", 1);
   };
 
   try {
@@ -53,6 +67,39 @@ Deno.serve(async (req) => {
       if (!data || data.length < 1000) break;
     }
     const match = makeMatcher(rows);
+
+    // Raid bosses: one list, the page is the truth. A failure here doesn't stop the events.
+    let raids: unknown = null;
+    try {
+      const bosses = parseRaids(await get(RAIDS)).map((b) => {
+        const m = match(b.name, b.image);
+        return { ...b, species: m.species, pokemon_id: m.row?.id ?? null };
+      });
+      if (bosses.length === 0) throw new Error("No raid bosses found — the layout may have changed");
+      if (dry) {
+        raids = bosses.map((b) => `${b.level}${b.shadow ? " Shadow" : ""}: ${b.name}${b.shiny ? " ✨" : ""} → ${b.pokemon_id ?? (b.species ? `#${b.species}` : "?")}`);
+      } else {
+        const { error } = await db.from("events").upsert({
+          id: RAID_EVENT, slug: RAID_EVENT, name: "Raid bosses", event_type: "raids", url: RAIDS, image: null,
+          starts_at: null, ends_at: null, local_time: true, last_seen_at: new Date().toISOString(),
+        }, { onConflict: "id" });
+        if (error) throw new Error(error.message);
+        await db.from("event_pokemon").delete().eq("event_id", RAID_EVENT);
+        const { error: e2 } = await db.from("event_pokemon").insert(bosses.map((b) => ({
+          event_id: RAID_EVENT, category: "Raid bosses", name: b.name, image: b.image, shiny: b.shiny, shadow: b.shadow,
+          level: b.level, species: b.species, pokemon_id: b.pokemon_id, sort: b.sort,
+        })));
+        if (e2) throw new Error(e2.message);
+        const unmatched = bosses.filter((b) => !b.pokemon_id).length;
+        raids = { bosses: bosses.length, unmatched };
+        await raidStatus("ok", `${bosses.length} raid bosses (${unmatched} not tied to a RepDex row)`);
+      }
+    } catch (e) {
+      console.error(String(e));
+      await raidStatus("error", String((e as Error).message ?? e));
+      raids = { error: String(e) };
+    }
+    if (body.raids) return json({ dry, raids });
 
     const listed = parseList(await get(LIST)).filter((e) => types.has(e.type));
     if (listed.length === 0) {
@@ -82,6 +129,7 @@ Deno.serve(async (req) => {
     if (dry) {
       return json({
         dry: true,
+        raids,
         events: found.map((f) => ({
           ...f.event,
           pokemon: f.pokemon.map((p) => `${p.category}: ${p.name}${p.shiny ? " ✨" : ""} → ${p.pokemon_id ?? (p.species ? `#${p.species}` : "?")}`),
@@ -112,7 +160,7 @@ Deno.serve(async (req) => {
     const unmatched = found.flatMap((f) => f.pokemon).filter((p) => !p.pokemon_id).length;
     const msg = `${found.length} events, ${saved} Pokémon listed (${unmatched} not tied to a RepDex row)`;
     await status(found.length < listed.length ? "error" : "ok", found.length < listed.length ? `${msg}; ${listed.length - found.length} pages failed` : msg);
-    return json({ events: found.length, pokemon: saved, unmatched });
+    return json({ events: found.length, pokemon: saved, unmatched, raids });
   } catch (e) {
     await status("error", String((e as Error).message ?? e));
     return json({ error: String(e) }, 500);

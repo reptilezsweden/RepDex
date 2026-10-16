@@ -44,7 +44,9 @@ export default async function AdminEvents({ searchParams }: { searchParams: Prom
       </div>
       <p className="hint">
         Current and upcoming events from <a href="https://leekduck.com/events/" target="_blank" rel="noreferrer">Leek Duck</a>,
-        read every night (04:47 UTC). Only the “Event” type for now. Pokémon in “Pokémon Debut” and “Shiny Debut”
+        read every night (04:47 UTC). Only the “Event” type for now. The current
+        <a href="https://leekduck.com/raid-bosses/" target="_blank" rel="noreferrer"> raid bosses</a> are read at 06:01 and 10:01
+        Swedish time and on every run, into the “Raid bosses” card. Pokémon in “Pokémon Debut” and “Shiny Debut”
         sections are skipped since they’re listed again further down.
       </p>
       {error && <p className="msg error" role="alert">{error}</p>}
@@ -64,6 +66,11 @@ export default async function AdminEvents({ searchParams }: { searchParams: Prom
               </td>
               <td>Last run: {settings?.last_run_at ? fmt.format(new Date(settings.last_run_at)) : "—"}</td>
               <td className={settings?.last_status === "error" ? "error-text" : undefined}>{settings?.last_message ?? "—"}</td>
+            </tr>
+            <tr>
+              <td><span className="muted">Raids</span></td>
+              <td>Raid bosses, last run: {settings?.raids_last_run_at ? fmt.format(new Date(settings.raids_last_run_at)) : "—"}</td>
+              <td className={settings?.raids_last_status === "error" ? "error-text" : undefined}>{settings?.raids_last_message ?? "—"}</td>
             </tr>
           </tbody>
         </table>

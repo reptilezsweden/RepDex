@@ -13,6 +13,10 @@ export interface EventItem {
   image: string | null;
   species: number | null;
   shiny: boolean;
+  /** Raid level ("1", "3", "5", "Mega" …), for raid bosses only. */
+  level?: string | null;
+  /** A Shadow raid boss. */
+  shadow?: boolean;
   /** Dexes where the signed-in user is missing it; null when unknown (not signed in, or not tied to a RepDex row). */
   missingIn: string[] | null;
 }
@@ -26,13 +30,15 @@ export interface EventData {
   end: string | null;
   endsLabel: string;
   datesLabel: string;
+  /** One list without category headings (the raid bosses). */
+  flat?: boolean;
   groups: { category: string; items: EventItem[] }[];
 }
 
 export interface DexChoice { key: string; name: string; icon: Icon }
 
 type Labels = Record<
-  "current" | "upcoming" | "noCurrent" | "noUpcoming" | "noPokemon" | "count" | "missingCount" | "canBeShiny" |
+  "current" | "upcoming" | "noCurrent" | "noUpcoming" | "noPokemon" | "count" | "missingCount" | "canBeShiny" | "shadow" |
   "all" | "missing" | "show" | "dexes" | "dexesHint" | "nothingMissing" | "notSaved" | "openOnSource",
   string
 >;
@@ -85,7 +91,8 @@ export function EventsClient({ events, serverNow, labels, user }: {
     e.groups.map((g) => ({ ...g, items: g.items.filter(keep) })).filter((g) => g.items.length > 0);
 
   const live = events.filter((e) => !e.end || e.end >= now);
-  const current = live.filter((e) => !e.start || e.start <= now);
+  // The raid bosses (flat, no start) come first.
+  const current = live.filter((e) => !e.start || e.start <= now).sort((a, b) => Number(!!b.flat) - Number(!!a.flat));
   const upcoming = live.filter((e) => e.start && e.start > now);
 
   const list = (e: EventData) => {
@@ -93,7 +100,7 @@ export function EventsClient({ events, serverNow, labels, user }: {
     if (groups.length === 0) return <p className="empty">{missingOnly && e.groups.length ? labels.nothingMissing : labels.noPokemon}</p>;
     return groups.map((g) => (
       <section key={g.category} className="upcoming event-cat">
-        <h3>{g.category}</h3>
+        {!e.flat && <h3>{g.category}</h3>}
         <ul>
           {g.items.map((it) => {
             const inner = (
@@ -101,6 +108,12 @@ export function EventsClient({ events, serverNow, labels, user }: {
                 <span className="imgs"><MonImage file={it.image} size={48} /></span>
                 <span className="nm">
                   {it.name}
+                  {(it.level || it.shadow) && (
+                    <span className="raid-tags">
+                      {it.level && <span className="raid-level">{/^\d+$/.test(it.level) ? `${it.level}★` : it.level}</span>}
+                      {it.shadow && <span className="raid-shadow">{labels.shadow}</span>}
+                    </span>
+                  )}
                   {missingOnly && (
                     <span className="missing-in">
                       {(it.missingIn ?? []).filter((k) => !hidden.has(k)).map((k) => {

@@ -5,7 +5,7 @@ import { collectible, dexRows, isOn, statusOf, today } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { byDex, getTicks } from "@/lib/ticks";
-import { EventsView, type EventMon, type EventRow } from "./events-view";
+import { EventsView, RAID_EVENT, type EventMon, type EventRow } from "./events-view";
 
 export const dynamic = "force-dynamic";
 
@@ -28,20 +28,23 @@ export default async function EventsPage() {
   const { lang, t } = await getDict();
   const supabase = createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
   const now = localNow();
-  const [{ data: events }, all, profile] = await Promise.all([
+  const cols = "id, name, url, starts_at, ends_at, event_type, last_seen_at";
+  const [{ data: events }, { data: raids }, all, profile] = await Promise.all([
     // A day of slack: viewers west of Sweden still see events that have ended here; the browser filters them.
-    supabase.from("events").select("id, name, url, starts_at, ends_at").gte("ends_at", dayBefore(now)).order("starts_at").order("name"),
+    supabase.from("events").select(cols).gte("ends_at", dayBefore(now)).order("starts_at").order("name"),
+    // The current raid bosses: an event without start or end, shown first under "Happening now".
+    supabase.from("events").select(cols).eq("id", RAID_EVENT),
     getPokemon(),
     getProfile(),
   ]);
-  const list = (events ?? []) as EventRow[];
+  const list = [...((raids ?? []) as EventRow[]), ...((events ?? []) as EventRow[])];
   const ids = list.map((e) => e.id);
   const { data: mons } = ids.length
     ? await supabase.from("event_pokemon").select("*").in("event_id", ids).order("sort")
     : { data: [] as EventMon[] };
 
   let user: { id: string; dexes: { key: string; name: string; icon: ReturnType<typeof columnIcon> }[]; hidden: string[] } | undefined;
-  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean) => string[]) | undefined;
+  let missingIn: ((rowId: string, shiny: boolean, shadow: boolean, strict?: boolean) => string[]) | undefined;
   if (profile) {
     const ticksBy = byDex(await getTicks());
     const day = today();
@@ -52,10 +55,12 @@ export default async function EventsPage() {
       ids: new Set(dexRows(all, d).filter((p) => collectible(p) && statusOf(p, d, day) === "available").map((p) => p.id)),
     }));
     // Shadow and Purified (and their shinies) only count for Pokémon the event explicitly calls Shadow.
+    // Strict (raid bosses): a Shadow boss counts only for Shadow/Purified, a regular boss only for the other dexes.
     const shadowDex = (key: string) => /^(shadow|purified)/.test(key);
-    missingIn = (rowId, shiny, shadow) =>
+    missingIn = (rowId, shiny, shadow, strict = false) =>
       members
-        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny) && (!shadowDex(d.key) || shadow)
+        .filter(({ d, ids }) => ids.has(rowId) && (!d.shiny || shiny)
+          && (strict ? shadowDex(d.key) === shadow : !shadowDex(d.key) || shadow)
           && !ticksBy.get(d.key)?.get(rowId)?.collected)
         .map(({ d }) => d.key);
     user = {

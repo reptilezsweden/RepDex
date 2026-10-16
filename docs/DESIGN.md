@@ -106,6 +106,7 @@ A second crawler (Edge Function `events`, daily at 04:47 UTC, "Run now" at /admi
 - `events`: name, start and end (as listed, usually local time), page URL.
 - `event_pokemon`: each Pokémon an event page lists, with its category ("Spawns", "Raids – One-Star Raids", "Egg 7 km", "Shiny" …), whether it can be shiny, its species number and the matched RepDex row when it can be told (by image name, display name, Mega/regional prefix). "Pokémon Debut" and "Shiny Debut" sections are skipped since they repeat Pokémon listed below.
 - An event's Pokémon are replaced on every run, so edits on Leek Duck carry over. Past events stay in the table.
+- Raid bosses: the same function reads the current regular and Shadow raid bosses from [Leek Duck's raid page](https://leekduck.com/raid-bosses/) into the event `raid-bosses` (no start or end), at 06:01 and 10:01 Swedish time (pg_cron job `repdex-raids`, body `{"raids": true, "hours": [6, 10]}`) and on every events run. Each boss keeps its level (`event_pokemon.level`: "1", "3", "5", "Mega" …), Shadow and shiny marks (the shiny icon on its card). The events page shows it as the first card under "Happening now", one list with the level in each box. For Missing, raid bosses match strictly: a Shadow boss counts only for Shadow/Purified (and their shinies when it can be shiny), a regular boss only for the other dexes; forms match their own row.
 - Planned: a page showing users which Pokémon in current events they are missing.
 
 ## 2. Dexes
