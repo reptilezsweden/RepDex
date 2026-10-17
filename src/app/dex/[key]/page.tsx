@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CAUGHT_LINKED, allFormsOn, genderOn, twinsOf, collectible, dexByKey, dexEntries, displayName, isOn, speciesName, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
+import { CAUGHT_LINKED, allFormsOn, allNames, genderOn, twinsOf, collectible, dexByKey, dexEntries, displayName, isOn, speciesName, pageDexOf, shinyToggles, statusOf, today, type Dex } from "@/lib/dexes";
 import { DEX_ICON } from "@/lib/dex-icons";
 import { getGens, getPokemon } from "@/lib/data";
 import { getDict, getProfile } from "@/lib/session";
@@ -66,7 +66,7 @@ export default async function DexPage({
   const familyNames: Record<string, string> = {};
   for (const p of all) {
     const key = String(p.family ?? `s${p.species}`);
-    familyNames[key] = `${familyNames[key] ?? ""}|${p.name}|${p.alt_name ?? ""}|${p.name_ja ?? ""}|${p.alt_name_ja ?? ""}`.toLowerCase();
+    familyNames[key] = `${familyNames[key] ?? ""}|${allNames(p).join("|")}`.toLowerCase();
   }
 
   // Gender on: each card also gets a ♀ side, made of the female twins of its rows. Each tick on the

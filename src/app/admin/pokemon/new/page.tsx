@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FORM_TYPES, POKEMON_FIELDS, requireAdmin } from "@/lib/admin";
+import { FORM_TYPES, POKEMON_FIELDS, TRANSLATION_LANGS, getRowTranslations, requireAdmin } from "@/lib/admin";
 import { getGens } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { PokemonForm } from "../pokemon-form";
@@ -19,6 +19,8 @@ export default async function NewPokemon({ searchParams }: { searchParams: Promi
   const values: Record<string, unknown> = source.data
     ? { ...source.data, id: `${source.data.id}_COPY` }
     : { form_type: "Regular", dex_caught: true, dex_lucky: true };
+  // A copy starts with the source's translations too (the species name is shared anyway).
+  const translations = source.data ? await getRowTranslations(String(source.data.id), Number(source.data.species)) : {};
   values.sort_order = source.data ? Number(source.data.sort_order) : Number(last.data?.sort_order ?? 0) + 1;
 
   return (
@@ -35,6 +37,8 @@ export default async function NewPokemon({ searchParams }: { searchParams: Promi
         gens={gens.map((g) => ({ gen_nr: g.gen_nr, region: g.region }))}
         values={values}
         originalId={null}
+        langs={TRANSLATION_LANGS}
+        translations={translations}
       />
     </>
   );

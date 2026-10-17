@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FORM_TYPES, POKEMON_FIELDS, requireAdmin } from "@/lib/admin";
+import { FORM_TYPES, POKEMON_FIELDS, TRANSLATION_LANGS, getRowTranslations, requireAdmin } from "@/lib/admin";
 import { getGens } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { deletePokemon } from "../../actions";
@@ -21,6 +21,7 @@ export default async function EditPokemon({
   const supabase = await createClient();
   const [{ data }, gens] = await Promise.all([supabase.from("pokemon").select("*").eq("id", id).maybeSingle(), getGens()]);
   if (!data) notFound();
+  const translations = await getRowTranslations(id, Number(data.species));
 
   return (
     <>
@@ -42,6 +43,8 @@ export default async function EditPokemon({
         values={data}
         originalId={id}
         initialMessage={saved ? "Saved." : undefined}
+        langs={TRANSLATION_LANGS}
+        translations={translations}
       />
       <section className="panel danger-zone">
         <h2>Delete</h2>

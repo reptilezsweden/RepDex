@@ -3,7 +3,7 @@ import { MonImage } from "@/components/mon-ui";
 import type { Dict, Lang } from "@/lib/i18n";
 import { notFound, redirect } from "next/navigation";
 import {
-  BASE_DEXES, genderOn, collectible, dexByKey, displayName, isOn, shinyToggles, speciesName, statusOf, today, type Dex, type Pokemon,
+  BASE_DEXES, genderOn, collectible, requirementText, dexByKey, displayName, isOn, shinyToggles, speciesName, statusOf, today, type Dex, type Pokemon,
 } from "@/lib/dexes";
 import { getPokemon } from "@/lib/data";
 import { DEX_ICON } from "@/lib/dex-icons";
@@ -178,7 +178,7 @@ function Evolution({ rows, all, no, t, lang }: { rows: Pokemon[]; all: Pokemon[]
   const manyOwn = (list: { from: Pokemon; to: Pokemon }[], side: "from" | "to") => new Set(list.map((e) => e[side].id)).size > 1;
   const cost = (p: Pokemon) => [
     p.evolve_candy ? t.candyCost.replace("{n}", String(p.evolve_candy)) : null,
-    p.evolution_requirement || null,
+    requirementText(p, lang),
   ].filter(Boolean).join(" · ");
 
   const line = (shown: Pokemon, via: Pokemon, ownName: string | null) => (

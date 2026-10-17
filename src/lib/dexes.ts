@@ -13,6 +13,16 @@ export type DateField =
   | "released" | "release_shiny" | "release_shadow" | "release_shadow_shiny"
   | "release_dynamax" | "release_dynamax_shiny";
 
+/** A row's text in one language; anything missing falls back to English. */
+export interface PokemonText {
+  /** Species name. */
+  name?: string | null;
+  form?: string | null;
+  alt_name?: string | null;
+  /** The evolution requirement, from text_translations. */
+  requirement?: string | null;
+}
+
 export interface Pokemon {
   id: string;
   sort_order: number;
@@ -29,8 +39,11 @@ export interface Pokemon {
   name: string;
   alt_name: string | null;
   /** Japanese species name (フシギダネ) and full Japanese name of a form (ロコン（アローラのすがた）); see migration 0023. */
-  name_ja?: string | null;
-  alt_name_ja?: string | null;
+  /**
+   * Translations by language (species_names, pokemon_names, text_translations), attached by getPokemon.
+   * Female twins carry their original's. English lives in the fields above.
+   */
+  tr?: Partial<Record<string, PokemonText>>;
   /** Genders it comes in (migration 0025). */
   gender?: Gender | null;
   /** Which gender this row is (migration 0026): Male for the original of a two-gender row, Female for its twin. */
@@ -51,6 +64,8 @@ export interface Pokemon {
   evolves_from?: string | null;
   evolve_candy?: number | null;
   evolution_requirement?: string | null;
+  /** Form name in English ("Halloween 2023", "Sandy Cloak"); null for plain rows. */
+  form?: string | null;
 }
 
 export interface Dex {
@@ -379,15 +394,32 @@ function releasesWhere(all: Pokemon[], keep: (date: string) => boolean): Upcomin
     });
 }
 
-/** The row's name with its form, in the site language (Japanese falls back to English where it's missing). */
+/** The row's name with its form, in the site language (falls back to English where a translation is missing). */
 export function displayName(p: Pokemon, lang: Lang = "en"): string {
-  if (lang === "ja") return p.alt_name_ja || (p.alt_name ? p.alt_name : p.name_ja) || p.name;
-  return p.alt_name || p.name;
+  const t = lang === "en" ? undefined : p.tr?.[lang];
+  return t?.alt_name || p.alt_name || t?.name || p.name;
 }
 
 /** The species name alone, in the site language. */
 export function speciesName(p: Pokemon, lang: Lang = "en"): string {
-  return (lang === "ja" && p.name_ja) || p.name;
+  return (lang !== "en" && p.tr?.[lang]?.name) || p.name;
+}
+
+/** The form name alone, in the site language. */
+export function formName(p: Pokemon, lang: Lang = "en"): string | null {
+  return (lang !== "en" && p.tr?.[lang]?.form) || p.form || null;
+}
+
+/** The evolution requirement, in the site language. */
+export function requirementText(p: Pokemon, lang: Lang = "en"): string | null {
+  return (lang !== "en" && p.tr?.[lang]?.requirement) || p.evolution_requirement || null;
+}
+
+/** Every name a row goes by, in every language: for searches. */
+export function allNames(p: Pokemon): string[] {
+  const out = [p.name, p.alt_name ?? ""];
+  for (const t of Object.values(p.tr ?? {})) out.push(t?.name ?? "", t?.alt_name ?? "");
+  return out.filter(Boolean);
 }
 
 /** Whether a dex (regular or shiny) is switched on. Caught is always on. */

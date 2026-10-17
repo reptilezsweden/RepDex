@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 
 const SECTIONS = [
   { href: "/admin/pokemon", title: "Pokémon", text: "Search, edit, add and delete entries in the availability list." },
+  { href: "/admin/translations", title: "Translations", text: "Translate repeated texts, like evolution requirements. Names are translated on each Pokémon." },
   { href: "/admin/gens", title: "Generations", text: "Edit region names and add new generations." },
   { href: "/admin/users", title: "Users", text: "Make other users admin, or remove admin rights." },
   { href: "/admin/crawler", title: "Release-date crawler", text: "Dates found on the Pokémon GO Wiki. Review changed dates and unknown entries." },

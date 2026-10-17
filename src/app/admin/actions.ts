@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin, rowFromForm } from "@/lib/admin";
+import { requireAdmin, rowFromForm, saveRowTranslations } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminState = { error?: string; message?: string } | undefined;
@@ -27,6 +27,8 @@ export async function savePokemon(_: AdminState, form: FormData): Promise<AdminS
     return { error: res.error.code === "23505" ? `ID "${String(row.id)}" already exists. IDs must be unique.` : res.error.message };
   }
   if (!res.data?.length) return { error: "Nothing was saved. Check that you're signed in as admin." };
+  const trError = await saveRowTranslations(form, String(row.id), Number(row.species));
+  if (trError) return { error: `Saved, but the translations failed: ${trError}` };
   refresh();
   if (!originalId || originalId !== row.id) redirect(`/admin/pokemon/${encodeURIComponent(String(row.id))}?saved=1`);
   return { message: "Saved." };
@@ -86,4 +88,24 @@ export async function revertChange(form: FormData) {
   }
   refresh();
   redirect("/admin/log?reverted=" + logId);
+}
+
+/** Saves one phrase's translations (text_translations): filled-in languages are stored, emptied ones removed. */
+export async function savePhrase(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireAdmin();
+  const kind = String(form.get("kind") ?? "");
+  const source = String(form.get("source") ?? "");
+  if (!kind || !source) return { error: "Missing phrase." };
+  const supabase = await createClient();
+  for (const [key, value] of form.entries()) {
+    const lang = key.match(/^text_([a-z]{2})$/)?.[1];
+    if (!lang) continue;
+    const text = String(value).trim();
+    const res = text
+      ? await supabase.from("text_translations").upsert({ kind, source, lang, text })
+      : await supabase.from("text_translations").delete().eq("kind", kind).eq("source", source).eq("lang", lang);
+    if (res.error) return { error: res.error.message };
+  }
+  refresh();
+  return { message: "Saved." };
 }

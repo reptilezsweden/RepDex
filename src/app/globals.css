@@ -717,3 +717,9 @@ a.start-link:hover { border-color: var(--accent); }
 .bar { position: relative; }
 .bar > i.any { position: absolute; inset: 0 auto 0 0; opacity: 0.35; }
 .bar > i:not(.any) { position: relative; }
+
+/* Admin: translations of repeated phrases */
+.phrase-row { display: grid; grid-template-columns: minmax(180px, 1.2fr) repeat(2, minmax(140px, 1fr)) auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.phrase-row .phrase-source { font-weight: 600; overflow-wrap: anywhere; }
+.phrase-row .row-msg { grid-column: 1 / -1; }
+@media (max-width: 640px) { .phrase-row { grid-template-columns: 1fr; } }

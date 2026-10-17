@@ -28,8 +28,6 @@ export const POKEMON_FIELDS: FieldDef[] = [
   { name: "species", label: "Species no.", type: "int", group: "Identity", required: true },
   { name: "name", label: "Name", type: "text", group: "Identity", required: true },
   { name: "alt_name", label: "Alt name (display name for forms)", type: "text", group: "Identity" },
-  { name: "name_ja", label: "Name in Japanese (species)", type: "text", group: "Identity" },
-  { name: "alt_name_ja", label: "Alt name in Japanese (with form)", type: "text", group: "Identity" },
   { name: "gender", label: "Gender", type: "gender", group: "Identity" },
   { name: "gen_nr", label: "Generation", type: "number", group: "Identity", required: true },
   { name: "sort_order", label: "Sort order", type: "int", group: "Identity", required: true },
@@ -108,4 +106,47 @@ export async function adminPending(): Promise<Record<string, number>> {
   const supabase = await createClient();
   const { count } = await supabase.from("crawler_queue").select("id", { count: "exact", head: true }).eq("status", "pending");
   return { "/admin/crawler": count ?? 0 };
+}
+
+/** Languages with Pokémon translations in the admin (English is the pokemon table itself). */
+export const TRANSLATION_LANGS: { lang: string; label: string }[] = [
+  { lang: "ja", label: "Japanese" },
+  { lang: "sv", label: "Swedish" },
+];
+
+/** A row's translations for the admin form, keyed tr_<lang>_<field> like the form inputs. */
+export async function getRowTranslations(id: string, species: number): Promise<Record<string, string>> {
+  const supabase = await createClient();
+  const [names, rows] = await Promise.all([
+    supabase.from("species_names").select("lang,name").eq("species", species),
+    supabase.from("pokemon_names").select("lang,form,alt_name").eq("pokemon_id", id),
+  ]);
+  const out: Record<string, string> = {};
+  for (const n of names.data ?? []) out[`tr_${n.lang}_name`] = n.name ?? "";
+  for (const r of rows.data ?? []) {
+    out[`tr_${r.lang}_form`] = r.form ?? "";
+    out[`tr_${r.lang}_alt_name`] = r.alt_name ?? "";
+  }
+  return out;
+}
+
+/** Saves the translation inputs of the Pokémon form: filled-in values are stored, emptied ones removed. */
+export async function saveRowTranslations(form: FormData, id: string, species: number): Promise<string | null> {
+  const supabase = await createClient();
+  const get = (lang: string, f: string) => String(form.get(`tr_${lang}_${f}`) ?? "").trim() || null;
+  for (const { lang } of TRANSLATION_LANGS) {
+    if (!form.has(`tr_${lang}_name`)) continue;
+    const name = get(lang, "name");
+    const r1 = name
+      ? await supabase.from("species_names").upsert({ species, lang, name })
+      : await supabase.from("species_names").delete().eq("species", species).eq("lang", lang);
+    if (r1.error) return r1.error.message;
+    const formName = get(lang, "form");
+    const alt = get(lang, "alt_name");
+    const r2 = formName || alt
+      ? await supabase.from("pokemon_names").upsert({ pokemon_id: id, lang, form: formName, alt_name: alt })
+      : await supabase.from("pokemon_names").delete().eq("pokemon_id", id).eq("lang", lang);
+    if (r2.error) return r2.error.message;
+  }
+  return null;
 }

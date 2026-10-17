@@ -10,8 +10,11 @@ const NO_SHADOW_DYNAMAX = ["Mega", "Gigantamax", "Battle-Only Form"];
 const SHADOW_DYNAMAX_FIELDS = ["release_shadow", "release_shadow_shiny", "release_dynamax", "release_dynamax_shiny"];
 
 export function PokemonForm({
-  fields, formTypes, gens, values, originalId, initialMessage,
+  fields, formTypes, gens, values, originalId, initialMessage, langs, translations = {},
 }: {
+  /** Languages with translation inputs; translations holds their values as tr_<lang>_<field>. */
+  langs: { lang: string; label: string }[];
+  translations?: Record<string, string>;
   fields: FieldDef[];
   formTypes: string[];
   gens: { gen_nr: number; region: string }[];
@@ -86,6 +89,21 @@ export function PokemonForm({
           </div>
         </section>
       ))}
+
+      <section className="panel">
+        <h2>Translations</h2>
+        <p className="note">Empty fields show the English text. The name is shared by every form of the species.</p>
+        {langs.map(({ lang, label }) => (
+          <div key={lang} className="admin-fields">
+            {([["name", "Name (species)"], ["form", "Form"], ["alt_name", "Alt name (with form)"]] as const).map(([f, l]) => (
+              <div key={f} className="field">
+                <label htmlFor={`tr-${lang}-${f}`}>{label}: {l}</label>
+                <input id={`tr-${lang}-${f}`} name={`tr_${lang}_${f}`} defaultValue={translations[`tr_${lang}_${f}`] ?? ""} type="text" lang={lang} />
+              </div>
+            ))}
+          </div>
+        ))}
+      </section>
 
       {state?.error && <p className="msg error" role="alert">{state.error}</p>}
       {state?.message && <p className="msg" role="status">{state.message}</p>}

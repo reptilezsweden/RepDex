@@ -250,6 +250,6 @@ With the site in Japanese, Pokémon show their Japanese names: species and main-
 | Hosting | Vercel | Deploys from the RepDex repo |
 | Crawlers | Supabase Edge Function + pg_cron, daily | Code in supabase/functions/crawler |
 | Images | RepDex Images folder via the jsDelivr CDN | Cached delivery of the 256x256 assets |
-| Languages | English, Swedish and Japanese translation files; Japanese Pokémon names in `pokemon.name_ja` / `alt_name_ja` | English default |
+| Languages | English, Swedish and Japanese translation files; Pokémon text translated in `species_names`, `pokemon_names` and `text_translations` (English stays in `pokemon`) | English default |
 
 Supabase free plan: 500 MB database, 50,000 monthly active users, and the project pauses after a week without activity ([pricing](https://supabase.com/pricing)).
