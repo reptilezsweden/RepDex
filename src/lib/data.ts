@@ -10,10 +10,12 @@ const COLUMNS =
 
 const PAGE = 1000; // Supabase returns at most 1,000 rows per request.
 
+const plainClient = () => createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+
 /** The full availability list. Public data, cached for 1 minute across requests. */
 export const getPokemon = unstable_cache(
   async (): Promise<Pokemon[]> => {
-    const supabase = createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+    const supabase = plainClient();
     const all: Pokemon[] = [];
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await supabase
@@ -47,26 +49,27 @@ export const getPokemon = unstable_cache(
   { revalidate: 60, tags: ["pokemon"] },
 );
 
-type Client = ReturnType<typeof createPlainClient>;
-
-/** Every row of a table, paged past the 1,000-row limit. */
-async function allRows<T>(supabase: Client, table: string, columns: string): Promise<T[]> {
+/** Every row of a query, paged past the 1,000-row limit. */
+async function paged<T>(page: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>): Promise<T[]> {
   const out: T[] = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase.from(table).select(columns).range(from, from + PAGE - 1);
+    const { data, error } = await page(from, from + PAGE - 1);
     if (error) throw error;
-    out.push(...((data ?? []) as unknown as T[]));
-    if (!data || data.length < PAGE) break;
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < PAGE) break;
   }
   return out;
 }
 
 /** The translation tables (migration 0028), keyed for lookups. */
-async function getTranslations(supabase: Client) {
+async function getTranslations(supabase: ReturnType<typeof plainClient>) {
   const [species, rows, phrases] = await Promise.all([
-    allRows<{ species: number; lang: string; name: string }>(supabase, "species_names", "species,lang,name"),
-    allRows<{ pokemon_id: string; lang: string; form: string | null; alt_name: string | null }>(supabase, "pokemon_names", "pokemon_id,lang,form,alt_name"),
-    allRows<{ kind: string; source: string; lang: string; text: string }>(supabase, "text_translations", "kind,source,lang,text"),
+    paged<{ species: number; lang: string; name: string }>((a, b) => supabase.from("species_names").select("species,lang,name").range(a, b)),
+    paged<{ pokemon_id: string; lang: string; form: string | null; alt_name: string | null }>((a, b) =>
+      supabase.from("pokemon_names").select("pokemon_id,lang,form,alt_name").range(a, b)),
+    paged<{ kind: string; source: string; lang: string; text: string }>((a, b) =>
+      supabase.from("text_translations").select("kind,source,lang,text").range(a, b)),
   ]);
   return {
     langs: [...new Set([...species, ...rows, ...phrases].map((x) => x.lang))],
