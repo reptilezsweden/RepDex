@@ -4,6 +4,7 @@ import "./globals.css";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "./auth-actions";
 import { MenuButton } from "./menu-button";
+import { UnsavedGuard } from "./unsaved-guard";
 import { LanguagePicker } from "./language-picker";
 import { ServiceWorker } from "./sw-register";
 
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <MenuButton label={t.menu}>{links("lang-menu")}</MenuButton>
         </header>
         <main>{children}</main>
+        <UnsavedGuard message={t.unsavedWarning} />
         <ServiceWorker />
       </body>
     </html>

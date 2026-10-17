@@ -29,7 +29,7 @@ export default async function AdminLog({ searchParams }: { searchParams: Promise
         <h1>Change log</h1>
         <span className="count">Latest {LIMIT}</span>
       </div>
-      <form className="filters" style={{ gridTemplateColumns: "1fr auto" }}>
+      <form className="filters" data-no-guard style={{ gridTemplateColumns: "1fr auto" }}>
         <input type="search" name="q" defaultValue={q} placeholder="Filter by ID, e.g. 0150" aria-label="Filter by ID" />
         <button className="btn ghost">Filter</button>
       </form>
