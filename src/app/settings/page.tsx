@@ -31,7 +31,6 @@ export default async function SettingsPage() {
           return {
             value: x.keys.join(","), base: x.base, needs: x.needs,
             name: x.keys[0] === "shiny" ? t.shinySetting : x.keys[0] === "shiny3" ? t.shiny3Setting : t.shinyOfSetting.replace("{name}", group.name[lang]),
-            help: x.keys[0] === "shiny" ? t.shinyHelp : x.keys[0] === "shiny3" ? t.shiny3Help : t.shinyOfHelp.replace("{name}", group.name[lang]),
             on: isOn(x.keys[0], profile.visible_dexes),
             notInGame: special ? x.keys[0] === "shiny3" : !!dexByKey(x.keys[0])?.notInGame,
           };

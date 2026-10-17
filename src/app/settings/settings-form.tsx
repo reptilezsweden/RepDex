@@ -26,7 +26,7 @@ export function SettingsForm({
   /** One switch per dex group that has an All forms version; value is the group's dex keys. */
   allForms: { value: string; name: string; on: boolean }[];
   /** Shiny switches (SHINY_SETTINGS): value is the dex keys, base the settings group it belongs to. */
-  shinies: { value: string; base: string; needs?: string; name: string; help: string; on: boolean; notInGame: boolean }[];
+  shinies: { value: string; base: string; needs?: string; name: string; on: boolean; notInGame: boolean }[];
   dexes: { key: string; name: string; on: boolean; locked: boolean; notInGame: boolean }[];
   /** One switch per dex group for ticking male and female separately; value is the group's first key. */
   genders: { value: string; name: string; on: boolean }[];
@@ -92,17 +92,15 @@ export function SettingsForm({
 
       <section className="panel">
         <h2>{t.checkShiny}</h2>
-        <div className="shiny-cols">
+        <div className="checks">
           {shinies.map((x) => (
-            <div key={x.value}>
-              <Box name="shiny_dex" value={x.value} on={!!shinyOn[x.value]} set={(v) => setShiny(x.value, v)} off={shinyOff(x)}>
-                {x.name}
-                {x.notInGame && <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>}
-              </Box>
-              <p className={`help${shinyOff(x) ? " greyed" : ""}`}>{x.help}</p>
-            </div>
+            <Box key={x.value} name="shiny_dex" value={x.value} on={!!shinyOn[x.value]} set={(v) => setShiny(x.value, v)} off={shinyOff(x)}>
+              {x.name}
+              {x.notInGame && <span className="not-in-game small" title={t.notInGameHelp}>{t.notInGame}</span>}
+            </Box>
           ))}
         </div>
+        <p className="help">{t.shinyCommonHelp}</p>
       </section>
 
       <section className="panel">
