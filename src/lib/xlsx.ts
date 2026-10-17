@@ -1,4 +1,4 @@
-// Minimal .xlsx writer and reader: one sheet of plain values. Enough for the collection
+// Minimal .xlsx writer and reader: sheets of plain values. Enough for the collection
 // spreadsheet without pulling in a spreadsheet library. Server only (uses node:zlib).
 import { deflateRawSync, inflateRawSync } from "node:zlib";
 
@@ -136,12 +136,20 @@ const colIndex = (letters: string) => [...letters].reduce((n, ch) => n * 26 + ch
 
 // ---- write ----
 
-/** Builds an .xlsx file with one sheet. The first row is bold and frozen. */
-export function writeXlsx(sheetName: string, rows: Cell[][], colWidths: number[] = []): Uint8Array {
-  const sheetRows = rows.map((row, r) => {
+export interface SheetSpec {
+  name: string;
+  rows: Cell[][];
+  colWidths?: number[];
+  /** First row bold, frozen and filterable (default true). Off for text sheets like instructions. */
+  header?: boolean;
+}
+
+function sheetXml(sh: SheetSpec): string {
+  const header = sh.header !== false;
+  const sheetRows = sh.rows.map((row, r) => {
     const cells = row.map((v, c) => {
       const ref = `${colName(c)}${r + 1}`;
-      const style = r === 0 ? ' s="1"' : "";
+      const style = header && r === 0 ? ' s="1"' : "";
       if (v === null || v === "") return "";
       if (typeof v === "boolean") return `<c r="${ref}"${style} t="b"><v>${v ? 1 : 0}</v></c>`;
       if (typeof v === "number") return `<c r="${ref}"${style}><v>${v}</v></c>`;
@@ -149,15 +157,30 @@ export function writeXlsx(sheetName: string, rows: Cell[][], colWidths: number[]
     }).join("");
     return `<row r="${r + 1}">${cells}</row>`;
   }).join("");
-  const cols = colWidths.length
-    ? `<cols>${colWidths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>`
+  const widths = sh.colWidths ?? [];
+  const cols = widths.length
+    ? `<cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>`
     : "";
-  const last = `${colName(Math.max(1, ...rows.map((r) => r.length)) - 1)}${Math.max(1, rows.length)}`;
+  const last = `${colName(Math.max(1, ...sh.rows.map((r) => r.length)) - 1)}${Math.max(1, sh.rows.length)}`;
+  const view = header
+    ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/>${view}${cols}<sheetData>${sheetRows}</sheetData>${header ? `<autoFilter ref="A1:${last}"/>` : ""}</worksheet>`;
+}
 
+/** Sheet names: at most 31 characters, none of : \ / ? * [ ]. */
+export const sheetName = (s: string) => s.replace(/[:\\/?*[\]]/g, "-").slice(0, 31);
+
+/** Builds an .xlsx file with one or more sheets, in order. */
+export function writeXlsxBook(sheets: SheetSpec[]): Uint8Array {
+  const n = sheets.length;
+  const ids = sheets.map((_, i) => i + 1);
   return zip([
     {
       name: "[Content_Types].xml",
-      data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+      data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        + ids.map((i) => `<Override PartName="/xl/worksheets/sheet${i}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")
+        + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
     },
     {
       name: "_rels/.rels",
@@ -165,21 +188,27 @@ export function writeXlsx(sheetName: string, rows: Cell[][], colWidths: number[]
     },
     {
       name: "xl/workbook.xml",
-      data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${esc(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+      data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+        + sheets.map((sh, i) => `<sheet name="${esc(sheetName(sh.name))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")
+        + "</sheets></workbook>",
     },
     {
       name: "xl/_rels/workbook.xml.rels",
-      data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+      data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        + ids.map((i) => `<Relationship Id="rId${i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i}.xml"/>`).join("")
+        + `<Relationship Id="rId${n + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
     },
     {
       name: "xl/styles.xml",
       data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>',
     },
-    {
-      name: "xl/worksheets/sheet1.xml",
-      data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>${cols}<sheetData>${sheetRows}</sheetData><autoFilter ref="A1:${last}"/></worksheet>`,
-    },
+    ...sheets.map((sh, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(sh) })),
   ]);
+}
+
+/** Builds an .xlsx file with one sheet. The first row is bold and frozen. */
+export function writeXlsx(name: string, rows: Cell[][], colWidths: number[] = []): Uint8Array {
+  return writeXlsxBook([{ name, rows, colWidths }]);
 }
 
 // ---- read ----
@@ -189,28 +218,8 @@ const attr = (tag: string, name: string) => tag.match(new RegExp(`\\s${name}="([
 /** Text of every <t> inside a fragment (rich text runs are joined). */
 const texts = (xml: string) => [...xml.matchAll(/<(?:\w+:)?t(?:\s[^>]*)?>([\s\S]*?)<\/(?:\w+:)?t>/g)].map((m) => unesc(m[1])).join("");
 
-/** Reads the first sheet of an .xlsx file as rows of cell values (booleans stay booleans). */
-export function readXlsx(buf: Uint8Array): Cell[][] {
-  const files = unzip(buf);
-  const strip = (s: string) => s.replace(/^\/+/, "");
-
-  // First sheet in workbook order.
-  let sheetPath = "xl/worksheets/sheet1.xml";
-  const wb = files.get("xl/workbook.xml");
-  const rels = files.get("xl/_rels/workbook.xml.rels");
-  if (wb && rels) {
-    const first = wb.match(/<(?:\w+:)?sheet\s[^>]*>/)?.[0];
-    const rid = first && (attr(first, "r:id") ?? attr(first, "\\w+:id"));
-    const rel = rid && [...rels.matchAll(/<Relationship\s[^>]*>/g)].map((m) => m[0]).find((r) => attr(r, "Id") === rid);
-    const target = rel && attr(rel, "Target");
-    if (target) sheetPath = target.startsWith("/") ? strip(target) : `xl/${target.replace(/^\.\//, "")}`;
-  }
-  const sheet = files.get(sheetPath);
-  if (!sheet) throw new Error("no worksheet found");
-
-  const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<(?:\w+:)?si>([\s\S]*?)<\/(?:\w+:)?si>/g)]
-    .map((m) => texts(m[1].replace(/<(?:\w+:)?rPh[\s\S]*?<\/(?:\w+:)?rPh>/g, "")));
-
+/** Reads one worksheet's XML as rows of cell values (booleans stay booleans). */
+function readSheet(sheet: string, shared: string[]): Cell[][] {
   const rows: Cell[][] = [];
   for (const rm of sheet.matchAll(/<(?:\w+:)?row(\s[^>]*)?(?:\/>|>([\s\S]*?)<\/(?:\w+:)?row>)/g)) {
     const rAttr = rm[1] ? attr(rm[1], "r") : undefined;
@@ -239,6 +248,37 @@ export function readXlsx(buf: Uint8Array): Cell[][] {
   }
   for (let i = 0; i < rows.length; i++) if (!rows[i]) rows[i] = [];
   return rows;
+}
+
+/** Reads every sheet of an .xlsx file, in workbook order, with its name. */
+export function readXlsxSheets(buf: Uint8Array): { name: string; rows: Cell[][] }[] {
+  const files = unzip(buf);
+  const strip = (s: string) => s.replace(/^\/+/, "");
+  const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<(?:\w+:)?si>([\s\S]*?)<\/(?:\w+:)?si>/g)]
+    .map((m) => texts(m[1].replace(/<(?:\w+:)?rPh[\s\S]*?<\/(?:\w+:)?rPh>/g, "")));
+  const wb = files.get("xl/workbook.xml") ?? "";
+  const rels = [...(files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship\s[^>]*>/g)].map((m) => m[0]);
+  const out: { name: string; rows: Cell[][] }[] = [];
+  for (const m of wb.matchAll(/<(?:\w+:)?sheet\s[^>]*>/g)) {
+    const tag = m[0];
+    const rid = attr(tag, "r:id") ?? attr(tag, "\\w+:id");
+    const target = rid ? attr(rels.find((r) => attr(r, "Id") === rid) ?? "", "Target") : undefined;
+    if (!target) continue;
+    const path = target.startsWith("/") ? strip(target) : `xl/${target.replace(/^\.\//, "")}`;
+    const sheet = files.get(path);
+    if (sheet) out.push({ name: unesc(attr(tag, "name") ?? ""), rows: readSheet(sheet, shared) });
+  }
+  if (out.length === 0) {
+    const sheet = files.get("xl/worksheets/sheet1.xml");
+    if (!sheet) throw new Error("no worksheet found");
+    out.push({ name: "Sheet1", rows: readSheet(sheet, shared) });
+  }
+  return out;
+}
+
+/** Reads the first sheet of an .xlsx file as rows of cell values. */
+export function readXlsx(buf: Uint8Array): Cell[][] {
+  return readXlsxSheets(buf)[0].rows;
 }
 
 /** Reads a CSV file (comma, semicolon or tab separated, as Excel and Google Sheets save them). */

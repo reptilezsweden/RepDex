@@ -726,3 +726,15 @@ a.start-link:hover { border-color: var(--accent); }
 
 /* Settings: app version at the bottom */
 .app-version { margin: 24px 0 8px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+/* Settings: collection spreadsheet upload report */
+.sheet-summary table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 6px 0; }
+.sheet-summary th, .sheet-summary td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sheet-summary th { color: var(--muted); font-weight: 600; }
+.sheet-summary tr.changed td:nth-child(3) { font-weight: 600; }
+.sheet-summary td:last-child, .sheet-summary th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.sheet-rules { margin: 6px 0; padding-left: 18px; font-size: 0.85rem; }
+.sheet-skipped { margin: 8px 0; }
+.sheet-skipped summary { cursor: pointer; }
+.sheet-skipped .btn { margin: 6px 0; }
+.sheet-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }

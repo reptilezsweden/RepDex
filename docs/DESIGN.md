@@ -200,26 +200,23 @@ In game progress is calculated, not stored: a species counts as collected when a
 
 ### Spreadsheet download and upload
 
-Users can fill in their collection in a spreadsheet instead of tapping through the app.
+Users can fill in their whole collection in a spreadsheet instead of tapping through the app. The file and the upload report are in English only.
 
-1. Download a spreadsheet of all entries as .xlsx, which opens in both Excel and Google Sheets.
-2. Fill it in, changing TRUE/FALSE in the two tick columns.
-3. Upload it; the app updates the Caught and Shiny dexes from the tick columns, matching rows by ID.
+1. Download an .xlsx (opens in Excel and Google Sheets). It holds every dex the user shows in Settings.
+2. Fill it in: TRUE (ticked), FALSE or empty (not ticked), WANTED (ticked and wanted; not for Shadow/Purified).
+3. Upload it. The app first shows what would change, and saves only after **Save changes**.
 
-| Column | Content | Editable |
-| --- | --- | --- |
-| caught | TRUE/FALSE, the user's current Caught tick | Yes |
-| caught\_shiny | TRUE/FALSE, the user's current Shiny tick | Yes |
-| ID | Entry key | No, used to match rows |
-| form\_type | Regular, Costume, Mega… | No |
-| species | Species number | No |
-| name | alt\_name when filled, otherwise name | No |
+**Tabs.** An *Instructions* tab, then one tab per dex group as on the Dexes page (Caught, Shiny, Lucky, XXL-XXS, Shadow-Purified, Mega, Gigantamax, Dynamax, Costume-Event, 100%), with a column per switched-on dex in the group, named by dex key (`caught`, `shiny3`, `shadow_shiny`…).
 
-Faulty rows, such as an unknown ID or a tick value other than TRUE/FALSE, are skipped and the rest of the upload goes through. Afterwards the user sees a report:
+**Rows.** Every form that can be ticked in that tab today (always all forms), columns `ID, No, Name, Form type` first. Where a dex in the tab tracks gender, a ♀ row (the female twin) follows its ♂ row. Cells are left empty, and ignored on upload, where that version isn't released or the ♀ row's dex doesn't track gender.
 
-- x unchanged rows
-- x updated rows
-- A list of the faulty rows with the reason for each
+**Upload rules**, the same as in the app:
+
+- A tick needs its parent (a shiny its regular dex, Shiny ⭐⭐⭐ its Shiny; Lucky, XXL, XXS and 100% Caught). A parent missing from the file is ticked too; a parent the file sets to FALSE makes the cell a skipped one, unless it was already ticked, in which case the rule unticks it.
+- Unticking a dex unticks what depends on it, also in dexes not in the file.
+- Rule changes are shown apart from the file's own changes. Dexes, tabs or columns not in the file are left as they are.
+
+**Report.** Per tab and dex: ticked, unticked, newly wanted, no longer wanted, unchanged; rule changes; ignored tabs and columns. Skipped cells and rows are grouped per tab (tab · row · ID · column: reason) in a fold-out with a Copy list button. After saving: the total and a link to the Dexes page.
 
 ### Functions
 
