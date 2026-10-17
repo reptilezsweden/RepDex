@@ -559,7 +559,7 @@ a.start-link:hover { border-color: var(--accent); }
 .search-phrase .copy-state { flex: none; color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
 .search-phrase:hover { border-color: var(--accent); }
 /* Search phrase with its game-language switch (English or Japanese keywords). */
-.search-row { display: flex; align-items: flex-start; gap: 8px; }
+.search-row { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
 .search-row .search-phrase { flex: 1; min-width: 0; }
 .search-row .game-lang { flex: none; }
 .search-row .game-lang button { font-size: 0.8rem; }
@@ -738,3 +738,6 @@ a.start-link:hover { border-color: var(--accent); }
 .sheet-skipped summary { cursor: pointer; }
 .sheet-skipped .btn { margin: 6px 0; }
 .sheet-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+
+/* Wishlists: Save as image next to the search phrase */
+.search-row .save-image { flex: none; }

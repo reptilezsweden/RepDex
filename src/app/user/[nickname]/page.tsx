@@ -72,7 +72,7 @@ export default async function PublicUserPage({ params }: { params: Promise<{ nic
         <span className="count">{t.wishlists}</span>
       </div>
       <p className="note">{t.publicWishlistsHelp}</p>
-      <WishlistTabs lists={lists} t={t} lang={lang} />
+      <WishlistTabs lists={lists} t={t} lang={lang} owner={rows[0].nickname} />
     </>
   );
 }

@@ -7,6 +7,7 @@ import { dexByKey } from "@/lib/dexes";
 import type { Dict, Lang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import type { Wishlist } from "@/lib/wishlists";
+import { wishlistImages } from "@/lib/wishlist-image";
 
 /** The icon a dex ticks with: its badge, a star for Shiny / Shiny ⭐⭐⭐, else the checkmark. */
 function DexMark({ dex, lang }: { dex: string; lang: Lang }) {
@@ -61,8 +62,53 @@ function SearchPhrase({ text, t }: { text: string; t: Dict }) {
 /** Search phrases come in the trading partner's game language; this browser remembers the choice. */
 const GAME_LANG_KEY = "rd-search-lang";
 
-export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = [], initialLowest = false }: {
+/** Saves the list as picture(s): the share sheet where the browser can share files (phones), else downloads. */
+function SaveImage({ list, owner, gameLang, t }: { list: Wishlist; owner?: string; gameLang: "en" | "ja"; t: Dict }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  async function save() {
+    setBusy(true);
+    setFailed(false);
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      const blobs = await wishlistImages({
+        title: list.name, owner, date, items: list.items, search: gameLang === "ja" ? list.searchJa : list.search,
+        searchLabel: t.searchPhrase, part: (n, of) => t.imagePart.replace("{n}", String(n)).replace("{of}", String(of)),
+      });
+      const slug = `${(owner ?? "RepDex").replace(/[^A-Za-z0-9]/g, "")}-${list.key}-${date}`;
+      const files = blobs.map((b, i) => new File([b], `${slug}${blobs.length > 1 ? `-${i + 1}` : ""}.png`, { type: "image/png" }));
+      const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
+      if (nav.canShare?.({ files }) && window.matchMedia("(pointer: coarse)").matches) {
+        try { await navigator.share({ files, title: list.name }); } catch { /* cancelled */ }
+      } else {
+        for (const f of files) {
+          const url = URL.createObjectURL(f);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = f.name;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+      }
+    } catch {
+      setFailed(true);
+    }
+    setBusy(false);
+  }
+  return (
+    <>
+      <button type="button" className="btn ghost save-image" onClick={save} disabled={busy}>
+        {busy ? t.loading : t.saveAsImage}
+      </button>
+      {failed && <span className="msg error">{t.errorGeneric}</span>}
+    </>
+  );
+}
+
+export function WishlistTabs({ lists, t, lang = "en", userId, owner, initialPublic = [], initialLowest = false }: {
   lists: Wishlist[];
+  /** Nickname shown on saved pictures. */
+  owner?: string;
   t: Dict;
   lang?: Lang;
   userId?: string;
@@ -177,6 +223,7 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
                 <button type="button" aria-pressed={gameLang === "en"} onClick={() => chooseGameLang("en")}>EN</button>
                 <button type="button" aria-pressed={gameLang === "ja"} onClick={() => chooseGameLang("ja")}>日本語</button>
               </span>
+              <SaveImage list={current} owner={owner} gameLang={gameLang} t={t} />
             </div>
             <ul className="wish-grid">
               {current.items.map((i) => (

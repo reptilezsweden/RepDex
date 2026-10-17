@@ -602,6 +602,14 @@ export function DexGrid({
           onConfirm={runBulk}
           onCancel={() => setBulk(null)}
         >
+          {genderedDexes.length > 0 && (
+            <p className="note bulk-gender">
+              {(bulk.action === "check" ? t.bulkGenderCheck : t.bulkGenderUncheck).replace(
+                "{dexes}",
+                targets.filter((tg) => genderedDexes.includes(tg === "regular" ? dexKey : tg)).map(label).join(", "),
+              )}
+            </p>
+          )}
           <div className="bulk-choices">
             {targets.map((tg) => {
               const n = bulkCards(bulk.action, tg).length;
