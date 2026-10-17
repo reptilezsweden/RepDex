@@ -133,6 +133,21 @@ export const SETTING_GROUPS: { keys: string[]; name: { en: string; sv: string; j
   { keys: ["costumes"], name: { en: "Costume/Event", sv: "Kostym/Event", ja: "コスチューム/イベント" } },
 ];
 
+/**
+ * The shiny switches in the settings, each for the dexes in keys. base is the settings group
+ * (its first key) the switch belongs to: its switches grey out while that dex is hidden.
+ * Shiny ⭐⭐⭐ also needs Show shiny (needs).
+ */
+export const SHINY_SETTINGS: { keys: string[]; base: string; needs?: string }[] = [
+  { keys: ["shiny"], base: "caught" },
+  { keys: ["shiny3"], base: "caught", needs: "shiny" },
+  { keys: ["shadow_shiny", "purified_shiny"], base: "shadow" },
+  { keys: ["mega_shiny"], base: "mega" },
+  { keys: ["gigantamax_shiny"], base: "gigantamax" },
+  { keys: ["dynamax_shiny"], base: "dynamax" },
+  { keys: ["costumes_shiny"], base: "costumes" },
+];
+
 /** Whether the user has the All forms version of a dex switched on. */
 export function allFormsOn(key: string, profile: { all_forms_dexes?: string[] | null; all_forms?: boolean }): boolean {
   const d = dexByKey(key);

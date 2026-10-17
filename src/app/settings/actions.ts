@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { ALWAYS_ON, BASE_DEXES, GENDER_GROUPS, SETTING_GROUPS, SHINY_KEYS } from "@/lib/dexes";
+import { ALWAYS_ON, BASE_DEXES, GENDER_GROUPS, SETTING_GROUPS, SHINY_SETTINGS } from "@/lib/dexes";
 import { LANG_COOKIE, asLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,11 +21,11 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   // Gender: one entry per gender group (its first dex key); see genderGroup for who follows whom.
   const genderChosen = new Set(form.getAll("gender_dex").map(String));
   const genderDexes = GENDER_GROUPS.map((g) => g.keys[0]).filter((k) => genderChosen.has(k));
-  // Caught is always on; "Show shiny" switches every shiny star except Shiny ⭐⭐⭐, which has its own choice.
+  // Caught is always on; each shiny switch stands for its shiny dexes (Shadow/Purified: both).
+  const shinyChosen = new Set(form.getAll("shiny_dex").flatMap((v) => String(v).split(",")));
   const visible = [
     ...BASE_DEXES.filter((d) => d.key === ALWAYS_ON || chosen.has(d.key)).map((d) => d.key),
-    ...(form.get("shiny") === "on" ? SHINY_KEYS : []),
-    ...(form.get("shiny3") === "on" ? ["shiny3"] : []),
+    ...SHINY_SETTINGS.flatMap((x) => x.keys).filter((k) => shinyChosen.has(k)),
   ];
   const { error } = await supabase
     .from("profiles")

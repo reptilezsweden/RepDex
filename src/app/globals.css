@@ -466,6 +466,8 @@ a.start-link:hover { border-color: var(--accent); }
 .icon-tray .other-form { position: static; width: 22px; height: 30px; }
 .mon.collected .icon-tray { border-top-color: color-mix(in srgb, var(--done) 35%, var(--line)); }
 .shiny-cols { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+/* Settings for a dex that's switched off: kept, but greyed out until the dex is on again. */
+.check.greyed, .help.greyed { opacity: 0.45; }
 @media (min-width: 560px) { .shiny-cols { grid-template-columns: 1fr 1fr; } }
 .topbar .brand .beta { margin-left: 8px; font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 

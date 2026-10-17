@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ALWAYS_ON, GENDER_GROUPS, SETTING_GROUPS, SHINY_KEYS, allFormsOn, dexByKey, genderOn, isOn } from "@/lib/dexes";
+import { ALWAYS_ON, GENDER_GROUPS, SETTING_GROUPS, SHINY_SETTINGS, allFormsOn, dexByKey, genderOn, isOn } from "@/lib/dexes";
 import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "../auth-actions";
 import { CollectionForm } from "./collection-form";
@@ -25,8 +25,17 @@ export default async function SettingsPage() {
         allForms={SETTING_GROUPS
           .filter((g) => !dexByKey(g.keys[0])!.everyRow)
           .map((g) => ({ value: g.keys.join(","), name: g.name[lang], on: allFormsOn(g.keys[0], profile) }))}
-        shiny={SHINY_KEYS.some((k) => isOn(k, profile.visible_dexes))}
-        shiny3={isOn("shiny3", profile.visible_dexes)}
+        shinies={SHINY_SETTINGS.map((x) => {
+          const group = SETTING_GROUPS.find((g) => g.keys[0] === x.base)!;
+          const special = x.keys[0] === "shiny" || x.keys[0] === "shiny3";
+          return {
+            value: x.keys.join(","), base: x.base, needs: x.needs,
+            name: x.keys[0] === "shiny" ? t.shinySetting : x.keys[0] === "shiny3" ? t.shiny3Setting : t.shinyOfSetting.replace("{name}", group.name[lang]),
+            help: x.keys[0] === "shiny" ? t.shinyHelp : x.keys[0] === "shiny3" ? t.shiny3Help : t.shinyOfHelp.replace("{name}", group.name[lang]),
+            on: isOn(x.keys[0], profile.visible_dexes),
+            notInGame: special ? x.keys[0] === "shiny3" : !!dexByKey(x.keys[0])?.notInGame,
+          };
+        })}
         genders={GENDER_GROUPS.map((g) => ({ value: g.keys[0], name: g.name[lang], on: genderOn(g.keys[0], profile) }))}
         dexes={SETTING_GROUPS.map((g) => ({
           key: g.keys.join(","), name: g.name[lang], on: isOn(g.keys[0], profile.visible_dexes),
