@@ -65,13 +65,36 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, maxLin
   return lines;
 }
 
-const FONT = '-apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif';
+const FONT_FALLBACK = '-apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif';
+let FONT = FONT_FALLBACK;
+
+/** The site's colours as they are right now (light or dark theme), from its CSS variables. */
+function palette() {
+  const css = getComputedStyle(document.documentElement);
+  const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+  return {
+    bg: v("--bg", "#f6f5f2"), surface: v("--surface", "#ffffff"), text: v("--text", "#1c1b19"),
+    muted: v("--muted", "#6b6862"), line: v("--line", "#e3e0da"), accent: v("--accent", "#2f8f5b"),
+  };
+}
+
+function loadUrl(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
 
 /** The pictures for a list: one per PER_IMAGE Pokémon. */
 export async function wishlistImages(opts: {
   title: string; owner?: string; date: string; search: string; items: WishItem[]; part: (n: number, of: number) => string; searchLabel: string;
 }): Promise<Blob[]> {
   const pics = await Promise.all(opts.items.map((i) => loadImage(i.image)));
+  const icon = await loadUrl("/icons/icon-192.png");
+  const c = palette();
+  FONT = getComputedStyle(document.body).fontFamily || FONT_FALLBACK;
   const pages: { items: WishItem[]; pics: (HTMLImageElement | null)[] }[] = [];
   for (let i = 0; i < opts.items.length; i += PER_IMAGE) {
     pages.push({ items: opts.items.slice(i, i + PER_IMAGE), pics: pics.slice(i, i + PER_IMAGE) });
@@ -92,30 +115,45 @@ export async function wishlistImages(opts: {
     canvas.width = W;
     canvas.height = head + rows * CELL_H + foot;
 
-    ctx.fillStyle = "#f6f7f9";
+    ctx.fillStyle = c.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Title
-    ctx.fillStyle = "#1b1f24";
+    ctx.fillStyle = c.text;
     ctx.font = `700 40px ${FONT}`;
     ctx.textBaseline = "alphabetic";
     ctx.fillText(opts.title, PAD, 58);
     ctx.font = `400 22px ${FONT}`;
-    ctx.fillStyle = "#5f6b7a";
+    ctx.fillStyle = c.muted;
     const sub = [opts.owner, opts.date, pages.length > 1 ? opts.part(n + 1, pages.length) : null, `${opts.items.length}`].filter(Boolean).join(" · ");
     ctx.fillText(sub, PAD, 92);
-    ctx.textAlign = "right";
-    ctx.font = `700 24px ${FONT}`;
-    ctx.fillStyle = "#c0392b";
-    ctx.fillText("RepDex", W - PAD, 58);
+    // The site's logo, as in the top bar: icon, then "Rep" in the text colour and "Dex" in the accent colour.
+    ctx.font = `700 26px ${FONT}`;
+    const repW = ctx.measureText("Rep").width;
+    const dexW = ctx.measureText("Dex").width;
+    const iconS = 36;
+    let bx = W - PAD - dexW - repW - (icon ? iconS + 10 : 0);
+    if (icon) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(bx, 58 - 27, iconS, iconS, 8);
+      ctx.clip();
+      ctx.drawImage(icon, bx, 58 - 27, iconS, iconS);
+      ctx.restore();
+      bx += iconS + 10;
+    }
     ctx.textAlign = "left";
+    ctx.fillStyle = c.text;
+    ctx.fillText("Rep", bx, 58);
+    ctx.fillStyle = c.accent;
+    ctx.fillText("Dex", bx + repW, 58);
 
     // Grid
     page.items.forEach((it, i) => {
       const x = PAD + (i % COLS) * CELL_W;
       const y = head + Math.floor(i / COLS) * CELL_H;
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#dde1e6";
+      ctx.fillStyle = c.surface;
+      ctx.strokeStyle = c.line;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(x + 4, y + 4, CELL_W - 8, CELL_H - 8, 14);
@@ -149,7 +187,7 @@ export async function wishlistImages(opts: {
       const signW = sign ? ctx.measureText(sign).width + 5 : 0;
       let cx = x + (CELL_W - noW - signW) / 2;
       ctx.font = `400 15px ${FONT}`;
-      ctx.fillStyle = "#5f6b7a";
+      ctx.fillStyle = c.muted;
       ctx.fillText(no, cx, y + PIC + 28);
       cx += noW;
       if (sign) {
@@ -159,7 +197,7 @@ export async function wishlistImages(opts: {
       }
       // Name, up to two lines.
       ctx.textAlign = "center";
-      ctx.fillStyle = "#1b1f24";
+      ctx.fillStyle = c.text;
       ctx.font = `600 15px ${FONT}`;
       wrap(ctx, it.name, CELL_W - 16, 2).forEach((line, l) => ctx.fillText(line, x + CELL_W / 2, y + PIC + 50 + l * 19));
       ctx.textAlign = "left";
@@ -168,16 +206,16 @@ export async function wishlistImages(opts: {
     // Search phrase
     if (phrase.length) {
       const y0 = head + rows * CELL_H + 16;
-      ctx.fillStyle = "#5f6b7a";
+      ctx.fillStyle = c.muted;
       ctx.font = `600 18px ${FONT}`;
       ctx.fillText(opts.searchLabel, PAD, y0 + 18);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#dde1e6";
+      ctx.fillStyle = c.surface;
+      ctx.strokeStyle = c.line;
       ctx.beginPath();
       ctx.roundRect(PAD, y0 + 30, W - PAD * 2, phrase.length * 28 + 16, 10);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "#1b1f24";
+      ctx.fillStyle = c.text;
       ctx.font = `20px ui-monospace, Menlo, Consolas, monospace`;
       phrase.forEach((line, l) => ctx.fillText(line, PAD + 12, y0 + 58 + l * 28));
     }

@@ -4,6 +4,10 @@ RepDex follows [semantic versioning](https://semver.org): `0.x` during the beta,
 new features, the last for fixes. The version lives in `package.json` and shows in the top bar and at
 the bottom of Settings (with the build, the commit it was built from).
 
+## 0.10.1 – 2026-10-17
+
+- Wishlist images follow the light or dark theme, with the RepDex logo (icon, "Rep" and a green "Dex") as in the top bar.
+
 ## 0.10.0 – 2026-10-17
 
 - **Collection spreadsheet** now holds the whole collection for the dexes you show: an Instructions tab,
