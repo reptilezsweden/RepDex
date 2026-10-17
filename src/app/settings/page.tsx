@@ -1,3 +1,4 @@
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ALWAYS_ON, GENDER_GROUPS, SETTING_GROUPS, SHINY_SETTINGS, allFormsOn, dexByKey, genderOn, isOn } from "@/lib/dexes";
@@ -17,6 +18,7 @@ export default async function SettingsPage() {
     <>
       <div className="dex-head">
         <h1>{t.settings}</h1>
+        <HelpLink guide="settings" label={t.helpFor} />
         {profile.role === "admin" && <Link href="/admin" className="head-link">{t.admin}</Link>}
       </div>
       <NicknameForm t={t} current={profile.nickname ?? ""} />

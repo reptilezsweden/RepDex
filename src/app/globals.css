@@ -741,3 +741,34 @@ a.start-link:hover { border-color: var(--accent); }
 
 /* Wishlists: Save as image next to the search phrase */
 .search-row .save-image { flex: none; }
+
+/* Help: guide list, guide pages, the ? link next to page titles */
+.help-link { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line); color: var(--muted); font-size: 0.85rem; font-weight: 700; text-decoration: none; flex: none; }
+.help-link:hover { color: var(--text); border-color: var(--muted); }
+.guide-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.guide-tile { display: flex; flex-direction: column; gap: 4px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; }
+.guide-tile .name { font-weight: 700; }
+.guide-tile .sub { color: var(--muted); font-size: 0.85rem; }
+.guide-tile.first { border-color: var(--accent); }
+.guide { max-width: 760px; }
+.guide h2 { font-size: 1.1rem; margin: 22px 0 6px; }
+.guide p, .guide li, .guide dd { line-height: 1.55; }
+.guide li { margin: 4px 0; }
+.guide code { font-size: 0.85em; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.guide .faq dt { font-weight: 700; margin-top: 14px; }
+.guide .faq dd { margin: 4px 0 0; }
+.guide .guide-legend ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; }
+.guide .guide-legend li { display: flex; align-items: center; gap: 8px; }
+.guide .legend-icon { vertical-align: middle; margin-right: 4px; }
+.guide-more { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 8px; }
+.guide-more ul { display: flex; flex-wrap: wrap; gap: 6px 16px; list-style: none; padding: 0; }
+/* Start page: Getting started */
+.first-use { margin-bottom: 16px; }
+.first-use-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.first-use-head h2 { margin: 0; }
+.first-use ol { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.first-use li { display: flex; align-items: center; gap: 10px; }
+.first-use .step-mark { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); font-weight: 700; font-size: 0.85rem; flex: none; }
+.first-use li.done .step-mark { background: var(--done); border-color: var(--done); color: #fff; }
+.first-use li.done a { color: var(--muted); }
+.first-use .optional { color: var(--muted); font-size: 0.8rem; }

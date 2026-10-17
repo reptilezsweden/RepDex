@@ -1,3 +1,4 @@
+import { HelpLink } from "@/components/help-link";
 import { displayName, type Pokemon } from "@/lib/dexes";
 import { LOCALE, type Dict, type Lang } from "@/lib/i18n";
 import { EventsClient, type EventData, type DexChoice } from "./events-client";
@@ -82,7 +83,7 @@ export function EventsView({ events: list, pokemon, all, now, lang, t, missingIn
 
   return (
     <div className="events-page">
-      <h1>{t.events}</h1>
+      <div className="dex-head"><h1>{t.events}</h1><HelpLink guide="events" label={t.helpFor} /></div>
       <p className="hint">{t.eventsIntro}</p>
       <EventsClient
         events={events}

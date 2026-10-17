@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -106,6 +107,7 @@ export function FullTable({ title, columns: allColumns, rows: allRows, gens, use
     <>
       <div className="dex-head">
         <h1>{title}</h1>
+        <HelpLink guide="full-collection" label={t.helpFor} />
         <span className="count">{doneCells} / {allCells.length}</span>
       </div>
       <div className="filters full-filters">

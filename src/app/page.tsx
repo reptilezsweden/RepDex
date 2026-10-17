@@ -7,6 +7,8 @@ import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { adminPending } from "@/lib/admin";
 import { getDict, getProfile } from "@/lib/session";
 import { LOCALE, type Lang } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/server";
+import { FirstUse } from "./first-use";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +28,10 @@ export default async function Home() {
     const d = e.starts_at.slice(0, 10);
     eventsOn.set(d, [...(eventsOn.get(d) ?? []), e.name]);
   }
+  // Getting started: whether the user has saved settings (visible_dexes is set on first save) and ticked anything.
+  const hasTicks = profile
+    ? ((await (await createClient()).from("ticks").select("pokemon_id", { count: "exact", head: true })).count ?? 0) > 0
+    : false;
   const fmt = new Intl.DateTimeFormat(LOCALE[lang], { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
   return (
@@ -50,6 +56,8 @@ export default async function Home() {
           </Link>
         )}
       </nav>
+
+      {profile && <FirstUse t={t} settingsDone={profile.visible_dexes != null} hasTicks={hasTicks} />}
 
       <h1 className="section-title">{t.recentReleases}</h1>
       {recent.length === 0 ? <p className="empty">{t.noRecent}</p> : <ReleaseList groups={recent} fmt={fmt} t={t} lang={lang} eventsOn={eventsOn} />}

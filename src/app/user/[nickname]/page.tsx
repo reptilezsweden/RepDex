@@ -1,3 +1,4 @@
+import { HelpLink } from "@/components/help-link";
 import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { WishlistTabs } from "@/app/wishlists/wishlist-tabs";
 import { getPokemon } from "@/lib/data";
@@ -69,6 +70,7 @@ export default async function PublicUserPage({ params }: { params: Promise<{ nic
     <>
       <div className="dex-head">
         <h1>{rows[0].nickname}</h1>
+        <HelpLink guide="wishlists" label={t.helpFor} />
         <span className="count">{t.wishlists}</span>
       </div>
       <p className="note">{t.publicWishlistsHelp}</p>

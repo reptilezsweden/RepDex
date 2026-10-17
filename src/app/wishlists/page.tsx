@@ -1,3 +1,4 @@
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPokemon } from "@/lib/data";
@@ -29,6 +30,7 @@ export default async function WishlistsPage() {
     <>
       <div className="dex-head">
         <h1>{t.wishlists}</h1>
+        <HelpLink guide="wishlists" label={t.helpFor} />
         {publicHref && <Link href={publicHref} className="public-link">{t.yourPublicPage}: {publicHref}</Link>}
       </div>
       <p className="note">{t.wishlistsHelp}</p>

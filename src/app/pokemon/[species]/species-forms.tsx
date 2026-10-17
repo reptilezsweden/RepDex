@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BadgeButton, BadgeIcon, DexTick, MonImage, PuzzleIcon, ShinySwap, StarButton, StarIcon, TypeBadge, type BadgeIconKind } from "@/components/mon-ui";
@@ -177,6 +178,7 @@ export function SpeciesForms({
       </nav>
       <div className="dex-head">
         <h1>{title}</h1>
+        <HelpLink guide="pokemon-pages" label={t.helpFor} />
         <span className="count">#{String(no).padStart(4, "0")}</span>
         <button type="button" role="switch" aria-checked={wantedMode} className="switch" style={{ marginLeft: "auto" }} onClick={() => setWantedMode(!wantedMode)}>
           <span className="track" aria-hidden="true"><span className="knob" /></span>

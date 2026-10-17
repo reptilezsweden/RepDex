@@ -1,3 +1,4 @@
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -81,7 +82,7 @@ export default async function DexesPage() {
 
   return (
     <>
-      <h1>{t.dexes}</h1>
+      <div className="dex-head"><h1>{t.dexes}</h1><HelpLink guide="dexes" label={t.helpFor} /></div>
       <div className="dex-list">
         <Link href="/full" className="dex-tile full-tile">
           <div className="tile-main">

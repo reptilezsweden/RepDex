@@ -31,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {profile && <Link href="/dexes">{t.dexes}</Link>}
       {profile && <Link href="/wishlists">{t.wishlists}</Link>}
       <Link href="/events">{t.events}</Link>
+      <Link href="/help">{t.help}</Link>
       {profile && <Link href="/settings">{t.settings}</Link>}
       {profile ? (
         <form action={signOut}>

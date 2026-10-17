@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpLink } from "@/components/help-link";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ConfirmSlider } from "@/components/confirm-slider";
@@ -468,6 +469,7 @@ export function DexGrid({
     <>
       <div className="dex-head">
         <h1>{title}</h1>
+        <HelpLink guide="dexes" label={t.helpFor} />
         {notInGame && <span className="not-in-game" title={t.notInGameHelp}>{t.notInGame}</span>}
         {counters(cards)}
         {canSwitchForms && (
