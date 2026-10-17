@@ -1,10 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MonImage } from "@/components/mon-ui";
+import { BadgeIcon, MonImage, StarIcon } from "@/components/mon-ui";
+import { DEX_ICON } from "@/lib/dex-icons";
+import { dexByKey } from "@/lib/dexes";
 import type { Dict, Lang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import type { Wishlist } from "@/lib/wishlists";
+
+/** The icon a dex ticks with: its badge, a star for Shiny / Shiny ⭐⭐⭐, else the checkmark. */
+function DexMark({ dex, lang }: { dex: string; lang: Lang }) {
+  const label = dexByKey(dex)?.name[lang] ?? dex;
+  const badge = DEX_ICON[dex];
+  return (
+    <span className="wish-dex" title={label} aria-label={label} role="img">
+      {badge ? <span className="badge slot-icon"><BadgeIcon kind={badge} size={16} /></span>
+        : dex === "shiny" || dex === "shiny3" ? <StarIcon kind={dex === "shiny3" ? "star3" : "star"} size={16} />
+          : (
+            <span className="count-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-6.5" /></svg>
+            </span>
+          )}
+    </span>
+  );
+}
 
 function CopyIcon() {
   return (
@@ -149,7 +168,10 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
               {current.items.map((i) => (
                 <li key={i.id} className={big === i.id ? "big" : undefined} onClick={() => tapItem(i.id)}>
                   <MonImage file={i.image} size={48} />
-                  <span className="no">#{String(i.no).padStart(4, "0")}</span>
+                  <span className="no">
+                    #{String(i.no).padStart(4, "0")}
+                    {i.dexes && i.dexes.map((d) => <DexMark key={d} dex={d} lang={lang} />)}
+                  </span>
                   <span className="nm">
                     {i.name}
                     {i.gender && <span className={`g-sign ${i.gender === "♂" ? "m" : "f"}`} aria-label={i.gender === "♂" ? t.male : t.female}> {i.gender}</span>}
