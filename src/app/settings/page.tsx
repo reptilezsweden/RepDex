@@ -6,6 +6,7 @@ import { signOut } from "../auth-actions";
 import { CollectionForm } from "./collection-form";
 import { NicknameForm } from "./nickname-form";
 import { SettingsForm } from "./settings-form";
+import { APP_BUILD, APP_VERSION } from "@/lib/version";
 
 export default async function SettingsPage() {
   const profile = await getProfile();
@@ -46,6 +47,7 @@ export default async function SettingsPage() {
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{profile.email}</p>
         <button className="btn ghost">{t.signOut}</button>
       </form>
+      <p className="app-version">RepDex {APP_VERSION}{APP_BUILD ? ` · ${APP_BUILD}` : ""}</p>
     </>
   );
 }

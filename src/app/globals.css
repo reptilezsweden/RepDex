@@ -723,3 +723,6 @@ a.start-link:hover { border-color: var(--accent); }
 .phrase-row .phrase-source { font-weight: 600; overflow-wrap: anywhere; }
 .phrase-row .row-msg { grid-column: 1 / -1; }
 @media (max-width: 640px) { .phrase-row { grid-template-columns: 1fr; } }
+
+/* Settings: app version at the bottom */
+.app-version { margin: 24px 0 8px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }

@@ -5,6 +5,7 @@ import { getDict, getProfile } from "@/lib/session";
 import { signOut } from "./auth-actions";
 import { MenuButton } from "./menu-button";
 import { UnsavedGuard } from "./unsaved-guard";
+import { APP_VERSION } from "@/lib/version";
 import { LanguagePicker } from "./language-picker";
 import { ServiceWorker } from "./sw-register";
 
@@ -45,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={lang}>
       <body>
         <header className="topbar">
-          <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion}</small></Link>
+          <Link href="/" className="brand">Rep<span>Dex</span><small className="beta">{t.betaVersion} {APP_VERSION}</small></Link>
           {/* Wide screens: the links in a row. Narrow screens: the same links behind a ☰ button. */}
           <nav className="nav-wide">{links("lang-wide")}</nav>
           <MenuButton label={t.menu}>{links("lang-menu")}</MenuButton>
