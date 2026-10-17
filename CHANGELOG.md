@@ -4,6 +4,19 @@ RepDex follows [semantic versioning](https://semver.org): `0.x` during the beta,
 new features, the last for fixes. The version lives in `package.json` and shows in the top bar and at
 the bottom of Settings (with the build, the commit it was built from).
 
+## 0.10.0 – 2026-10-17
+
+- **Collection spreadsheet** now holds the whole collection for the dexes you show: an Instructions tab,
+  then one tab per dex group with a column per dex (shiny included), every form, ♀ rows where gender is
+  tracked, and TRUE / FALSE / WANTED. Uploads are checked first: a per-tab summary, changes made by the
+  tick rules, and skipped cells (copyable), saved only after **Save changes**. Old one-tab files are no
+  longer read.
+- **Check all / Uncheck all** says when both ♂ and ♀ are changed.
+- **Wishlists**: Save as image (share sheet on phones, PNG on desktop; long lists split into several images).
+- **Help**: guides for getting started, settings, dexes, icons, events, wishlists, Full collection, Pokémon
+  pages, the spreadsheet, installing the app, sharing, release dates and an FAQ (English and Swedish), a
+  Help link in the menu and a ? next to each page title. A Getting started card on the start page.
+
 ## 0.9.0 – 2026-10-17 (first numbered beta)
 
 Everything built so far, as the starting point for the beta:
