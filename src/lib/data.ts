@@ -12,7 +12,10 @@ const PAGE = 1000; // Supabase returns at most 1,000 rows per request.
 
 const plainClient = () => createPlainClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
-/** The full availability list. Public data, cached for 1 minute across requests. */
+/**
+ * The full availability list with its translations. Public data, cached for a day across requests;
+ * the database clears the cache on every write to these tables (/api/revalidate, migration 0030).
+ */
 export const getPokemon = unstable_cache(
   async (): Promise<Pokemon[]> => {
     const supabase = plainClient();
@@ -46,7 +49,7 @@ export const getPokemon = unstable_cache(
     });
   },
   ["pokemon-list-translations"],
-  { revalidate: 60, tags: ["pokemon"] },
+  { revalidate: 86400, tags: ["pokemon"] },
 );
 
 /** Every row of a query, paged past the 1,000-row limit. */
@@ -89,5 +92,5 @@ export const getGens = unstable_cache(
     return ((data ?? []) as Gen[]).map((g) => ({ ...g, gen_nr: Number(g.gen_nr) }));
   },
   ["gens-list"],
-  { revalidate: 3600, tags: ["gens"] },
+  { revalidate: 86400, tags: ["gens"] },
 );
