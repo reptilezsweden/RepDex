@@ -9,14 +9,14 @@ import { createClient } from "@/lib/supabase/client";
 import type { Wishlist } from "@/lib/wishlists";
 import { wishlistImages } from "@/lib/wishlist-image";
 
-/** The icon a dex ticks with: its badge, a star for Shiny / Shiny ⭐⭐⭐, else the checkmark. */
+/** The icon a dex ticks with: its badge, a star for shiny dexes without one, else the checkmark. */
 function DexMark({ dex, lang }: { dex: string; lang: Lang }) {
   const label = dexByKey(dex)?.name[lang] ?? dex;
   const badge = DEX_ICON[dex];
   return (
     <span className="wish-dex" title={label} aria-label={label} role="img">
       {badge ? <span className="badge slot-icon"><BadgeIcon kind={badge} size={16} /></span>
-        : dex === "shiny" || dex === "shiny3" ? <StarIcon kind={dex === "shiny3" ? "star3" : "star"} size={16} />
+        : dex === "shiny" || dex === "shiny3" || dex.endsWith("_shiny") ? <StarIcon kind={dex === "shiny3" ? "star3" : "star"} size={16} />
           : (
             <span className="count-check" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" /><path d="M7.5 12.5l3 3 6-6.5" /></svg>

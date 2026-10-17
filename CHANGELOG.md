@@ -4,6 +4,10 @@ RepDex follows [semantic versioning](https://semver.org): `0.x` during the beta,
 new features, the last for fixes. The version lives in `package.json` and shows in the top bar and at
 the bottom of Settings (with the build, the commit it was built from).
 
+## 0.10.2 – 2026-10-17
+
+- Every wishlist marks each Pokémon with the icon of the dex it's missing in (XXS, XXL, Gigantamax, Dynamax, Costume/Event and its shiny too), on the page and in saved images.
+
 ## 0.10.1 – 2026-10-17
 
 - Wishlist images follow the light or dark theme, with the RepDex logo (icon, "Rep" and a green "Dex") as in the top bar.

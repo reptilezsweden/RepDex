@@ -12,12 +12,18 @@ const CELL_W = (W - PAD * 2) / COLS;
 const CELL_H = 184;
 const PIC = 104;
 
-/** Short labels and colours for the dex marks on combined lists (Caught + Lucky, Shiny + ⭐⭐⭐). */
+/** Short labels and colours for the dex marks: which dex each Pokémon is missing in. */
 const MARKS: Record<string, { text: string; bg: string; fg: string }> = {
   caught: { text: "✓", bg: "#2e9e5b", fg: "#fff" },
   lucky: { text: "Lucky", bg: "#f2c94c", fg: "#5a4500" },
   shiny: { text: "★", bg: "#f5c518", fg: "#5a4500" },
   shiny3: { text: "★★★", bg: "#f5c518", fg: "#5a4500" },
+  xxl: { text: "XXL", bg: "#3b6fd8", fg: "#fff" },
+  xxs: { text: "XXS", bg: "#e0742c", fg: "#fff" },
+  gigantamax: { text: "G-Max", bg: "#d6336c", fg: "#fff" },
+  dynamax: { text: "Dynamax", bg: "#3a3a3a", fg: "#fff" },
+  costumes: { text: "Costume", bg: "#2e9e5b", fg: "#fff" },
+  costumes_shiny: { text: "Costume ★", bg: "#f5c518", fg: "#5a4500" },
 };
 
 function loadImage(file: string | null): Promise<HTMLImageElement | null> {

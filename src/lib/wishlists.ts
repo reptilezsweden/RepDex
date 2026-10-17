@@ -48,7 +48,7 @@ export function wishlistDefs(shiny3: boolean): WishlistDef[] {
 
 export interface WishItem {
   id: string; no: number; name: string; image: string | null; gender?: "♂" | "♀";
-  /** On lists made of several dexes (Caught + Lucky): the dexes it's missing in, in list order. */
+  /** The dexes it's missing in, in list order (two on Caught + Lucky and Shiny + ⭐⭐⭐). */
   dexes?: string[];
 }
 /** search: the phrase for an English game; searchJa: the same for a Japanese game. */
@@ -98,10 +98,9 @@ export function buildWishlist(
       if (!p) continue;
       // Keyed by row, so Caught (per form) and Lucky (per species) don't list the same Pokémon twice.
       const id = p.id;
-      const multi = def.dexes.length > 1;
       const have = items.get(id);
       if (have) {
-        if (multi && !have.dexes!.includes(key)) have.dexes!.push(key);
+        if (!have.dexes!.includes(key)) have.dexes!.push(key);
         continue;
       }
       // Only Pokémon that come in both genders get a ♂/♀ mark.
@@ -112,7 +111,7 @@ export function buildWishlist(
         name: perForm ? displayName(p, lang) : speciesName(e.pokemon, lang),
         image: (def.shiny ? p.image_shiny : null) ?? p.image_regular,
         ...(gender ? { gender } : {}),
-        ...(multi ? { dexes: [key] } : {}),
+        dexes: [key],
       });
       const evolving = p.form_type === "Regular" || p.form_type === "Form" || (p.form_type === "Gender" && !!p.gender_of);
       if (def.evolves && p.family != null && evolving) {
