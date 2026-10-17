@@ -573,6 +573,7 @@ a.start-link:hover { border-color: var(--accent); }
 /* Lists made of several dexes (Caught + Lucky): which dex each Pokémon is missing in. */
 .wish-grid .no { display: inline-flex; align-items: center; gap: 3px; }
 .wish-grid .wish-dex { display: inline-grid; place-items: center; }
+.wish-grid .wish-dex .star-icon path { fill: #f5c518; stroke: #d9a800; stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 /* Big picture: the image shows at 128px, centred on its box (hover on desktop, tap on touch screens); the box keeps its size. */
 .wish-grid li { position: relative; }
 .wish-grid li.big img, .wish-grid li.big .noimg { position: absolute; left: 50%; top: 50%; width: 128px; height: 128px; transform: translate(-50%, -50%); z-index: 2; pointer-events: none; }
