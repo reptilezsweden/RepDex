@@ -79,7 +79,21 @@ export function WishlistTabs({ lists, t, lang = "en", userId, initialPublic = []
     void createClient().from("profiles").update({ wish_lowest: next }).eq("id", userId)
       .then(({ error }: { error: unknown }) => setSaveFailed(!!error));
   }
-  const [tab, setTab] = useState(lists[0]?.key ?? "");
+  const [tab, setTabState] = useState(lists[0]?.key ?? "");
+  // Each tab has its own link (#shiny, #xxs…), so a list can be bookmarked or shared directly.
+  function setTab(key: string) {
+    setTabState(key);
+    try { history.replaceState(null, "", `#${key}`); } catch { /* link not updated */ }
+  }
+  useEffect(() => {
+    const fromHash = () => {
+      const key = decodeURIComponent(location.hash.slice(1));
+      if (lists.some((l) => l.key === key)) setTabState(key);
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, [lists]);
   const [gameLang, setGameLang] = useState<"en" | "ja">(lang === "ja" ? "ja" : "en");
   useEffect(() => {
     try {
